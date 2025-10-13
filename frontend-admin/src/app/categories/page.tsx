@@ -1,31 +1,20 @@
 "use client";
-import React, { useMemo } from "react";
-import data from "../../data/product";
 import { AdminTable } from "@/components/admin/AdminTable";
+import data from "@/data/product";
 import { useRouter } from "next/navigation";
+import React from "react";
 
-export default function ProductPage() {
-  const { products } = data;
+const CategoryPage = () => {
+  const { categories } = data;
   const router = useRouter();
-
-  const productVariants = useMemo(() => {
-    return products.flatMap((product) =>
-      product.variants.map((variant) => ({
-        ...variant,
-        productName: product.name,
-        created_at: product.created_at,
-        updated_at: product.updated_at,
-      }))
-    );
-  }, [products]);
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Products</h1>
+      <h1 className="text-2xl font-bold mb-4">Categories</h1>
       <AdminTable
-        data={productVariants}
+        data={categories}
         columns={[
           { key: "id", label: "id", sortable: true },
-          { key: "productName", label: "Name" },
+          { key: "name", label: "Name" },
           {
             key: "created_at",
             label: "Created At",
@@ -44,4 +33,6 @@ export default function ProductPage() {
       />
     </div>
   );
-}
+};
+
+export default CategoryPage;

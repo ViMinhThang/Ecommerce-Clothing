@@ -3,8 +3,31 @@
 const categories = [
   {
     id: 1,
-    name: "Áo thun",
+    name: "Áo vbcvbcvbcvthun",
     description: "Các loại áo thun thời trang unisex",
+    created_at: "2025-10-12T10:00:00Z",
+    updated_at: "2025-10-12T10:00:00Z",
+  },
+  {
+    id: 1,
+    name: "Áo 12312312",
+    description: "Các loại áo thun thời trang unisex",
+    created_at: "2025-10-12T10:00:00Z",
+    updated_at: "2025-10-12T10:00:00Z",
+  },
+  {
+    id: 1,
+    name: "Áo wdasdasdthun",
+    description: "Các loại áasdasdasd",
+    created_at: "2025-10-12T10:00:00Z",
+    updated_at: "2025-10-12T10:00:00Z",
+  },
+  {
+    id: 1,
+    name: "Áo 123123thun",
+    description: "Các loại áo123123dfsdvcxvx",
+    created_at: "2025-10-12T10:00:00Z",
+    updated_at: "2025-10-12T10:00:00Z",
   },
 ];
 
@@ -42,7 +65,8 @@ const products = [
         sku: "TS-RED-S",
         price: 123123123,
         stock_quantity: 50,
-        image_url: "/images/products/ts-red-s.jpg",
+        image_url: "https://placehold.co/300x200/png",
+        isActive: true,
       },
       {
         id: 2,
@@ -51,7 +75,8 @@ const products = [
         sku: "TS-RED-M",
         price: 1111111,
         stock_quantity: 30,
-        image_url: "/images/products/ts-red-m.jpg",
+        image_url: "https://placehold.co/300x200/png",
+        isActive: true,
       },
       {
         id: 3,
@@ -60,7 +85,8 @@ const products = [
         sku: "TS-BLU-S",
         price: 100000,
         stock_quantity: 20,
-        image_url: "/images/products/ts-blue-s.jpg",
+        image_url: "https://placehold.co/300x200/png",
+        isActive: true,
       },
       {
         id: 4,
@@ -69,12 +95,9 @@ const products = [
         sku: "TS-BLU-M",
         price: 199000,
         stock_quantity: 25,
-        image_url: "/images/products/ts-blue-m.jpg",
+        image_url: "https://placehold.co/300x200/png",
+        isActive: true,
       },
-    ],
-    images: [
-      { id: 1, image_url: "/images/products/ts-main.jpg", is_primary: true },
-      { id: 2, image_url: "/images/products/ts-alt1.jpg", is_primary: false },
     ],
   },
 ];

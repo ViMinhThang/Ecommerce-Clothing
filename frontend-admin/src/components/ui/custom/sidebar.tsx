@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Users, SquareChartGantt, StretchHorizontal } from "lucide-react";
+import {
+  Home,
+  Users,
+  SquareChartGantt,
+  StretchHorizontal,
+  Album,
+} from "lucide-react";
 
 const menuItems = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Users", href: "/users", icon: Users },
   { name: "Products", href: "/products", icon: StretchHorizontal },
+  { name: "Categories", href: "/categories", icon: Album },
   { name: "Orders", href: "/orders", icon: SquareChartGantt },
 ];
 
