@@ -101,7 +101,98 @@ const products = [
     ],
   },
 ];
-
-const data = { categories, products, brands };
+const users = [
+  {
+    id: 1,
+    username: "admin",
+    email: "admin@example.com",
+    role: "admin",
+    created_at: "2025-10-10T09:00:00Z",
+    updated_at: "2025-10-12T12:00:00Z",
+  },
+  {
+    id: 2,
+    username: "john_doe",
+    email: "john@example.com",
+    role: "editor",
+    created_at: "2025-10-11T08:30:00Z",
+    updated_at: "2025-10-13T11:00:00Z",
+  },
+  {
+    id: 3,
+    username: "jane_smith",
+    email: "jane@example.com",
+    role: "viewer",
+    created_at: "2025-10-12T07:45:00Z",
+    updated_at: "2025-10-13T10:15:00Z",
+  },
+];
+const orders = [
+  {
+    id: 101,
+    user_email: "abc@gmail.com",
+    status: "completed",
+    total_amount: 520000,
+    payment_method: "credit_card", // credit_card | cash | paypal
+    shipping_address: "123 Đường Nguyễn Trãi, Quận 5, TP.HCM",
+    created_at: "2025-10-13T09:15:00Z",
+    updated_at: "2025-10-13T11:30:00Z",
+    items: [
+      {
+        product_id: 1,
+        variant_id: 1,
+        quantity: 2,
+        unit_price: 250000,
+        subtotal: 500000,
+      },
+      {
+        product_id: 1,
+        variant_id: 2,
+        quantity: 1,
+        unit_price: 20000,
+        subtotal: 20000,
+      },
+    ],
+  },
+  {
+    id: 102,
+    user_email: "abc@gmail.com",
+    status: "pending",
+    total_amount: 250000,
+    payment_method: "cash",
+    shipping_address: "45 Lý Thường Kiệt, Quận 10, TP.HCM",
+    created_at: "2025-10-14T08:45:00Z",
+    updated_at: "2025-10-14T09:00:00Z",
+    items: [
+      {
+        product_id: 1,
+        variant_id: 1,
+        quantity: 1,
+        unit_price: 250000,
+        subtotal: 250000,
+      },
+    ],
+  },
+  {
+    id: 103,
+    user_email: "abc@gmail.com",
+    status: "cancelled",
+    total_amount: 270000,
+    payment_method: "paypal",
+    shipping_address: "12 Nguyễn Văn Cừ, Quận 1, TP.HCM",
+    created_at: "2025-10-11T10:00:00Z",
+    updated_at: "2025-10-12T08:00:00Z",
+    items: [
+      {
+        product_id: 1,
+        variant_id: 2,
+        quantity: 1,
+        unit_price: 270000,
+        subtotal: 270000,
+      },
+    ],
+  },
+];
+const data = { categories, products, brands, users, orders };
 
 export default data;
