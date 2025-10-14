@@ -12,8 +12,8 @@ type Column<T> = {
 type AdminTableProps<T extends object> = {
   columns: Column<T>[];
   data: T[];
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
+  onEdit?: (item: T, type: string) => void;
+  onDelete?: (item: T, type: string) => void;
 };
 
 export function AdminTable<T extends object>({
@@ -99,11 +99,11 @@ export function AdminTable<T extends object>({
           <div className="flex items-center gap-4 px-4 py-3">
             <Bolt
               className="cursor-pointer text-slate-500 hover:text-blue-500"
-              onClick={() => onEdit?.(item)}
+              onClick={() => onEdit?.(item, "edit")}
             />
             <Trash
               className="cursor-pointer text-slate-500 hover:text-red-500"
-              onClick={() => onDelete?.(item)}
+              onClick={() => onDelete?.(item, "delete")}
             />
           </div>
         </div>
