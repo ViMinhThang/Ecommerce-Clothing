@@ -4,7 +4,7 @@ import Image from "next/image";
 // 🧩 Variant table row
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const VariantRow = ({ item }: { item: any }) => (
-  <div className="grid grid-cols-7 border-b hover:bg-slate-50 transition-colors">
+  <div className="grid grid-cols-7 border-b hover:bg-secondary transition-colors">
     <div className="text-slate-700 pe-2 py-2">
       <Image
         className="rounded-lg object-cover"

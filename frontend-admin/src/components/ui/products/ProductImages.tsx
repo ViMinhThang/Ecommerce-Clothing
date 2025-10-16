@@ -10,7 +10,6 @@ export const ProductImages = () => {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // 📸 Upload ảnh
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -21,14 +20,12 @@ export const ProductImages = () => {
     setImages((prev) => [...prev, ...newImages]);
   };
 
-  // 🗑️ Xóa ảnh
   const handleDelete = (url: string) => {
     setImages((prev) => prev.filter((img) => img !== url));
     setSelectedImages((prev) => prev.filter((img) => img !== url));
     setError(null);
   };
 
-  // ✅ Chọn ảnh (tối đa 4)
   const handleSelect = (url: string) => {
     if (selectedImages.includes(url)) {
       setSelectedImages((prev) => prev.filter((img) => img !== url));
@@ -43,7 +40,6 @@ export const ProductImages = () => {
     }
   };
 
-  // 💾 Submit 4 ảnh đã chọn
   const handleSave = () => {
     if (selectedImages.length === 0) {
       setError("Please select up to 4 images before submitting.");
@@ -52,19 +48,17 @@ export const ProductImages = () => {
 
     setError(null);
 
-    // 👉 Thay đoạn này bằng logic thật (upload hoặc gửi API)
     console.log("Selected images to submit:", selectedImages);
     alert(`Submitting ${selectedImages.length} selected images.`);
   };
 
   return (
-    <div className="bg-white p-5 rounded-lg">
+    <div className="bg-background p-5 rounded-lg border-3">
       <h1 className="font-bold text-lg mb-5">Product Images</h1>
 
-      {/* Upload area */}
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-gray-300 p-10 text-center rounded-lg cursor-pointer hover:bg-gray-50 transition"
+        className="border-2 border-dashed border-gray-300 p-10 text-center rounded-lg cursor-pointer hover:bg-background transition"
       >
         <Upload className="mx-auto mb-2 text-gray-500" size={28} />
         <p className="text-gray-600">Click to upload product images</p>
@@ -135,7 +129,7 @@ export const ProductImages = () => {
           className={`${
             selectedImages.length === 0
               ? "opacity-50 cursor-not-allowed"
-              : "cursor-pointer"
+              : "cursor-pointer bg-background border-secondary"
           }`}
         >
           Save ({selectedImages.length}/4)

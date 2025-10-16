@@ -22,7 +22,7 @@ const Page = () => {
 
         {/* Right Section */}
         <div className="flex flex-col gap-5 w-[20%]">
-          <div className="bg-white rounded-lg p-5">
+          <div className="bg-background rounded-lg p-5 border-3">
             <RadioGroup
               name="active"
               label="Set Active"

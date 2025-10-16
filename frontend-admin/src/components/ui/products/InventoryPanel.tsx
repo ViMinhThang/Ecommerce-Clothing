@@ -4,7 +4,7 @@ import { RadioGroup } from "@/components/ui/custom/RadioGroup";
 import { InputWithLabel } from "@/components/ui/InputWithLabel";
 
 export const InventoryPanel = () => (
-  <div className="bg-white rounded-lg p-5">
+  <div className="bg-background rounded-lg p-5 border-3">
     <h1 className="font-bold text-lg mb-5">Inventory</h1>
     <div className="flex flex-col w-[75%] gap-5">
       <RadioGroup name="manageStock" label="Manage Stock" />
@@ -16,6 +16,8 @@ export const InventoryPanel = () => (
         id="quantity"
       />
     </div>
-    <Button className="mt-5 cursor-pointer">Save</Button>
+    <Button className="mt-5 cursor-pointer bg-background border-2 text-foreground border-secondary">
+      Save
+    </Button>
   </div>
 );
