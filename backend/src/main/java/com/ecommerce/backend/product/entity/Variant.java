@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 @Entity
 @Data
 @NoArgsConstructor
@@ -20,10 +24,11 @@ public class Variant {
     private Long variantId;
 
     private Double price;
-
     private Integer quantity;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @ToString.Exclude
     private Product product;
 
     @ManyToOne
@@ -33,6 +38,13 @@ public class Variant {
     @ManyToOne
     @JoinColumn(name = "color_id")
     private Color color;
-    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+
+    @OneToMany(
+            mappedBy = "variant",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @ToString.Exclude
     private List<VariantImage> images = new ArrayList<>();
 }

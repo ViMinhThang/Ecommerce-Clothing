@@ -6,7 +6,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -32,10 +35,11 @@ public class VariantController {
         return new ResponseEntity<>(variant, HttpStatus.CREATED);
     }
 
+    @Transactional
     @DeleteMapping("/admin/variants/{variantId}")
-    public ResponseEntity<VariantDTO> deleteVariant(@PathVariable Long variantId){
-        VariantDTO variantDTO = variantService.deleteVariant(variantId);
-        return new ResponseEntity<>(variantDTO, HttpStatus.OK);
+    public ResponseEntity<String> deleteVariant(@PathVariable Long variantId){
+         variantService.deleteVariant(variantId);
+        return new ResponseEntity<>("Deleted", HttpStatus.OK);
     }
 
 
@@ -43,6 +47,7 @@ public class VariantController {
     public ResponseEntity<VariantDTO> updateVariant(@Valid @RequestBody VariantDTO variantDTO,
                                                 @PathVariable Long variantId){
         VariantDTO variant = variantService.updateVariant(variantDTO, variantId);
+
         return new ResponseEntity<>(variant, HttpStatus.OK);
     }
 }

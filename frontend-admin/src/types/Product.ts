@@ -23,6 +23,14 @@ export interface Variant {
   color: Color;
   images: VariantImage[];
 }
+export interface VariantRowType {
+  variantId: number;
+  price: number;
+  quantity: number;
+  size: string;
+  color: string;
+  productName: string;
+}
 
 export interface Product {
   productId: number;

@@ -36,4 +36,9 @@ public class VariantImageServiceImpl implements VariantImageService {
                 .map(img -> modelMapper.map(img, VariantImageDTO.class))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deletImage(VariantImageDTO imageDTO) {
+        variantImageRepository.delete(imageDTO.getId());
+    }
 }

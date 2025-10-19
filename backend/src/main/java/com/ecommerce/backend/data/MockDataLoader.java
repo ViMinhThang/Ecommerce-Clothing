@@ -4,9 +4,11 @@ import com.ecommerce.backend.category.entity.Category;
 import com.ecommerce.backend.category.repositories.CategoryRepository;
 import com.ecommerce.backend.product.entity.*;
 import com.ecommerce.backend.product.repositories.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.List;
 

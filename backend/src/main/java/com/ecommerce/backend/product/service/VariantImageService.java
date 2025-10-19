@@ -8,4 +8,6 @@ public interface VariantImageService {
     public VariantImageDTO addImageToVariant(Long variantId, String imageUrl);
 
     public List<VariantImageDTO> getImagesByVariant(Long variantId);
+
+    void deletImage(VariantImageDTO imageDTO);
 }

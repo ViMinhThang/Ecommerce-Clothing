@@ -3,10 +3,17 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AdminTable } from "@/components/admin/AdminTable";
-import { Product } from "@/types/Product";
+import {
+  Product,
+  ProductResponse,
+  Variant,
+  VariantRowType,
+} from "@/types/Product";
+import { VariantRow } from "@/components/ui/products/VariantRow";
+import { CloseDialog } from "@/components/common/CloseDialog";
 
 export default function ProductPage() {
-  const [productsData, setProductsData] = useState({
+  const [productsData, setProductsData] = useState<ProductResponse>({
     content: [],
     pageNumber: 0,
     pageSize: 10,
@@ -14,13 +21,16 @@ export default function ProductPage() {
     totalPages: 0,
     lastPage: true,
   });
+  const [selectedVariantRow, setSelectedVariantRow] =
+    useState<VariantRowType | null>(null);
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const fetchProducts = async (page = 0, size = 10) => {
     setLoading(true);
     try {
-      const response = await axios.get(
+      const res = await axios.get<ProductResponse>(
         "http://localhost:8080/api/admin/products",
         {
           params: {
@@ -31,9 +41,9 @@ export default function ProductPage() {
           },
         }
       );
-      setProductsData(response.data);
-    } catch (error) {
-      console.error("Error fetch product:", error);
+      setProductsData(res.data);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -43,20 +53,35 @@ export default function ProductPage() {
     fetchProducts(productsData.pageNumber, productsData.pageSize);
   }, []);
 
-  // Flatten variants for table
-  const productVariants = useMemo(() => {
-    return productsData.content.flatMap((product: Product) =>
-      product.variants.map((variant) => ({
-        id: variant.variantId,
-        productName: product.productName,
-        price: variant.price,
-        quantity: variant.quantity,
-        size: variant.size?.name,
-        color: variant.color?.name,
-        images: variant.images?.map((img) => img.imageUrl).join(", "),
-      }))
+  const productVariants: VariantRowType[] = useMemo(() => {
+    return productsData.content.flatMap((product) =>
+      product.variants && product.variants.length > 0
+        ? product.variants.map((variant) => ({
+            variantId: variant.variantId,
+            price: variant.price,
+            quantity: variant.quantity,
+            size: variant.size.name,
+            color: variant.color.name,
+            productName: product.productName,
+          }))
+        : []
     );
   }, [productsData]);
+
+  const deleteVariant = async (variant: VariantRowType) => {
+    try {
+      await axios.delete(
+        `http://localhost:8080/api/admin/variants/${variant.variantId}`
+      );
+      // reload page
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const handleEdit = (item: VariantRowType) => {
+    setSelectedVariantRow(item);
+    setOpen(true);
+  };
   // Pagination handlers
   const handlePrevPage = () => {
     if (productsData.pageNumber > 0) {
@@ -81,15 +106,25 @@ export default function ProductPage() {
           <AdminTable
             data={productVariants}
             columns={[
-              { key: "id", label: "Variant ID", sortable: true },
+              { key: "variantId", label: "Variant ID", sortable: true },
               { key: "productName", label: "Product Name" },
               { key: "price", label: "Price", sortable: true },
               { key: "quantity", label: "Quantity", sortable: true },
-              { key: "size", label: "Size" },
-              { key: "color", label: "Color" },
+              {
+                key: "size",
+                label: "Size",
+                render: (item: VariantRowType) => item.size,
+              },
+              {
+                key: "color",
+                label: "Color",
+                render: (item: VariantRowType) => item.color,
+              },
             ]}
-            onEdit={(item) => router.push(`/products/${item.id}/edit`)}
-            onDelete={(item) => console.log("Delete", item)}
+            onEdit={(item: VariantRowType) =>
+              router.push(`/products/${item.variantId}/edit`)
+            }
+            onDelete={handleEdit}
           />
 
           {/* Pagination */}
@@ -114,6 +149,19 @@ export default function ProductPage() {
           </div>
         </>
       )}
+      <CloseDialog<VariantRowType>
+        open={open}
+        title={`Delete a variant`}
+        field={`Do you want to delete this variant ${selectedVariantRow?.productName} with color ${selectedVariantRow?.color} ${selectedVariantRow?.size}`}
+        item={selectedVariantRow}
+        onOpenChange={setOpen}
+        onDelete={async (deleted: VariantRowType | null) => {
+          if (deleted) {
+            console.log(1);
+            await deleteVariant(deleted);
+          }
+        }}
+      />
     </div>
   );
 }
