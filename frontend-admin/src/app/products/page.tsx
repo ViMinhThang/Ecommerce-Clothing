@@ -3,13 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AdminTable } from "@/components/admin/AdminTable";
-import {
-  Product,
-  ProductResponse,
-  Variant,
-  VariantRowType,
-} from "@/types/Product";
-import { VariantRow } from "@/components/ui/products/VariantRow";
+import { ProductResponse, VariantRowType } from "@/types/Product";
 import { CloseDialog } from "@/components/common/CloseDialog";
 
 export default function ProductPage() {
@@ -61,8 +55,10 @@ export default function ProductPage() {
             price: variant.price,
             quantity: variant.quantity,
             size: variant.size.name,
+            sku: variant.sku,
             color: variant.color.name,
             productName: product.productName,
+            productId: product.productId,
           }))
         : []
     );
@@ -73,7 +69,8 @@ export default function ProductPage() {
       await axios.delete(
         `http://localhost:8080/api/admin/variants/${variant.variantId}`
       );
-      // reload page
+      fetchProducts(productsData.pageNumber, productsData.pageSize);
+      setOpen(false);
     } catch (err) {
       console.error(err);
     }
@@ -110,6 +107,8 @@ export default function ProductPage() {
               { key: "productName", label: "Product Name" },
               { key: "price", label: "Price", sortable: true },
               { key: "quantity", label: "Quantity", sortable: true },
+              { key: "sku", label: "sku", sortable: true },
+
               {
                 key: "size",
                 label: "Size",
@@ -122,7 +121,9 @@ export default function ProductPage() {
               },
             ]}
             onEdit={(item: VariantRowType) =>
-              router.push(`/products/${item.variantId}/edit`)
+              router.push(
+                `/products/edit?productId=${item.productId}&variantId=${item.variantId}`
+              )
             }
             onDelete={handleEdit}
           />

@@ -16,6 +16,8 @@ export interface Color {
 }
 
 export interface Variant {
+  sku: string;
+  description: string;
   variantId: number;
   price: number;
   quantity: number;
@@ -30,6 +32,8 @@ export interface VariantRowType {
   size: string;
   color: string;
   productName: string;
+  sku: string;
+  productId: number;
 }
 
 export interface Product {

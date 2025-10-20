@@ -24,87 +24,60 @@ public class MockDataLoader implements CommandLineRunner {
     private final VariantImageRepository variantImageRepository;
 
     @Override
-    public void run(String... args) throws Exception {
+    @Transactional
+    public void run(String... args) {
 
-        Category electronics = new Category();
-        electronics.setCategoryName("Electronics");
-        categoryRepository.save(electronics);
+        // ⚙️ 1️⃣ Tạo Category
+        Category category = new Category();
+        category.setCategoryName("T-Shirt");
+        categoryRepository.save(category);
 
-        Category fashion = new Category();
-        fashion.setCategoryName("Fashion");
-        categoryRepository.save(fashion);
-        // 2️⃣ Tạo Sizes
-        Size sizeS = sizeRepository.save(new Size(null, "S"));
-        Size sizeM = sizeRepository.save(new Size(null, "M"));
-        Size sizeL = sizeRepository.save(new Size(null, "L"));
+        // ⚙️ 2️⃣ Tạo Color
+        Color red = new Color(null, "Red");
+        Color blue = new Color(null, "Blue");
+        colorRepository.saveAll(List.of(red, blue));
 
-        // 3️⃣ Tạo Colors
-        Color red = colorRepository.save(new Color(null, "Red"));
-        Color blue = colorRepository.save(new Color(null, "Blue"));
-        Color black = colorRepository.save(new Color(null, "Black"));
+        // ⚙️ 3️⃣ Tạo Size
+        Size small = new Size(null, "S");
+        Size large = new Size(null, "L");
+        sizeRepository.saveAll(List.of(small, large));
 
-        // 4️⃣ Tạo Products
-        Product phone = new Product();
-        phone.setProductName("Smartphone XYZ");
-        phone.setCategory(electronics);
-        phone.setAvailable(true);
+        // ⚙️ 4️⃣ Tạo Product
+        Product product = new Product();
+        product.setProductName("Classic Cotton T-Shirt");
+        product.setCategory(category);
+        product.setAvailable(true);
+        productRepository.save(product);
 
-        Product tshirt = new Product();
-        tshirt.setProductName("T-Shirt ABC");
-        tshirt.setCategory(fashion);
-        tshirt.setAvailable(true);
+        // ⚙️ 5️⃣ Tạo Variants cho Product
+        Variant variant1 = new Variant();
+        variant1.setProduct(product);
+        variant1.setColor(red);
+        variant1.setSize(small);
+        variant1.setPrice(199_000.0);
+        variant1.setQuantity(50);
+        variant1.setSKU("TSHIRT-RED-S");
+        variant1.setDescription("Red Small Cotton T-Shirt");
 
-        productRepository.saveAll(List.of(phone, tshirt));
+        Variant variant2 = new Variant();
+        variant2.setProduct(product);
+        variant2.setColor(blue);
+        variant2.setSize(large);
+        variant2.setPrice(209_000.0);
+        variant2.setQuantity(40);
+        variant2.setSKU("TSHIRT-BLUE-L");
+        variant2.setDescription("Blue Large Cotton T-Shirt");
 
-        // 5️⃣ Tạo Variants cho phone
-        Variant phoneVariant1 = new Variant();
-        phoneVariant1.setProduct(phone);
-        phoneVariant1.setPrice(699.99);
-        phoneVariant1.setQuantity(50);
-        phoneVariant1.setSize(sizeM); // mặc định nếu muốn
-        phoneVariant1.setColor(black);
+        variantRepository.saveAll(List.of(variant1, variant2));
 
-        Variant phoneVariant2 = new Variant();
-        phoneVariant2.setProduct(phone);
-        phoneVariant2.setPrice(749.99);
-        phoneVariant2.setQuantity(30);
-        phoneVariant2.setSize(sizeL);
-        phoneVariant2.setColor(blue);
+        // ⚙️ 6️⃣ Tạo Variant Images
+        VariantImage img1 = new VariantImage(null,
+                "https://example.com/images/tshirt-red-front.jpg", variant1);
+        VariantImage img2 = new VariantImage(null,
+                "https://example.com/images/tshirt-blue-front.jpg", variant2);
 
-        variantRepository.saveAll(List.of(phoneVariant1, phoneVariant2));
+        variantImageRepository.saveAll(List.of(img1, img2));
 
-        // 6️⃣ Tạo Variants cho tshirt
-        Variant tshirtVariant1 = new Variant();
-        tshirtVariant1.setProduct(tshirt);
-        tshirtVariant1.setPrice(19.99);
-        tshirtVariant1.setQuantity(100);
-        tshirtVariant1.setSize(sizeS);
-        tshirtVariant1.setColor(red);
-
-        Variant tshirtVariant2 = new Variant();
-        tshirtVariant2.setProduct(tshirt);
-        tshirtVariant2.setPrice(21.99);
-        tshirtVariant2.setQuantity(80);
-        tshirtVariant2.setSize(sizeM);
-        tshirtVariant2.setColor(blue);
-
-        variantRepository.saveAll(List.of(tshirtVariant1, tshirtVariant2));
-
-        // 7️⃣ Thêm ảnh cho các variant
-        VariantImage img1 = new VariantImage();
-        img1.setVariant(phoneVariant1);
-        img1.setImageUrl("https://example.com/phone_black_1.jpg");
-
-        VariantImage img2 = new VariantImage();
-        img2.setVariant(phoneVariant1);
-        img2.setImageUrl("https://example.com/phone_black_2.jpg");
-
-        VariantImage img3 = new VariantImage();
-        img3.setVariant(tshirtVariant1);
-        img3.setImageUrl("https://example.com/tshirt_red_1.jpg");
-
-        variantImageRepository.saveAll(List.of(img1, img2, img3));
-
-        System.out.println("✅ Mock data loaded successfully!");
+        System.out.println("✅ Mock data initialized successfully!");
     }
 }

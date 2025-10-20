@@ -14,7 +14,7 @@ interface CloseDialogProps<T extends object> {
   field: string;
   item: T | null;
   onOpenChange: (open: boolean) => void;
-  onDelete: (deleted: T | null) => void;
+  onDelete: (deleted: T | null) => Promise<void>;
 }
 
 export function CloseDialog<T extends object>({
