@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frotend_client_moblie/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frotend_client_moblie/screens/admin/dashboard/dashboard_screen.dart';
+import 'package:frotend_client_moblie/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frotend_client_moblie/screens/admin/products/manage_products_screen.dart';
+import 'package:frotend_client_moblie/screens/admin/users/manage_users_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,8 +21,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
-        // '/orders': (context) => const ManageOrdersScreen(),
-        // '/users': (context) => const ManageUsersScreen(),
+        '/categories': (context) => const ManageCategoriesScreen(),
+        '/users': (context) => const ManageUsersScreen(),
+        '/orders': (context) => const ManageOrdersScreen(),
       },
     );
   }

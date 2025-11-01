@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:frotend_client_moblie/screens/admin/products/edit_product_screen.dart';
-import 'package:frotend_client_moblie/screens/admin/products/products_function.dart';
 import '../../../layouts/admin_layout.dart';
+import '../../../utils/dialogs.dart';
+import 'edit_user_screen.dart';
+import 'users_function.dart';
 
-class ManageProductsScreen extends StatefulWidget {
-  const ManageProductsScreen({super.key});
+class ManageUsersScreen extends StatefulWidget {
+  const ManageUsersScreen({super.key});
 
   @override
-  State<ManageProductsScreen> createState() => _ManageProductsScreenState();
+  State<ManageUsersScreen> createState() => _ManageUsersScreenState();
 }
 
-class _ManageProductsScreenState extends State<ManageProductsScreen> {
+class _ManageUsersScreenState extends State<ManageUsersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> products = [];
+  List<Map<String, dynamic>> users = [];
 
   @override
   void initState() {
@@ -21,22 +22,20 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   }
 
   void _loadMockData() {
-    products = [
+    users = [
       {
         'id': 1,
-        'name': 'Áo thun nam basic',
-        'price': 199000,
-        'stock': 24,
+        'name': 'Nguyễn Văn A',
+        'email': 'vana@example.com',
+        'role': 'Admin',
         'status': 'active',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+1',
       },
       {
         'id': 2,
-        'name': 'Quần jeans nữ xanh',
-        'price': 399000,
-        'stock': 12,
+        'name': 'Trần Thị B',
+        'email': 'thib@example.com',
+        'role': 'User',
         'status': 'inactive',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+2',
       },
     ];
   }
@@ -44,8 +43,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return AdminLayout(
-      title: 'Product Management',
-      selectedIndex: 1,
+      title: 'User Management',
+      selectedIndex: 3,
       actions: [
         IconButton(
           onPressed: () => setState(_loadMockData),
@@ -54,13 +53,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       ],
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
-        onPressed: () async {
-          final newProduct = await addProduct(
-            context,
-            const EditProductScreen(),
-          );
-          if (newProduct != null) setState(() => products.add(newProduct));
-        },
+        onPressed: _onAddUser,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
@@ -78,7 +71,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       controller: _searchController,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Product...',
+        hintText: 'Search User...',
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.grey),
@@ -88,57 +81,58 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           borderSide: const BorderSide(color: Colors.black, width: 2),
         ),
       ),
+      onChanged: (query) {
+        setState(() {
+          // sau này lọc danh sách từ API ở đây
+        });
+      },
     );
   }
 
   Widget _buildListView() {
     return ListView.builder(
-      itemCount: products.length,
+      itemCount: users.length,
       itemBuilder: (context, index) {
-        final p = products[index];
+        final u = users[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            leading: Image.network(
-              p['image'],
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
+            title: Text(
+              u['name'],
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            title: Text(p['name']),
-            subtitle: Text('₫${p['price']} - Kho: ${p['stock']}'),
+            subtitle: Text('${u['email']} • ${u['role']}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.black),
-                  tooltip: 'Edit',
+                  tooltip: 'Edit User',
                   onPressed: () async {
-                    final updated = await editProduct(
+                    final updated = await Navigator.push(
                       context,
-                      p,
-                      EditProductScreen(product: p),
+                      MaterialPageRoute(
+                        builder: (_) => EditUserScreen(user: u),
+                      ),
                     );
+
                     if (updated != null) {
                       setState(() {
-                        final i = products.indexWhere(
+                        final index = users.indexWhere(
                           (item) => item['id'] == updated['id'],
                         );
-                        if (i != -1) products[i] = updated;
+                        if (index != -1) users[index] = updated;
                       });
                     }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete Product',
-                  onPressed: () async {
-                    final deleted = await deleteProduct(context, products, p);
-                    if (deleted) setState(() {});
-                  },
+                  tooltip: 'Delete User',
+                  onPressed: () => _onDeleteUser(u),
                 ),
               ],
             ),
@@ -146,5 +140,17 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _onAddUser() async {
+    final newUser = await addUser(context, const EditUserScreen());
+    if (newUser != null) {
+      setState(() => users.add(newUser));
+    }
+  }
+
+  Future<void> _onDeleteUser(Map<String, dynamic> user) async {
+    final deleted = await deleteUser(context, users, user);
+    if (deleted) setState(() {});
   }
 }

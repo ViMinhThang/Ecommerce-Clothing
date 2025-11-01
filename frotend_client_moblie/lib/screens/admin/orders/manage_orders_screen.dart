@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:frotend_client_moblie/screens/admin/products/edit_product_screen.dart';
-import 'package:frotend_client_moblie/screens/admin/products/products_function.dart';
 import '../../../layouts/admin_layout.dart';
+import '../../../utils/dialogs.dart';
+import 'edit_order_screen.dart';
+import 'orders_function.dart';
 
-class ManageProductsScreen extends StatefulWidget {
-  const ManageProductsScreen({super.key});
+class ManageOrdersScreen extends StatefulWidget {
+  const ManageOrdersScreen({super.key});
 
   @override
-  State<ManageProductsScreen> createState() => _ManageProductsScreenState();
+  State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageProductsScreenState extends State<ManageProductsScreen> {
+class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> products = [];
+  List<Map<String, dynamic>> orders = [];
 
   @override
   void initState() {
@@ -21,22 +22,20 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   }
 
   void _loadMockData() {
-    products = [
+    orders = [
       {
-        'id': 1,
-        'name': 'Áo thun nam basic',
-        'price': 199000,
-        'stock': 24,
-        'status': 'active',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+1',
+        'id': 1001,
+        'customer': 'Nguyễn Văn A',
+        'total': 599000,
+        'date': '2025-10-30',
+        'status': 'pending',
       },
       {
-        'id': 2,
-        'name': 'Quần jeans nữ xanh',
-        'price': 399000,
-        'stock': 12,
-        'status': 'inactive',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+2',
+        'id': 1002,
+        'customer': 'Trần Thị B',
+        'total': 1299000,
+        'date': '2025-10-29',
+        'status': 'completed',
       },
     ];
   }
@@ -44,8 +43,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return AdminLayout(
-      title: 'Product Management',
-      selectedIndex: 1,
+      title: 'Order Management',
+      selectedIndex: 5,
       actions: [
         IconButton(
           onPressed: () => setState(_loadMockData),
@@ -54,13 +53,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       ],
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
-        onPressed: () async {
-          final newProduct = await addProduct(
-            context,
-            const EditProductScreen(),
-          );
-          if (newProduct != null) setState(() => products.add(newProduct));
-        },
+        onPressed: _onAddOrder,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
@@ -78,7 +71,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       controller: _searchController,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Product...',
+        hintText: 'Search Order...',
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.grey),
@@ -88,57 +81,65 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           borderSide: const BorderSide(color: Colors.black, width: 2),
         ),
       ),
+      onChanged: (query) {
+        setState(() {
+          // nếu sau này có API thì lọc ở đây
+        });
+      },
     );
   }
 
   Widget _buildListView() {
     return ListView.builder(
-      itemCount: products.length,
+      itemCount: orders.length,
       itemBuilder: (context, index) {
-        final p = products[index];
+        final o = orders[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            leading: Image.network(
-              p['image'],
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
+            leading: CircleAvatar(
+              backgroundColor: Colors.black,
+              child: Text(
+                '#${o['id']}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
             ),
-            title: Text(p['name']),
-            subtitle: Text('₫${p['price']} - Kho: ${p['stock']}'),
+            title: Text(
+              o['customer'],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text('₫${o['total']} • ${o['date']} • ${o['status']}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.black),
-                  tooltip: 'Edit',
+                  tooltip: 'Edit Order',
                   onPressed: () async {
-                    final updated = await editProduct(
+                    final updated = await Navigator.push(
                       context,
-                      p,
-                      EditProductScreen(product: p),
+                      MaterialPageRoute(
+                        builder: (_) => EditOrderScreen(order: o),
+                      ),
                     );
+
                     if (updated != null) {
                       setState(() {
-                        final i = products.indexWhere(
+                        final index = orders.indexWhere(
                           (item) => item['id'] == updated['id'],
                         );
-                        if (i != -1) products[i] = updated;
+                        if (index != -1) orders[index] = updated;
                       });
                     }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete Product',
-                  onPressed: () async {
-                    final deleted = await deleteProduct(context, products, p);
-                    if (deleted) setState(() {});
-                  },
+                  tooltip: 'Delete Order',
+                  onPressed: () => _onDeleteOrder(o),
                 ),
               ],
             ),
@@ -146,5 +147,17 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _onAddOrder() async {
+    final newOrder = await addOrder(context, const EditOrderScreen());
+    if (newOrder != null) {
+      setState(() => orders.add(newOrder));
+    }
+  }
+
+  Future<void> _onDeleteOrder(Map<String, dynamic> order) async {
+    final deleted = await deleteOrder(context, orders, order);
+    if (deleted) setState(() {});
   }
 }

@@ -13,12 +13,12 @@ Future<bool> showConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Hủy'),
+          child: const Text('Hủy', style: TextStyle(color: Colors.black)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Xóa'),
+          child: const Text('Xóa', style: TextStyle(color: Colors.black)),
         ),
       ],
     ),

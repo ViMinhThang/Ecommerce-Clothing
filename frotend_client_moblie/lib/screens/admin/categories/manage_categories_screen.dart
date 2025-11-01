@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:frotend_client_moblie/screens/admin/products/edit_product_screen.dart';
-import 'package:frotend_client_moblie/screens/admin/products/products_function.dart';
+import 'package:frotend_client_moblie/screens/admin/categories/categories_function.dart';
 import '../../../layouts/admin_layout.dart';
+import '../../../utils/dialogs.dart';
+import 'edit_category_screen.dart';
 
-class ManageProductsScreen extends StatefulWidget {
-  const ManageProductsScreen({super.key});
+class ManageCategoriesScreen extends StatefulWidget {
+  const ManageCategoriesScreen({super.key});
 
   @override
-  State<ManageProductsScreen> createState() => _ManageProductsScreenState();
+  State<ManageCategoriesScreen> createState() => _ManageCategoriesScreenState();
 }
 
-class _ManageProductsScreenState extends State<ManageProductsScreen> {
+class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> products = [];
+  List<Map<String, dynamic>> categories = [];
 
   @override
   void initState() {
@@ -21,22 +22,18 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   }
 
   void _loadMockData() {
-    products = [
+    categories = [
       {
         'id': 1,
-        'name': 'Áo thun nam basic',
-        'price': 199000,
-        'stock': 24,
+        'name': 'Thời trang nam',
+        'description': 'Các sản phẩm quần áo, phụ kiện dành cho nam giới',
         'status': 'active',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+1',
       },
       {
         'id': 2,
-        'name': 'Quần jeans nữ xanh',
-        'price': 399000,
-        'stock': 12,
+        'name': 'Thời trang nữ',
+        'description': 'Các sản phẩm cho nữ giới',
         'status': 'inactive',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+2',
       },
     ];
   }
@@ -44,8 +41,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return AdminLayout(
-      title: 'Product Management',
-      selectedIndex: 1,
+      title: 'Category Management',
+      selectedIndex: 4,
       actions: [
         IconButton(
           onPressed: () => setState(_loadMockData),
@@ -53,14 +50,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         ),
       ],
       floatingActionButton: FloatingActionButton(
+        onPressed: _onAddCategory,
         backgroundColor: Colors.black,
-        onPressed: () async {
-          final newProduct = await addProduct(
-            context,
-            const EditProductScreen(),
-          );
-          if (newProduct != null) setState(() => products.add(newProduct));
-        },
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
@@ -78,7 +69,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       controller: _searchController,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Product...',
+        hintText: 'Search Category...',
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.grey),
@@ -88,57 +79,62 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           borderSide: const BorderSide(color: Colors.black, width: 2),
         ),
       ),
+      onChanged: (query) {
+        setState(() {
+          // nếu sau này có API thì sẽ lọc tại đây
+        });
+      },
     );
   }
 
   Widget _buildListView() {
     return ListView.builder(
-      itemCount: products.length,
+      itemCount: categories.length,
       itemBuilder: (context, index) {
-        final p = products[index];
+        final c = categories[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            leading: Image.network(
-              p['image'],
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
+            title: Text(
+              c['name'],
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            title: Text(p['name']),
-            subtitle: Text('₫${p['price']} - Kho: ${p['stock']}'),
+            subtitle: Text(
+              c['description'],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.black),
-                  tooltip: 'Edit',
+                  tooltip: 'Edit Category',
                   onPressed: () async {
-                    final updated = await editProduct(
+                    final updated = await Navigator.push(
                       context,
-                      p,
-                      EditProductScreen(product: p),
+                      MaterialPageRoute(
+                        builder: (_) => EditCategoryScreen(category: c),
+                      ),
                     );
+
                     if (updated != null) {
                       setState(() {
-                        final i = products.indexWhere(
+                        final index = categories.indexWhere(
                           (item) => item['id'] == updated['id'],
                         );
-                        if (i != -1) products[i] = updated;
+                        if (index != -1) categories[index] = updated;
                       });
                     }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete Product',
-                  onPressed: () async {
-                    final deleted = await deleteProduct(context, products, p);
-                    if (deleted) setState(() {});
-                  },
+                  tooltip: 'Delete Category',
+                  onPressed: () => _onDeleteCategory(c),
                 ),
               ],
             ),
@@ -146,5 +142,17 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _onAddCategory() async {
+    final newCategory = await addCategory(context, const EditCategoryScreen());
+    if (newCategory != null) {
+      setState(() => categories.add(newCategory));
+    }
+  }
+
+  Future<void> _onDeleteCategory(Map<String, dynamic> category) async {
+    final deleted = await deleteCategory(context, categories, category);
+    if (deleted) setState(() {});
   }
 }

@@ -8,14 +8,12 @@ class AdminDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
-      ),
+      shape: const RoundedRectangleBorder(),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
+            decoration: BoxDecoration(color: Color.fromARGB(255, 0, 0, 0)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +38,7 @@ class AdminDrawer extends StatelessWidget {
           _drawerItem(
             context,
             Icons.inventory,
-            'Sản phẩm',
+            'Products',
             '/products',
             1,
             selectedIndex,
@@ -48,7 +46,7 @@ class AdminDrawer extends StatelessWidget {
           _drawerItem(
             context,
             Icons.shopping_bag,
-            'Đơn hàng',
+            'Orders',
             '/orders',
             2,
             selectedIndex,
@@ -56,9 +54,17 @@ class AdminDrawer extends StatelessWidget {
           _drawerItem(
             context,
             Icons.people,
-            'Người dùng',
+            'Users',
             '/users',
             3,
+            selectedIndex,
+          ),
+          _drawerItem(
+            context,
+            Icons.people,
+            'Categories',
+            '/categories',
+            4,
             selectedIndex,
           ),
           const Divider(),
@@ -86,7 +92,9 @@ class AdminDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: selectedIndex == index ? Colors.blue : Colors.grey,
+        color: selectedIndex == index
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : Colors.grey,
       ),
       title: Text(title),
       selected: selectedIndex == index,
