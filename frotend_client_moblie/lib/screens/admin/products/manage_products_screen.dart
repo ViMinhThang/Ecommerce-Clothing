@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
+import 'package:frotend_client_moblie/providers/product_provider.dart';
 import 'package:frotend_client_moblie/screens/admin/products/edit_product_screen.dart';
-import 'package:frotend_client_moblie/screens/admin/products/products_function.dart';
+import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
 
 class ManageProductsScreen extends StatefulWidget {
@@ -12,33 +14,13 @@ class ManageProductsScreen extends StatefulWidget {
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> products = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMockData();
-  }
-
-  void _loadMockData() {
-    products = [
-      {
-        'id': 1,
-        'name': 'Áo thun nam basic',
-        'price': 199000,
-        'stock': 24,
-        'status': 'active',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+1',
-      },
-      {
-        'id': 2,
-        'name': 'Quần jeans nữ xanh',
-        'price': 399000,
-        'stock': 12,
-        'status': 'inactive',
-        'image': 'https://via.placeholder.com/100x100.png?text=Product+2',
-      },
-    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProductProvider>(context, listen: false).fetchProducts();
+    });
   }
 
   @override
@@ -48,18 +30,17 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       selectedIndex: 1,
       actions: [
         IconButton(
-          onPressed: () => setState(_loadMockData),
+          onPressed: () => Provider.of<ProductProvider>(context, listen: false).fetchProducts(),
           icon: const Icon(Icons.refresh),
         ),
       ],
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
-        onPressed: () async {
-          final newProduct = await addProduct(
+        onPressed: () {
+          Navigator.push(
             context,
-            const EditProductScreen(),
+            MaterialPageRoute(builder: (context) => const EditProductScreen()),
           );
-          if (newProduct != null) setState(() => products.add(newProduct));
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -92,57 +73,77 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   }
 
   Widget _buildListView() {
-    return ListView.builder(
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final p = products[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListTile(
-            leading: Image.network(
-              p['image'],
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
-            title: Text(p['name']),
-            subtitle: Text('₫${p['price']} - Kho: ${p['stock']}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
-                  tooltip: 'Edit',
-                  onPressed: () async {
-                    final updated = await editProduct(
-                      context,
-                      p,
-                      EditProductScreen(product: p),
-                    );
-                    if (updated != null) {
-                      setState(() {
-                        final i = products.indexWhere(
-                          (item) => item['id'] == updated['id'],
+    return Consumer<ProductProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return ListView.builder(
+          itemCount: provider.products.length,
+          itemBuilder: (context, index) {
+            final p = provider.products[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: Image.network(
+                  p.imageUrl,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                ),
+                title: Text(p.name),
+                subtitle: Text('₫${p.price}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.black),
+                      tooltip: 'Edit',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProductScreen(product: p),
+                          ),
                         );
-                        if (i != -1) products[i] = updated;
-                      });
-                    }
-                  },
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'Delete Product',
+                      onPressed: () async {
+                        final confirmed = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Product'),
+                            content: const Text('Are you sure you want to delete this product?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          Provider.of<ProductProvider>(context, listen: false).deleteProduct(p.id);
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete Product',
-                  onPressed: () async {
-                    final deleted = await deleteProduct(context, products, p);
-                    if (deleted) setState(() {});
-                  },
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

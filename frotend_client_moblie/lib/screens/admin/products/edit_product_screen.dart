@@ -1,13 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:frotend_client_moblie/models/category.dart';
+import 'package:frotend_client_moblie/models/product.dart';
+import 'package:frotend_client_moblie/providers/category_provider.dart';
+import 'package:frotend_client_moblie/providers/product_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
 import '../../../widgets/text_field_input.dart';
-import '../../../widgets/status_dropdown.dart';
 import '../../../widgets/image_picker_field.dart';
 
 class EditProductScreen extends StatefulWidget {
-  final Map<String, dynamic>? product;
+  final Product? product;
 
   const EditProductScreen({super.key, this.product});
 
@@ -18,8 +22,8 @@ class EditProductScreen extends StatefulWidget {
 class _EditProductScreenState extends State<EditProductScreen> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
-  late TextEditingController _stockController;
-  String _status = 'Active';
+  late TextEditingController _descriptionController;
+  Category? _selectedCategory;
   File? _selectedImage;
 
   bool get isEditing => widget.product != null;
@@ -27,27 +31,27 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.product?['name'] ?? '',
-    );
+    _nameController = TextEditingController(text: widget.product?.name ?? '');
     _priceController = TextEditingController(
-      text: widget.product?['price']?.toString() ?? '',
+      text: widget.product?.price.toString() ?? '',
     );
-    _stockController = TextEditingController(
-      text: widget.product?['stock']?.toString() ?? '',
+    _descriptionController = TextEditingController(
+      text: widget.product?.description ?? '',
     );
-    _status = widget.product?['status'] ?? 'Active';
+    _selectedCategory = widget.product?.category;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
-    _stockController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  // chọn ảnh từ thư viện
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
@@ -62,35 +66,52 @@ class _EditProductScreenState extends State<EditProductScreen> {
       debugPrint('Error picking image: $e');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi chọn ảnh: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }
 
   void _onSave() {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tên sản phẩm')),
+        const SnackBar(content: Text('Please enter a product name')),
       );
       return;
     }
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      return;
+    }
 
-    final productData = {
-      'id': widget.product?['id'] ?? DateTime.now().millisecondsSinceEpoch,
-      'name': _nameController.text.trim(),
-      'price': int.tryParse(_priceController.text.trim()) ?? 0,
-      'stock': int.tryParse(_stockController.text.trim()) ?? 0,
-      'status': _status,
-      'image':
-          _selectedImage?.path ??
-          widget.product?['image'] ??
-          'https://via.placeholder.com/100x100.png?text=New+Product',
-    };
+    final productData = Product(
+      id: widget.product?.id ?? 0,
+      name: _nameController.text.trim(),
+      price: double.tryParse(_priceController.text.trim()) ?? 0,
+      description: _descriptionController.text.trim(),
+      imageUrl: _selectedImage?.path ?? widget.product?.imageUrl ?? '',
+      category: _selectedCategory!,
+    );
 
-    Navigator.pop(context, productData);
+    if (isEditing) {
+      Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      ).updateProduct(productData, image: _selectedImage);
+    } else {
+      Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      ).addProduct(productData, image: _selectedImage);
+    }
+
+    Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          isEditing ? 'Đã lưu thay đổi sản phẩm' : 'Đã tạo sản phẩm mới',
+          isEditing
+              ? 'Product updated successfully'
+              : 'Product created successfully',
         ),
       ),
     );
@@ -114,22 +135,40 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 16),
             TextFieldInput(
-              label: 'Inventory',
-              controller: _stockController,
-              keyboardType: TextInputType.number,
+              label: 'Description',
+              controller: _descriptionController,
             ),
             const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'Disable', child: Text('Disable')),
-              ],
+            Consumer<CategoryProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return DropdownButtonFormField<Category>(
+                  value: _selectedCategory,
+                  onChanged: (Category? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue;
+                    });
+                  },
+                  items: provider.categories.map<DropdownMenuItem<Category>>((
+                    Category category,
+                  ) {
+                    return DropdownMenuItem<Category>(
+                      value: category,
+                      child: Text(category.name),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
             ImagePickerField(
-              currentImage: widget.product?['image'],
+              currentImage: widget.product?.imageUrl,
               selectedImage: _selectedImage,
               onPickImage: _pickImage,
             ),
