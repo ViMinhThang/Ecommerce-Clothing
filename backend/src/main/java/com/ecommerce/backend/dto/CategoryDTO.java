@@ -1,4 +1,4 @@
-package com.ecommerce.backend.response;
+package com.ecommerce.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIResponse {
-    private String message;
-    private boolean success;
+public class CategoryDTO {
+    private Long id;
+    private String name;
 }
