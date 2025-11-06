@@ -145,7 +145,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 return DropdownButtonFormField<Category>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   onChanged: (Category? newValue) {
                     setState(() {
                       _selectedCategory = newValue;

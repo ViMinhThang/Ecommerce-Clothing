@@ -52,7 +52,7 @@ class ProductProvider with ChangeNotifier {
         _products[index] = updatedProduct;
         notifyListeners();
       }
-    } catch (e, stack) {
+    } catch (e) {
       // Handle error
     }
   }
@@ -62,7 +62,7 @@ class ProductProvider with ChangeNotifier {
       await _productService.deleteProduct(id);
       _products.removeWhere((p) => p.id == id);
       notifyListeners();
-    } catch (e, stack) {
+    } catch (e) {
       // Handle error
     }
   }

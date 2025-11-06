@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../utils/dialogs.dart';
 import 'edit_order_screen.dart';
 import 'orders_function.dart';
 

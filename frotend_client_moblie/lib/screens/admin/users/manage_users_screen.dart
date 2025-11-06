@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../utils/dialogs.dart';
 import 'edit_user_screen.dart';
 import 'users_function.dart';
 

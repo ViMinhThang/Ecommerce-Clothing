@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frotend_client_moblie/screens/admin/categories/categories_function.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../utils/dialogs.dart';
 import 'edit_category_screen.dart';
 
 class ManageCategoriesScreen extends StatefulWidget {
