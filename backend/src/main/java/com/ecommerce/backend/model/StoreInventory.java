@@ -1,8 +1,6 @@
 package com.ecommerce.backend.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,29 +11,23 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Product {
-
+@NoArgsConstructor
+public class StoreInventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Lob
-    private String name;
-    @Lob
-    private String description;
-    private String imageUrl;
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    private Store store;
+    @ManyToOne
+    private ProductVariants product;
+    private int amount;
     private String status;
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @CreatedDate
     private LocalDateTime createdDate;
     @Column(updatable = true, nullable = true)

@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
-        product.setPrice(productRequest.getPrice());
+//        product.setBasePrice(productRequest.getPrice());
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = saveImage(image);
@@ -64,7 +64,7 @@ public class ProductServiceImpl implements ProductService {
 
         existingProduct.setName(productRequest.getName());
         existingProduct.setDescription(productRequest.getDescription());
-        existingProduct.setPrice(productRequest.getPrice());
+//        existingProduct.setBasePrice(productRequest.getPrice());
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = saveImage(image);
