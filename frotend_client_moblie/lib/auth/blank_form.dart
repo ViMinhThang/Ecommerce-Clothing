@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frotend_client_moblie/auth/log_in.dart';
 import 'package:frotend_client_moblie/widgets/app_bar_widget.dart';
 import 'package:frotend_client_moblie/widgets/logo_and_text_widget.dart';
-import 'package:frotend_client_moblie/widgets/mxh_fields_widget.dart';
 import 'package:frotend_client_moblie/widgets/social_rounded.dart';
 
 void main() {
