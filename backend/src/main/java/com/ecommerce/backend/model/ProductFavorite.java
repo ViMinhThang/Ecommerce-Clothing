@@ -17,16 +17,21 @@ public class ProductFavorite {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
     private String status;
+
     @Column(nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdDate;
+
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedDate;
