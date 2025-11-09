@@ -1,44 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/category.dart' as model;
-import 'package:frontend_client_mobile/providers/category_provider.dart';
+import 'package:frontend_client_mobile/models/size.dart'
+    as model; // Alias to avoid conflict with Material.Size
+import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
-import 'edit_category_screen.dart';
+import 'edit_size_screen.dart';
 
-class ManageCategoriesScreen extends StatefulWidget {
-  const ManageCategoriesScreen({super.key});
+class ManageSizesScreen extends StatefulWidget {
+  const ManageSizesScreen({super.key});
 
   @override
-  State<ManageCategoriesScreen> createState() => _ManageCategoriesScreenState();
+  State<ManageSizesScreen> createState() => _ManageSizesScreenState();
 }
 
-class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
+class _ManageSizesScreenState extends State<ManageSizesScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Fetch categories when the screen initializes
+    // Fetch sizes when the screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+      Provider.of<SizeProvider>(context, listen: false).fetchSizes();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return AdminLayout(
-      title: 'Category Management',
-      selectedIndex: 4,
+      title: 'Size Management',
+      selectedIndex: 5,
       actions: [
         IconButton(
           onPressed: () {
-            Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+            Provider.of<SizeProvider>(context, listen: false).fetchSizes();
           },
           icon: const Icon(Icons.refresh),
         ),
       ],
       floatingActionButton: FloatingActionButton(
-        onPressed: _onAddCategory,
+        onPressed: _onAddSize,
         backgroundColor: Colors.black,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -47,15 +48,15 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           _buildSearchBar(),
           const SizedBox(height: 16),
           Expanded(
-            child: Consumer<CategoryProvider>(
-              builder: (context, categoryProvider, child) {
-                if (categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
+            child: Consumer<SizeProvider>(
+              builder: (context, sizeProvider, child) {
+                if (sizeProvider.isLoading && sizeProvider.sizes.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (categoryProvider.categories.isEmpty) {
-                  return const Center(child: Text('No categories found.'));
+                if (sizeProvider.sizes.isEmpty) {
+                  return const Center(child: Text('No sizes found.'));
                 }
-                return _buildListView(categoryProvider.categories);
+                return _buildListView(sizeProvider.sizes);
               },
             ),
           ),
@@ -69,7 +70,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
       controller: _searchController,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Category...',
+        hintText: 'Search Size...',
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.grey),
@@ -85,33 +86,23 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
-  Widget _buildListView(List<model.Category> categories) {
+  Widget _buildListView(List<model.Size> sizes) {
     return ListView.builder(
-      itemCount: categories.length,
+      itemCount: sizes.length,
       itemBuilder: (context, index) {
-        final c = categories[index];
+        final s = sizes[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            leading: c.imageUrl.isNotEmpty
-                ? Image.network(
-                    c.imageUrl,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image),
-                  )
-                : const Icon(Icons.image_not_supported),
             title: Text(
-              c.name,
+              s.sizeName,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              c.description,
+              s.status, // Assuming status can be used as a subtitle
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -120,20 +111,25 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.black),
-                  tooltip: 'Edit Category',
+                  tooltip: 'Edit Size',
                   onPressed: () async {
-                    Navigator.push(
+                    final updatedSize = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditCategoryScreen(category: c),
+                        builder: (_) => EditSizeScreen(size: s),
                       ),
                     );
+
+                    if (updatedSize != null) {
+                      // The provider will handle updating its internal list and notifying listeners
+                      // No need to call setState here directly on the list
+                    }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete Category',
-                  onPressed: () => _onDeleteCategory(c),
+                  tooltip: 'Delete Size',
+                  onPressed: () => _onDeleteSize(s),
                 ),
               ],
             ),
@@ -143,20 +139,20 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
-  Future<void> _onAddCategory() async {
-    Navigator.push(
+  Future<void> _onAddSize() async {
+    final newSize = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const EditCategoryScreen()),
+      MaterialPageRoute(builder: (_) => const EditSizeScreen()),
     );
   }
 
-  Future<void> _onDeleteCategory(model.Category category) async {
+  Future<void> _onDeleteSize(model.Size size) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Confirm'),
         content: Text(
-          'Are you sure you want to delete category "${category.name}"?',
+          'Are you sure you want to delete size "${size.sizeName}"?',
         ),
         actions: [
           TextButton(
@@ -172,13 +168,13 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
 
     if (confirm == true) {
-      Provider.of<CategoryProvider>(
+      Provider.of<SizeProvider>(
         context,
         listen: false,
-      ).removeCategory(category.id as int);
+      ).removeSize(size.id as int);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Đã xóa "${category.name}"')));
+      ).showSnackBar(SnackBar(content: Text('Đã xóa "${size.sizeName}"')));
     }
   }
 }

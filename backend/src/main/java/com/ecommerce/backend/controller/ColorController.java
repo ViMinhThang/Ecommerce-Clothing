@@ -1,11 +1,12 @@
 package com.ecommerce.backend.controller;
 
+import com.ecommerce.backend.dto.ColorDTO; // Import ColorDTO
 import com.ecommerce.backend.model.Color;
-import com.ecommerce.backend.repository.ColorRepository;
+import com.ecommerce.backend.service.ColorService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -14,10 +15,35 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ColorController {
 
-    private final ColorRepository colorRepository;
+    private final ColorService colorService;
 
     @GetMapping
-    public List<Color> getAllColors() {
-        return colorRepository.findAll();
+    public ResponseEntity<List<Color>> getAllColors() {
+        List<Color> colors = colorService.getAllColors();
+        return ResponseEntity.ok(colors);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Color> getColorById(@PathVariable Long id) {
+        Color color = colorService.getColorById(id);
+        return ResponseEntity.ok(color);
+    }
+
+    @PostMapping
+    public ResponseEntity<Color> createColor(@RequestBody ColorDTO colorDTO) { // Changed parameter to ColorDTO
+        Color createdColor = colorService.createColor(colorDTO);
+        return new ResponseEntity<>(createdColor, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) { // Changed parameter to ColorDTO
+        Color updatedColor = colorService.updateColor(id, colorDTO);
+        return ResponseEntity.ok(updatedColor);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteColor(@PathVariable Long id) {
+        colorService.deleteColor(id);
+        return ResponseEntity.noContent().build();
     }
 }

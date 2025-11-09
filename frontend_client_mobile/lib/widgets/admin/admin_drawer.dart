@@ -67,6 +67,22 @@ class AdminDrawer extends StatelessWidget {
             4,
             selectedIndex,
           ),
+          _drawerItem( // New item for Sizes
+            context,
+            Icons.straighten, // Using straighten icon for sizes
+            'Sizes',
+            '/sizes',
+            5,
+            selectedIndex,
+          ),
+          _drawerItem( // New item for Colors
+            context,
+            Icons.color_lens, // Using color_lens icon for colors
+            'Colors',
+            '/colors',
+            6,
+            selectedIndex,
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),

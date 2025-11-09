@@ -10,4 +10,13 @@ abstract class ColorApiService {
 
   @GET("api/colors")
   Future<List<Color>> getColors();
+
+  @POST("api/colors")
+  Future<Color> createColor(@Body() Color color);
+
+  @PUT("api/colors/{id}")
+  Future<Color> updateColor(@Path("id") int id, @Body() Color color);
+
+  @DELETE("api/colors/{id}")
+  Future<void> deleteColor(@Path("id") int id);
 }

@@ -7,11 +7,13 @@ part of 'color.dart';
 // **************************************************************************
 
 Color _$ColorFromJson(Map<String, dynamic> json) => Color(
-  id: (json['id'] as num).toInt(),
+  id: (json['id'] as num?)?.toInt(),
   colorName: json['colorName'] as String,
+  status: json['status'] as String,
 );
 
 Map<String, dynamic> _$ColorToJson(Color instance) => <String, dynamic>{
   'id': instance.id,
   'colorName': instance.colorName,
+  'status': instance.status,
 };

@@ -1,100 +1,61 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/category.dart' as model;
-import 'package:frontend_client_mobile/widgets/image_picker_field.dart';
+import 'package:frontend_client_mobile/models/color.dart' as model;
 import 'package:frontend_client_mobile/widgets/status_dropdown.dart';
 import 'package:frontend_client_mobile/widgets/text_field_input.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../providers/category_provider.dart';
+import '../../../providers/color_provider.dart';
 
-class EditCategoryScreen extends StatefulWidget {
-  final model.Category? category;
+class EditColorScreen extends StatefulWidget {
+  final model.Color? color;
 
-  const EditCategoryScreen({super.key, this.category});
+  const EditColorScreen({super.key, this.color});
 
   @override
-  State<EditCategoryScreen> createState() => _EditCategoryScreenState();
+  State<EditColorScreen> createState() => _EditColorScreenState();
 }
 
-class _EditCategoryScreenState extends State<EditCategoryScreen> {
+class _EditColorScreenState extends State<EditColorScreen> {
   late final TextEditingController _nameController;
-  late final TextEditingController _descController;
   String _status = 'active';
-  File? _selectedImage;
-  String? _currentImageUrl;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _descController = TextEditingController(
-      text: widget.category?.description ?? '',
-    );
-    _status = widget.category?.status ?? 'active';
-    _currentImageUrl = widget.category?.imageUrl;
+    _nameController = TextEditingController(text: widget.color?.colorName ?? '');
+    _status = widget.color?.status ?? 'active';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _descController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
   Future<void> _onSave() async {
+    // 🔒 Dùng lock thủ công để chặn double tap trong cùng frame
     if (_isSaving) return;
-    _isSaving = true;
-    setState(() {});
+    _isSaving = true; // gán trực tiếp, chưa cần setState
+    setState(() {}); // render lại nút disable
 
     try {
-      final categoryProvider = Provider.of<CategoryProvider>(
-        context,
-        listen: false,
-      );
-      String? imageUrlToSave = _currentImageUrl;
+      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
 
-      if (_selectedImage != null) {
-        // Upload image if a new one is selected
-        if (_selectedImage != null) {
-          imageUrlToSave = await categoryProvider.uploadCategoryImage(
-            _selectedImage!,
-          );
-        }
-      }
-
-      final newCategory = model.Category(
-        id: widget.category?.id,
-        name: _nameController.text.trim(),
-        description: _descController.text.trim(),
-        imageUrl: imageUrlToSave ?? '', // Use uploaded URL or existing
+      final newColor = model.Color(
+        id: widget.color?.id,
+        colorName: _nameController.text.trim(),
         status: _status,
       );
 
-      if (widget.category == null) {
-        await categoryProvider.addCategory(newCategory);
+      if (widget.color == null) {
+        await colorProvider.addColor(newColor);
       } else {
-        await categoryProvider.updateCategory(newCategory);
+        await colorProvider.updateColor(newColor);
       }
 
       if (!mounted) return;
-      Navigator.pop(
-        context,
-      ); // Pop without returning data, provider handles state
+      Navigator.pop(context, newColor);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Saved successfully')));
@@ -111,35 +72,21 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         _isSaving = false;
       }
     }
+    print('🟢 onSave triggered at ${DateTime.now()} _isSaving=$_isSaving');
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.category != null;
+    final isEditing = widget.color != null;
 
     return AdminLayout(
-      title: isEditing ? 'Edit Category' : 'Add Category',
-      selectedIndex: 4,
+      title: isEditing ? 'Edit Color' : 'Add Color',
+      selectedIndex: 6, // This will be updated later in admin_drawer.dart
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextFieldInput(label: 'Category name', controller: _nameController),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ImagePickerField(
-              currentImage: _currentImageUrl,
-              selectedImage: _selectedImage,
-              onPickImage: _pickImage,
-            ),
+            TextFieldInput(label: 'Color name', controller: _nameController),
             const SizedBox(height: 16),
             StatusDropdown(
               value: _status,

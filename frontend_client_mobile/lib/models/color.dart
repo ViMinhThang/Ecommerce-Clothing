@@ -4,10 +4,15 @@ part 'color.g.dart';
 
 @JsonSerializable()
 class Color {
-  final int id;
+  final int? id;
   final String colorName;
+  final String status;
 
-  Color({required this.id, required this.colorName});
+  Color({
+    this.id,
+    required this.colorName,
+    required this.status,
+  }); // Updated constructor
 
   factory Color.fromJson(Map<String, dynamic> json) => _$ColorFromJson(json);
 
@@ -19,13 +24,14 @@ class Color {
       other is Color &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          colorName == other.colorName;
+          colorName == other.colorName &&
+          status == other.status; // Updated operator ==
 
   @override
-  int get hashCode => id.hashCode ^ colorName.hashCode;
+  int get hashCode => id.hashCode ^ colorName.hashCode ^ status.hashCode;
 
   @override
   String toString() {
-    return 'Color{id: $id, colorName: $colorName}';
+    return 'Color{id: $id, colorName: $colorName, status: $status}';
   }
 }

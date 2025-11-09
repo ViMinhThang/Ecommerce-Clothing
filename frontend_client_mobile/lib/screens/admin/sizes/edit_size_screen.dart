@@ -1,100 +1,61 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/category.dart' as model;
-import 'package:frontend_client_mobile/widgets/image_picker_field.dart';
+import 'package:frontend_client_mobile/models/size.dart' as model;
 import 'package:frontend_client_mobile/widgets/status_dropdown.dart';
 import 'package:frontend_client_mobile/widgets/text_field_input.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../providers/category_provider.dart';
+import '../../../providers/size_provider.dart';
 
-class EditCategoryScreen extends StatefulWidget {
-  final model.Category? category;
+class EditSizeScreen extends StatefulWidget {
+  final model.Size? size;
 
-  const EditCategoryScreen({super.key, this.category});
+  const EditSizeScreen({super.key, this.size});
 
   @override
-  State<EditCategoryScreen> createState() => _EditCategoryScreenState();
+  State<EditSizeScreen> createState() => _EditSizeScreenState();
 }
 
-class _EditCategoryScreenState extends State<EditCategoryScreen> {
+class _EditSizeScreenState extends State<EditSizeScreen> {
   late final TextEditingController _nameController;
-  late final TextEditingController _descController;
   String _status = 'active';
-  File? _selectedImage;
-  String? _currentImageUrl;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _descController = TextEditingController(
-      text: widget.category?.description ?? '',
-    );
-    _status = widget.category?.status ?? 'active';
-    _currentImageUrl = widget.category?.imageUrl;
+    _nameController = TextEditingController(text: widget.size?.sizeName ?? '');
+    _status = widget.size?.status ?? 'active';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _descController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
   Future<void> _onSave() async {
+    // 🔒 Dùng lock thủ công để chặn double tap trong cùng frame
     if (_isSaving) return;
-    _isSaving = true;
-    setState(() {});
+    _isSaving = true; // gán trực tiếp, chưa cần setState
+    setState(() {}); // render lại nút disable
 
     try {
-      final categoryProvider = Provider.of<CategoryProvider>(
-        context,
-        listen: false,
-      );
-      String? imageUrlToSave = _currentImageUrl;
+      final sizeProvider = Provider.of<SizeProvider>(context, listen: false);
 
-      if (_selectedImage != null) {
-        // Upload image if a new one is selected
-        if (_selectedImage != null) {
-          imageUrlToSave = await categoryProvider.uploadCategoryImage(
-            _selectedImage!,
-          );
-        }
-      }
-
-      final newCategory = model.Category(
-        id: widget.category?.id,
-        name: _nameController.text.trim(),
-        description: _descController.text.trim(),
-        imageUrl: imageUrlToSave ?? '', // Use uploaded URL or existing
+      final newSize = model.Size(
+        id: widget.size?.id,
+        sizeName: _nameController.text.trim(),
         status: _status,
       );
 
-      if (widget.category == null) {
-        await categoryProvider.addCategory(newCategory);
+      if (widget.size == null) {
+        await sizeProvider.addSize(newSize);
       } else {
-        await categoryProvider.updateCategory(newCategory);
+        await sizeProvider.updateSize(newSize);
       }
 
       if (!mounted) return;
-      Navigator.pop(
-        context,
-      ); // Pop without returning data, provider handles state
+      Navigator.pop(context, newSize);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Saved successfully')));
@@ -111,35 +72,21 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         _isSaving = false;
       }
     }
+    print('🟢 onSave triggered at ${DateTime.now()} _isSaving=$_isSaving');
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.category != null;
+    final isEditing = widget.size != null;
 
     return AdminLayout(
-      title: isEditing ? 'Edit Category' : 'Add Category',
-      selectedIndex: 4,
+      title: isEditing ? 'Edit Size' : 'Add Size',
+      selectedIndex: 5,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextFieldInput(label: 'Category name', controller: _nameController),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ImagePickerField(
-              currentImage: _currentImageUrl,
-              selectedImage: _selectedImage,
-              onPickImage: _pickImage,
-            ),
+            TextFieldInput(label: 'Size name', controller: _nameController),
             const SizedBox(height: 16),
             StatusDropdown(
               value: _status,

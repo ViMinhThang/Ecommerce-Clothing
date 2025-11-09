@@ -234,10 +234,15 @@ ProductVariant _copyVariant(ProductVariant variant) {
       basePrice: variant.price.basePrice,
       salePrice: variant.price.salePrice,
     ),
-    size: Size(id: variant.size.id, sizeName: variant.size.sizeName),
+    size: Size(
+      id: variant.size.id,
+      sizeName: variant.size.sizeName,
+      status: variant.size.status,
+    ),
     color: product_color.Color(
       id: variant.color.id,
       colorName: variant.color.colorName,
+      status: variant.color.status,
     ),
   );
 }
