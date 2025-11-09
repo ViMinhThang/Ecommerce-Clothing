@@ -31,6 +31,7 @@ class VariantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Sử dụng Container để kiểm soát decoration và boxShadow
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -40,6 +41,7 @@ class VariantCard extends StatelessWidget {
           width: 1,
         ),
         boxShadow: [
+          // Áp dụng boxShadow vào Container
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
             blurRadius: 8,
@@ -48,6 +50,7 @@ class VariantCard extends StatelessWidget {
         ],
       ),
       child: Stack(
+        // Sử dụng Stack để đặt nút xóa lên trên nội dung
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -55,10 +58,11 @@ class VariantCard extends StatelessWidget {
               24,
               12,
               12,
-            ), // Top padding for delete button
+            ), // Top padding để chừa chỗ cho nút xóa
             child: Column(
               children: [
                 Row(
+                  // Hàng 1: Color và Size Dropdown
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<models.Color>(
@@ -120,6 +124,7 @@ class VariantCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Row(
+                  // Hàng 2: Base Price và Sale Price TextFormFields
                   children: [
                     Expanded(
                       child: TextFormField(
@@ -156,6 +161,7 @@ class VariantCard extends StatelessWidget {
             ),
           ),
           Positioned(
+            // Nút xóa nằm ở góc trên bên phải
             top: 0,
             right: 0,
             child: IconButton(
