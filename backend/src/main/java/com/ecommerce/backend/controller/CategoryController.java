@@ -1,12 +1,13 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.CategoryDTO;
+import com.ecommerce.backend.dto.CategoryDTO; // Import CategoryDTO
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,8 +19,9 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 
     @GetMapping("/{id}")
@@ -29,13 +31,13 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(@RequestBody CategoryDTO categoryDTO) {
+    public ResponseEntity<Category> createCategory(@RequestBody CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
         Category createdCategory = categoryService.createCategory(categoryDTO);
         return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
         Category updatedCategory = categoryService.updateCategory(id, categoryDTO);
         return ResponseEntity.ok(updatedCategory);
     }
@@ -44,5 +46,11 @@ public class CategoryController {
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/upload/category-image")
+    public ResponseEntity<String> uploadCategoryImage(@RequestParam("image") MultipartFile imageFile) {
+        String imageUrl = categoryService.uploadCategoryImage(imageFile);
+        return ResponseEntity.ok(imageUrl);
     }
 }

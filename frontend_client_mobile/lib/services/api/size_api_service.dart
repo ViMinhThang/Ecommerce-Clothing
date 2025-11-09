@@ -10,4 +10,13 @@ abstract class SizeApiService {
 
   @GET("api/sizes")
   Future<List<Size>> getSizes();
+
+  @POST("api/sizes")
+  Future<Size> createSize(@Body() Size size);
+
+  @PUT("api/sizes/{id}")
+  Future<Size> updateSize(@Path("id") int id, @Body() Size size);
+
+  @DELETE("api/sizes/{id}")
+  Future<void> deleteSize(@Path("id") int id);
 }

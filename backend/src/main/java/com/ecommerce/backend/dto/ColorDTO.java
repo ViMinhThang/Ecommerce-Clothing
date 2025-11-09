@@ -9,10 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryDTO {
+public class ColorDTO {
     private Long id;
-    private String name;
-    private String description; // Added description field
-    private String imageUrl;
-    private String status; // Added status field
+    private String colorName;
+    private String status;
 }

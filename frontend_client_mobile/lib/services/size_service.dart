@@ -8,4 +8,16 @@ class SizeService {
   Future<List<Size>> getSizes() async {
     return await _apiService.getSizes();
   }
+
+  Future<Size> createSize(Size size) async {
+    return await _apiService.createSize(size);
+  }
+
+  Future<Size> updateSize(int id, Size size) async {
+    return await _apiService.updateSize(id, size);
+  }
+
+  Future<void> deleteSize(int id) async {
+    return await _apiService.deleteSize(id);
+  }
 }

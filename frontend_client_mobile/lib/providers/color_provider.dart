@@ -21,7 +21,44 @@ class ColorProvider with ChangeNotifier {
       _colors = await _colorService.getColors();
     } catch (e) {
       // Handle error
+      print('Error fetching colors: $e');
     }
     notifyListeners();
+  }
+
+  Future<void> addColor(Color color) async {
+    try {
+      final newColor = await _colorService.createColor(color);
+      _colors.add(newColor);
+      notifyListeners();
+    } catch (e) {
+      print('Error adding color: $e');
+    }
+  }
+
+  Future<void> updateColor(Color color) async {
+    try {
+      final updatedColor = await _colorService.updateColor(
+        color.id as int,
+        color,
+      );
+      final index = _colors.indexWhere((c) => c.id == updatedColor.id);
+      if (index != -1) {
+        _colors[index] = updatedColor;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error updating color: $e');
+    }
+  }
+
+  Future<void> removeColor(int id) async {
+    try {
+      await _colorService.deleteColor(id);
+      _colors.removeWhere((c) => c.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting color: $e');
+    }
   }
 }

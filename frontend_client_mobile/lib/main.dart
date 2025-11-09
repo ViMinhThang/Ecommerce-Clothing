@@ -7,6 +7,8 @@ import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
 
+import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
+import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:provider/provider.dart';
@@ -40,6 +42,8 @@ class MyApp extends StatelessWidget {
         '/categories': (context) => const ManageCategoriesScreen(),
         '/users': (context) => const ManageUsersScreen(),
         '/orders': (context) => const ManageOrdersScreen(),
+        '/sizes': (context) => const ManageSizesScreen(),
+        '/colors': (context) => const ManageColorsScreen(),
       },
     );
   }

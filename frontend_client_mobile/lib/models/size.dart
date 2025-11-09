@@ -4,10 +4,10 @@ part 'size.g.dart';
 
 @JsonSerializable()
 class Size {
-  final int id;
+  final int? id;
   final String sizeName;
-
-  Size({required this.id, required this.sizeName});
+  final String status;
+  Size({required this.id, required this.sizeName, required this.status});
 
   factory Size.fromJson(Map<String, dynamic> json) => _$SizeFromJson(json);
 
@@ -19,13 +19,14 @@ class Size {
       other is Size &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          sizeName == other.sizeName;
+          sizeName == other.sizeName &&
+          status == other.status; // Updated operator ==
 
   @override
-  int get hashCode => id.hashCode ^ sizeName.hashCode;
+  int get hashCode => id.hashCode ^ sizeName.hashCode ^ status.hashCode; // Updated hashCode
 
   @override
   String toString() {
-    return 'Size{id: $id, sizeName: $sizeName}';
+    return 'Size{id: $id, sizeName: $sizeName, status: $status}'; // Updated toString
   }
 }

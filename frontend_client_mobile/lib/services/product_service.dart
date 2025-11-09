@@ -28,7 +28,7 @@ class ProductService {
     return await _apiService.createProduct(
       product.name,
       product.description,
-      product.category.id,
+      product.category.id!,
       variantsJson,
       image,
     );
@@ -43,7 +43,7 @@ class ProductService {
       id,
       product.name,
       product.description,
-      product.category.id,
+      product.category.id!,
       variantsJson,
       image,
     );
