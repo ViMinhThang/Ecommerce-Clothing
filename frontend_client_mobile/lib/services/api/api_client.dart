@@ -31,6 +31,7 @@ class ApiClient {
   static UserApiService? _userApiService;
   static SearchApiService? _searchApiService;
   static Dio get dio => _dio;
+  static UserApiService? _userApiService;
 
   static ProductApiService getProductApiService() {
     _productApiService ??= ProductApiService(_dio);
@@ -143,4 +144,8 @@ class AppHttpException implements Exception {
   AppHttpException(this.message);
   @override
   String toString() => message; // để e.toString() trả về đúng message
+  static UserApiService getUserApiService() {
+    _userApiService ??= UserApiService(_dio);
+    return _userApiService!;
+  }
 }

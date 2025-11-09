@@ -4,6 +4,8 @@ import 'package:frontend_client_mobile/models/user_item_view.dart';
 import 'package:frontend_client_mobile/models/user_request.dart';
 import 'package:frontend_client_mobile/models/user_search_result.dart';
 import 'package:frontend_client_mobile/models/user_update_request.dart';
+import 'dart:io';
+import 'package:frontend_client_mobile/models/user.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
 
@@ -41,3 +43,18 @@ class UserService {
 
   Future<void> deleteUser(int id) => _api.deleteUser(id);
 }
+  final UserApiService _apiService = ApiClient.getUserApiService();
+
+  Future<User> getUser(int id) async {
+    return await _apiService.getUser(id);
+  }
+
+  Future<User> updateUser(int id, User user) async {
+    return await _apiService.updateUser(id, user);
+  }
+
+  Future<User> uploadAvatar(int id, File avatar) async {
+    return await _apiService.uploadAvatar(id, avatar);
+  }
+}
+
