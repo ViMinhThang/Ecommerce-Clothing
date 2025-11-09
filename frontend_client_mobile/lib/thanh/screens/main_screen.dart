@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/thanh/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/thanh/screens/home_screen.dart';
+import 'package:frontend_client_mobile/thanh/screens/profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,6 +16,9 @@ class _MainScreenState extends State<MainScreen> {
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),
     CatalogNavigator(),
+    Placeholder(), // Favorite screen (to be implemented)
+    Placeholder(), // Shopping bag screen (to be implemented)
+    ProfileScreen(),
   ];
   void _onItemTapped(int index) {
     setState(() {
