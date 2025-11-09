@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart' as model;
 import 'package:frontend_client_mobile/widgets/image_picker_field.dart';

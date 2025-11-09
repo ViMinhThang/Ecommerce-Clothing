@@ -39,7 +39,7 @@ class VariantCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<Color>(
-                    value: variant.color,
+                    initialValue: variant.color,
                     items: colors
                         .map((color) => DropdownMenuItem(
                               value: color,
@@ -53,7 +53,7 @@ class VariantCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: DropdownButtonFormField<Size>(
-                    value: variant.size,
+                    initialValue: variant.size,
                     items: sizes
                         .map((size) => DropdownMenuItem(
                               value: size,
