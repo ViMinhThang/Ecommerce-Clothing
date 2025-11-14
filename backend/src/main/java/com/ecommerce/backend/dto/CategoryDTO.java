@@ -12,4 +12,7 @@ import lombok.Setter;
 public class CategoryDTO {
     private Long id;
     private String name;
+    private String description; // Added description field
+    private String imageUrl;
+    private String status; // Added status field
 }

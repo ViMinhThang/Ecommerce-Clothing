@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface ProductService {
 
-    List<Product> getAllProducts();
+    Page<Product> getAllProducts(Pageable pageable);
 
     Product getProductById(Long id);
 
@@ -28,4 +28,6 @@ public interface ProductService {
     Page<ProductView> filterProduct(ProductFilter filter, Pageable pageable);
     // Count amount product when user filter
     Long filterProductCount(ProductFilter filter);
+
+    Page<Product> searchProducts(String name, Pageable pageable);
 }

@@ -11,12 +11,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -26,8 +26,11 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public Page<Product> getAllProducts(@RequestParam(required = false) String name, Pageable pageable) {
+        if (name != null && !name.isEmpty()) {
+            return productService.searchProducts(name, pageable);
+        }
+        return productService.getAllProducts(pageable);
     }
 
     @GetMapping("/{id}")
@@ -36,17 +39,26 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-
     @PostMapping
     public ResponseEntity<Product> createProduct(@ModelAttribute ProductRequest productRequest, @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+        System.out.println(productRequest.toString());
         Product createdProduct = productService.createProduct(productRequest, image);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @ModelAttribute ProductRequest productRequest, @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
-        Product updatedProduct = productService.updateProduct(id, productRequest, image);
-        return ResponseEntity.ok(updatedProduct);
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Long id,
+            @ModelAttribute ProductRequest productRequest,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        try {
+            System.out.println("Received request for product: " + id);
+            Product updatedProduct = productService.updateProduct(id, productRequest, image);
+            return ResponseEntity.ok(updatedProduct);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")

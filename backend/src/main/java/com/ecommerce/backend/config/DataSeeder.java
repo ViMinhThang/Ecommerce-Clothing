@@ -24,19 +24,11 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Create Categories
-        Category category1 = new Category();
-        category1.setName("Dresses");
-        category1.setImageUrl("Dresses");
-        Category category2 = new Category();
-        category2.setName("Jackets & Blazers");
-        category2.setImageUrl("Dresses");
-        Category category3 = new Category();
-        category3.setImageUrl("Dresses");
-        category3.setName("Coats");
-        Category category4 = new Category();
-        category4.setName("Lingerie & Nightwear");
-        category4.setImageUrl("Dresses");
-        categoryRepository.saveAll(Arrays.asList(category1, category2,category3, category4));
+//        Category category1 = new Category();
+//        category1.setName("T-Shirts");
+//        Category category2 = new Category();
+//        category2.setName("Jeans");
+//        categoryRepository.saveAll(Arrays.asList(category1, category2));
 //
 //        // Create Products
 //        Product product1 = new Product();

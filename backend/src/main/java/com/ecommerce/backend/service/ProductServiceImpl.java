@@ -1,13 +1,11 @@
 package com.ecommerce.backend.service;
 
+import com.ecommerce.backend.dto.PriceRequest;
 import com.ecommerce.backend.dto.ProductRequest;
+import com.ecommerce.backend.dto.ProductVariantRequest;
 import com.ecommerce.backend.dto.ProductView;
-import com.ecommerce.backend.model.Category;
-import com.ecommerce.backend.model.Product;
-import com.ecommerce.backend.model.ProductVariants;
-import com.ecommerce.backend.repository.CategoryRepository;
-import com.ecommerce.backend.repository.ProductRepository;
-import com.ecommerce.backend.repository.ProductVariantRepository;
+import com.ecommerce.backend.model.*;
+import com.ecommerce.backend.repository.*;
 import com.ecommerce.backend.repository.filter.ProductFilter;
 import com.ecommerce.backend.repository.filter.ProductSpecifications;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,11 +30,14 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final ColorRepository colorRepository;
+    private final SizeRepository sizeRepository;
+    private final PriceRepository priceRepository;
     private final String UPLOAD_DIR = "./uploads/";
 
     @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     @Override
@@ -46,44 +47,114 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product createProduct(ProductRequest productRequest, MultipartFile image) throws IOException {
+    public Product createProduct(ProductRequest request, MultipartFile image) throws IOException {
+        // 1. Create product with basic fields
         Product product = new Product();
-        product.setName(productRequest.getName());
-        product.setDescription(productRequest.getDescription());
-//        product.setBasePrice(productRequest.getPrice());
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
 
+        // 2. Handle image upload with null check
         if (image != null && !image.isEmpty()) {
-            String imageUrl = saveImage(image);
-            product.setImageUrl(imageUrl);
+            try {
+                String imageUrl = saveImage(image);
+                product.setImageUrl(imageUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to save product image", e);
+            }
         }
 
-        if (productRequest.getCategoryId() != null) {
-            Category category = categoryRepository.findById(productRequest.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + productRequest.getCategoryId()));
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Category not found with id: " + request.getCategoryId()));
             product.setCategory(category);
+        }
+
+        List<ProductVariantRequest> variantRequests = request.getParsedVariants();
+        if (variantRequests != null && !variantRequests.isEmpty()) {
+            for (ProductVariantRequest variantRequest : variantRequests) {
+                ProductVariants variant = new ProductVariants();
+                variant.setProduct(product);
+
+                // 5. Map color (with null check)
+                if (variantRequest.getColorId() != null) {
+                    Color color = colorRepository.findById(variantRequest.getColorId())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "Color not found with id: " + variantRequest.getColorId()));
+                    variant.setColor(color);
+                }
+
+                if (variantRequest.getSizeId() != null) {
+                    Size size = sizeRepository.findById(variantRequest.getSizeId())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "Size not found with id: " + variantRequest.getSizeId()));
+                    variant.setSize(size);
+                }
+
+                if (variantRequest.getPrice() != null) {
+                    PriceRequest priceReq = variantRequest.getPrice();
+                    Price price = new Price();
+                    price.setBasePrice(priceReq.getBasePrice());
+                    price.setSalePrice(priceReq.getSalePrice() != null ?
+                            priceReq.getSalePrice() : priceReq.getBasePrice());
+                    price = priceRepository.save(price);
+                    variant.setPrice(price);
+                }
+
+                product.getVariants().add(variant);
+            }
         }
 
         return productRepository.save(product);
     }
 
     @Override
-    public Product updateProduct(Long id, ProductRequest productRequest, MultipartFile image) throws IOException {
+    public Product updateProduct(Long id, ProductRequest request, MultipartFile image) throws IOException {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
 
-        existingProduct.setName(productRequest.getName());
-        existingProduct.setDescription(productRequest.getDescription());
-//        existingProduct.setBasePrice(productRequest.getPrice());
+        existingProduct.setName(request.getName());
+        existingProduct.setDescription(request.getDescription());
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = saveImage(image);
             existingProduct.setImageUrl(imageUrl);
         }
 
-        if (productRequest.getCategoryId() != null) {
-            Category category = categoryRepository.findById(productRequest.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + productRequest.getCategoryId()));
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Category not found"));
             existingProduct.setCategory(category);
+        }
+
+        existingProduct.getVariants().clear();
+        List<ProductVariantRequest> variantRequests = request.getParsedVariants();
+
+        if (variantRequests != null && !variantRequests.isEmpty()) {
+            for (ProductVariantRequest variantRequest : variantRequests) {
+                ProductVariants variant = new ProductVariants();
+                variant.setProduct(existingProduct);
+
+                if (variantRequest.getColorId() != null) {
+                    Color color = colorRepository.findById(variantRequest.getColorId())
+                            .orElseThrow(() -> new EntityNotFoundException("Color not found"));
+                    variant.setColor(color);
+                }
+
+                if (variantRequest.getSizeId() != null) {
+                    Size size = sizeRepository.findById(variantRequest.getSizeId())
+                            .orElseThrow(() -> new EntityNotFoundException("Size not found"));
+                    variant.setSize(size);
+                }
+
+                Price price = new Price();
+                price.setBasePrice(variantRequest.getPrice().getBasePrice());
+                price.setSalePrice(variantRequest.getPrice().getSalePrice());
+                priceRepository.save(price);
+                variant.setPrice(price);
+
+                existingProduct.getVariants().add(variant);
+            }
         }
 
         return productRepository.save(existingProduct);
@@ -100,7 +171,9 @@ public class ProductServiceImpl implements ProductService {
         // create product
         Product product = new Product();
         product.setStatus(status);          // set status "active" to avoid get product has deleted
-        product.setCategory(new Category(categoryId,null, null)); // Search by category id
+        Category category = new Category();
+        category.setId(categoryId);
+        product.setCategory(category); // Search by category id
 
         productVariants.setProduct(product);
         Example<ProductVariants> example = Example.of(productVariants); // create Example
@@ -126,6 +199,11 @@ public class ProductServiceImpl implements ProductService {
     public Long filterProductCount(ProductFilter filter) {
         return productVariantRepository.count(ProductSpecifications.build(filter));
 
+    }
+
+    @Override
+    public Page<Product> searchProducts(String name, Pageable pageable) {
+        return productRepository.findByNameContaining(name, pageable);
     }
 
     private String saveImage(MultipartFile image) throws IOException {

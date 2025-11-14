@@ -1,5 +1,6 @@
 package com.ecommerce.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,19 +22,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class ProductVariants {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     @ManyToOne
+    @JoinColumn(name = "product_id")
+    @JsonBackReference
     @JsonIgnore
     @JoinColumn(name = "product_id")
     private Product product;
+
     @ManyToOne
     @JoinColumn(name = "color_id")
     private Color color;
+
     @OneToOne
     @JoinColumn(name = "price_id")
     private Price price;
+
     @ManyToOne
     @JoinColumn(name = "size_id")
     private Size size;
@@ -44,14 +52,21 @@ public class ProductVariants {
     @JoinColumn(name = "material_id")
     private Material material;
     private String status;
+
     @Column(nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdDate;
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
     @CreatedBy
     private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "updated_by")
     @LastModifiedBy
     private User updatedBy;
 }
