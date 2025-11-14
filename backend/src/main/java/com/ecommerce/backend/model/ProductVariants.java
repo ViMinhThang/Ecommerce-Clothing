@@ -30,6 +30,8 @@ public class ProductVariants {
     @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonBackReference
+    @JsonIgnore
+    @JoinColumn(name = "product_id")
     private Product product;
 
     @ManyToOne
@@ -43,7 +45,12 @@ public class ProductVariants {
     @ManyToOne
     @JoinColumn(name = "size_id")
     private Size size;
-
+    @ManyToOne
+    @JoinColumn(name = "season_id")
+    private Season season;
+    @ManyToOne
+    @JoinColumn(name = "material_id")
+    private Material material;
     private String status;
 
     @Column(nullable = false, updatable = false)

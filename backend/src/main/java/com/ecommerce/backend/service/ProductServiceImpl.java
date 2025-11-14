@@ -3,10 +3,14 @@ package com.ecommerce.backend.service;
 import com.ecommerce.backend.dto.PriceRequest;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.ProductVariantRequest;
+import com.ecommerce.backend.dto.ProductView;
 import com.ecommerce.backend.model.*;
 import com.ecommerce.backend.repository.*;
+import com.ecommerce.backend.repository.filter.ProductFilter;
+import com.ecommerce.backend.repository.filter.ProductSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
@@ -158,6 +163,42 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
+        ProductVariants productVariants = new ProductVariants();
+        // create product
+        Product product = new Product();
+        product.setStatus(status);          // set status "active" to avoid get product has deleted
+        Category category = new Category();
+        category.setId(categoryId);
+        product.setCategory(category); // Search by category id
+
+        productVariants.setProduct(product);
+        Example<ProductVariants> example = Example.of(productVariants); // create Example
+
+        return productVariantRepository.findBy(example
+                , p -> p.page(pageable))
+                .map(x ->
+                        new ProductView(x.getProduct().getId(),x.getProduct().getName(),
+                                x.getProduct().getImageUrl(), x.getPrice().getBasePrice(),
+                                x.getPrice().getSalePrice(),x.getProduct().getDescription()));
+    }
+
+    @Override
+    public Page<ProductView> filterProduct(ProductFilter filter, Pageable pageable) {
+        return productVariantRepository.findAll(ProductSpecifications.build(filter), pageable)
+                .map(x ->
+                new ProductView(x.getProduct().getId(),x.getProduct().getName(),
+                        x.getProduct().getImageUrl(), x.getPrice().getBasePrice(),
+                        x.getPrice().getSalePrice(),x.getProduct().getDescription()));
+    }
+
+    @Override
+    public Long filterProductCount(ProductFilter filter) {
+        return productVariantRepository.count(ProductSpecifications.build(filter));
+
     }
 
     @Override
