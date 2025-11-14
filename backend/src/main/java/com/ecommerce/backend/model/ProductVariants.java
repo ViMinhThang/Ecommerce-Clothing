@@ -26,17 +26,23 @@ public class ProductVariants {
     private long id;
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(columnDefinition = "product_id")
+    @JoinColumn(name = "product_id")
     private Product product;
     @ManyToOne
-    @JoinColumn(columnDefinition = "color_id")
+    @JoinColumn(name = "color_id")
     private Color color;
     @OneToOne
-    @JoinColumn(columnDefinition = "price_id")
+    @JoinColumn(name = "price_id")
     private Price price;
     @ManyToOne
-    @JoinColumn(columnDefinition = "size_id")
+    @JoinColumn(name = "size_id")
     private Size size;
+    @ManyToOne
+    @JoinColumn(name = "season_id")
+    private Season season;
+    @ManyToOne
+    @JoinColumn(name = "material_id")
+    private Material material;
     private String status;
     @Column(nullable = false, updatable = false)
     @CreatedDate
