@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/thanh/screens/catalog/catalog_detail_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/catalog/catalog_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/filter/filter_color_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/filter/filter_material_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/filter/filter_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/filter/filter_size_screen.dart';
+import 'package:frontend_client_mobile/screens/catalog/catalog_detail_screen.dart';
+import 'package:frontend_client_mobile/screens/catalog/catalog_screen.dart';
+import 'package:frontend_client_mobile/screens/filter/filter_color_screen.dart';
+import 'package:frontend_client_mobile/screens/filter/filter_material_screen.dart';
+import 'package:frontend_client_mobile/screens/filter/filter_screen.dart';
+import 'package:frontend_client_mobile/screens/filter/filter_size_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CatalogNavigator extends StatefulWidget {

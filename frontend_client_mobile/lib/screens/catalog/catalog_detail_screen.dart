@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/thanh/controller/product_controller.dart';
-import 'package:frontend_client_mobile/thanh/screens/product/product_card_component.dart';
+import 'package:frontend_client_mobile/controller/product_controller.dart';
+import 'package:frontend_client_mobile/screens/product/product_card_component.dart';
 
 import 'package:provider/provider.dart';
 

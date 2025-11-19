@@ -37,20 +37,51 @@ public class DatabaseSeeder implements CommandLineRunner {
         user1 = users.get(0);
         user2 = users.get(1);
 
-        // Create categories
         Category category1 = new Category();
-        category1.setName("Electronics");
-        category1.setDescription("Electronic gadgets and devices");
-        category1.setImageUrl("http://10.0.2.2:8080/uploads/categories/65982f16-7bea-4230-b5b0-ea2f63e41d70_1000000020.jpg");
+        category1.setName("Dresses");
+        category1.setDescription("Various genres of Dresses");
+        category1.setImageUrl("http://10.0.2.2:8080/uploads/categories/Dresses.png");
         category1.setStatus("active");
 
         Category category2 = new Category();
-        category2.setName("Books");
-        category2.setDescription("Various genres of books");
-        category2.setImageUrl("http://10.0.2.2:8080/uploads/categories/f8802a77-6b55-4b4e-9fa8-c85d31e2a75c_1000000020.jpg");
+        category2.setName("Jackets");
+        category2.setDescription("Various genres of Jackets");
+        category2.setImageUrl("http://10.0.2.2:8080/uploads/categories/Jacket.png");
         category2.setStatus("active");
 
-        List<Category> categories = categoryRepository.saveAll(List.of(category1, category2));
+
+        Category category3= new Category();
+        category3.setName("Coats");
+        category3.setDescription("Various genres of Coats");
+        category3.setImageUrl("http://10.0.2.2:8080/uploads/categories/Coats.png");
+        category3.setStatus("active");
+
+        Category category4 = new Category();
+        category4.setName("Lingerie");
+        category4.setDescription("Various genres of Lingerie");
+        category4.setImageUrl("http://10.0.2.2:8080/uploads/categories/Lingerie.png");
+        category4.setStatus("active");
+
+        Category category5 = new Category();
+        category5.setName("New Products");
+        category5.setDescription("Various genres of new products");
+        category5.setImageUrl("http://10.0.2.2:8080/uploads/categories/newProducts.png");
+        category5.setStatus("active");
+
+        Category category6 = new Category();
+        category6.setName("Shirts");
+        category6.setDescription("Various genres of Shirts");
+        category6.setImageUrl("http://10.0.2.2:8080/uploads/categories/Shirts.png");
+        category6.setStatus("active");
+
+        Category category7 = new Category();
+        category7.setName("Collections");
+        category7.setDescription("Various genres of Collections");
+        category7.setImageUrl("http://10.0.2.2:8080/uploads/categories/Collections.png");
+        category7.setStatus("active");
+
+
+        List<Category> categories = categoryRepository.saveAll(List.of(category1, category2,category3,category4,category5,category6,category7));
         category1 = categories.get(0);
         category2 = categories.get(1);
 
@@ -134,14 +165,14 @@ public class DatabaseSeeder implements CommandLineRunner {
             List<Color> allColors = colorRepository.findAll();
             List<Size> allSizes = sizeRepository.findAll();
 
-            for (int i = 1; i <= 50; i++) {
+            for (int i = 1; i <= 25; i++) {
                 Product product = new Product();
                 product.setName("Dummy Product " + i);
                 product.setDescription("Description for dummy product " + i);
                 product.setCategory(allCategories.get(random.nextInt(allCategories.size())));
                 product.setImageUrl("http://10.0.2.2:8080/uploads/products/placeholder.jpg");
                 product.setStatus("active");
-                
+
                 product = productRepository.save(product);
 
                 // Create 1-3 variants for each product
@@ -151,14 +182,14 @@ public class DatabaseSeeder implements CommandLineRunner {
                     variant.setProduct(product);
                     variant.setColor(allColors.get(random.nextInt(allColors.size())));
                     variant.setSize(allSizes.get(random.nextInt(allSizes.size())));
-                    
+
                     Price price = new Price();
                     double basePrice = 10.0 + random.nextDouble() * 100.0;
                     price.setBasePrice(basePrice);
                     price.setSalePrice(basePrice * 0.9);
                     price.setStatus("active");
                     price = priceRepository.save(price);
-                    
+
                     variant.setPrice(price);
                     variant.setStatus("active");
                     productVariantsRepository.save(variant);

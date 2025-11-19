@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
+import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 
 class BlankFormScreen extends StatefulWidget {
   const BlankFormScreen({super.key});
@@ -95,7 +96,10 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Handle sign up
+                    Navigator.pushNamed(
+                      context,
+                      '/home', // Replace '/login' with the actual route name (String)
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
