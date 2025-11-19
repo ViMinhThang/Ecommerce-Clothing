@@ -7,39 +7,73 @@ class ProductProvider with ChangeNotifier {
   final ProductService _productService = ProductService();
   List<Product> _products = [];
   bool _isLoading = false;
+  bool _isMoreLoading = false;
+  int _currentPage = 0;
+  int _totalPages = 0;
+  final int _pageSize = 10;
+  String _searchQuery = '';
 
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
+  bool get isMoreLoading => _isMoreLoading;
+  bool get hasMore => _currentPage < _totalPages - 1;
   Future<void> initialize() async {
     if (_isLoading) return;
     await fetchProducts();
     _isLoading = true;
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchProducts({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _products = [];
+      _totalPages = 0;
+      _isLoading = true;
+      notifyListeners();
+    } else {
+      if (_isMoreLoading || !hasMore && _products.isNotEmpty) return;
+      _isMoreLoading = true;
+      notifyListeners();
+    }
+
     try {
-      _products = await _productService.getProducts();
-      print(_products.toString());
+      final response = await _productService.getProducts(
+        name: _searchQuery,
+        page: _currentPage,
+        size: _pageSize,
+      );
+
+      if (refresh) {
+        _products = response.content;
+      } else {
+        _products.addAll(response.content);
+      }
+
+      _totalPages = response.totalPages;
+      _currentPage++;
+
+      print(
+        'Fetched products: ${_products.length}, Page: $_currentPage/$_totalPages',
+      );
     } catch (e, stack) {
       print(e);
       print(stack);
       // Handle error
+    } finally {
+      _isLoading = false;
+      _isMoreLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
+  }
+
+  Future<void> loadMore() async {
+    await fetchProducts(refresh: false);
   }
 
   Future<void> searchProducts(String name) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _products = await _productService.searchProducts(name);
-    } catch (e, stack) {
-      print(e);
-      print(stack);
-      // Handle error
-    }
-    _isLoading = false;
-    notifyListeners();
+    if (_searchQuery == name) return;
+    _searchQuery = name;
+    await fetchProducts(refresh: true);
   }
 
   Future<void> addProduct(Product product, {File? image}) async {

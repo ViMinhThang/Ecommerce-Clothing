@@ -14,12 +14,28 @@ class ManageProductsScreen extends StatefulWidget {
 }
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).fetchProducts();
+      Provider.of<ProductProvider>(context, listen: false).fetchProducts(refresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      Provider.of<ProductProvider>(context, listen: false).loadMore();
+    }
   }
 
   @override
@@ -32,7 +48,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           onPressed: () => Provider.of<ProductProvider>(
             context,
             listen: false,
-          ).fetchProducts(),
+          ).fetchProducts(refresh: true),
           icon: const Icon(Icons.refresh),
         ),
       ],
@@ -55,43 +71,48 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ProductListView(
-                  products: provider.products,
-                  isLoading: provider.isLoading,
-                  onEdit: (product) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditProductScreen(product: product),
-                      ),
-                    );
-                  },
-                  onDelete: (product) async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Product'),
-                        content: const Text(
-                          'Are you sure you want to delete this product?',
+                child: RefreshIndicator(
+                  onRefresh: () => provider.fetchProducts(refresh: true),
+                  child: ProductListView(
+                    scrollController: _scrollController,
+                    products: provider.products,
+                    isLoading: provider.isLoading,
+                    isMoreLoading: provider.isMoreLoading,
+                    onEdit: (product) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditProductScreen(product: product),
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
+                      );
+                    },
+                    onDelete: (product) async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Product'),
+                          content: const Text(
+                            'Are you sure you want to delete this product?',
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirmed == true) {
-                      provider.deleteProduct(product.id);
-                    }
-                  },
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+  
+                      if (confirmed == true) {
+                        provider.deleteProduct(product.id);
+                      }
+                    },
+                  ),
                 ),
               ),
             ],

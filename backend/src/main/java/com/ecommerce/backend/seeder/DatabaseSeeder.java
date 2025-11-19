@@ -39,16 +39,16 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         // Create categories
         Category category1 = new Category();
-        category1.setName("Electronics"); // Changed from setTitle
-        category1.setDescription("Electronic gadgets and devices"); // Added description
-        category1.setImageUrl("http://10.0.2.2:8080/uploads/categories/electronics.jpg"); // Updated image URL
-        category1.setStatus("active"); // Added status
+        category1.setName("Electronics");
+        category1.setDescription("Electronic gadgets and devices");
+        category1.setImageUrl("http://10.0.2.2:8080/uploads/categories/65982f16-7bea-4230-b5b0-ea2f63e41d70_1000000020.jpg");
+        category1.setStatus("active");
 
         Category category2 = new Category();
-        category2.setName("Books"); // Changed from setTitle
-        category2.setDescription("Various genres of books"); // Added description
-        category2.setImageUrl("http://10.0.2.2:8080/uploads/categories/books.jpg"); // Updated image URL
-        category2.setStatus("active"); // Added status
+        category2.setName("Books");
+        category2.setDescription("Various genres of books");
+        category2.setImageUrl("http://10.0.2.2:8080/uploads/categories/f8802a77-6b55-4b4e-9fa8-c85d31e2a75c_1000000020.jpg");
+        category2.setStatus("active");
 
         List<Category> categories = categoryRepository.saveAll(List.of(category1, category2));
         category1 = categories.get(0);
@@ -81,12 +81,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         Price price1 = new Price();
         price1.setBasePrice(100.0);
         price1.setSalePrice(80.0);
-        price1.setStatus("active"); // Added status
+        price1.setStatus("active");
 
         Price price2 = new Price();
         price2.setBasePrice(200.0);
         price2.setSalePrice(150.0);
-        price2.setStatus("active"); // Added status
+        price2.setStatus("active");
 
         List<Price> prices = priceRepository.saveAll(List.of(price1, price2));
         price1 = prices.get(0);
@@ -97,14 +97,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         product1.setName("Laptop");
         product1.setDescription("A powerful laptop");
         product1.setCategory(category1);
-        product1.setImageUrl("http://10.0.2.2:8080/uploads/products/laptop.jpg"); // Updated image URL
-        product1.setStatus("active"); // Added status
+        product1.setImageUrl("http://10.0.2.2:8080/uploads/products/3a3df57f-af6a-45c2-93c1-c4d3924616b6.jpg");
+        product1.setStatus("active");
         Product product2 = new Product();
         product2.setName("The Lord of the Rings");
         product2.setDescription("A classic fantasy novel");
         product2.setCategory(category2);
-        product2.setImageUrl("http://10.0.2.2:8080/uploads/products/lotr.jpg"); // Updated image URL
-        product2.setStatus("active"); // Added status
+        product2.setImageUrl("http://10.0.2.2:8080/uploads/products/5f1cd65a-196a-40c8-aa44-1d36eb0c9263.jpg");
+        product2.setStatus("active");
 
         List<Product> products = productRepository.saveAll(List.of(product1, product2));
         product1 = products.get(0);
@@ -116,15 +116,54 @@ public class DatabaseSeeder implements CommandLineRunner {
         variant1.setColor(color1);
         variant1.setSize(size1);
         variant1.setPrice(price1);
-        variant1.setStatus("active"); // Added status
+        variant1.setStatus("active");
 
         ProductVariants variant2 = new ProductVariants();
         variant2.setProduct(product2);
         variant2.setColor(color2);
         variant2.setSize(size2);
         variant2.setPrice(price2);
-        variant2.setStatus("active"); // Added status
+        variant2.setStatus("active");
 
         productVariantsRepository.saveAll(List.of(variant1, variant2));
+
+        // Generate 50 dummy products
+        if (productRepository.count() < 50) {
+            java.util.Random random = new java.util.Random();
+            List<Category> allCategories = categoryRepository.findAll();
+            List<Color> allColors = colorRepository.findAll();
+            List<Size> allSizes = sizeRepository.findAll();
+
+            for (int i = 1; i <= 50; i++) {
+                Product product = new Product();
+                product.setName("Dummy Product " + i);
+                product.setDescription("Description for dummy product " + i);
+                product.setCategory(allCategories.get(random.nextInt(allCategories.size())));
+                product.setImageUrl("http://10.0.2.2:8080/uploads/products/placeholder.jpg");
+                product.setStatus("active");
+                
+                product = productRepository.save(product);
+
+                // Create 1-3 variants for each product
+                int variantCount = random.nextInt(3) + 1;
+                for (int j = 0; j < variantCount; j++) {
+                    ProductVariants variant = new ProductVariants();
+                    variant.setProduct(product);
+                    variant.setColor(allColors.get(random.nextInt(allColors.size())));
+                    variant.setSize(allSizes.get(random.nextInt(allSizes.size())));
+                    
+                    Price price = new Price();
+                    double basePrice = 10.0 + random.nextDouble() * 100.0;
+                    price.setBasePrice(basePrice);
+                    price.setSalePrice(basePrice * 0.9);
+                    price.setStatus("active");
+                    price = priceRepository.save(price);
+                    
+                    variant.setPrice(price);
+                    variant.setStatus("active");
+                    productVariantsRepository.save(variant);
+                }
+            }
+        }
     }
 }

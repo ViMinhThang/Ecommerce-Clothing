@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/auth/blank_form.dart';
+import 'package:frontend_client_mobile/screens/auth/blank_form.dart';
 import 'package:frontend_client_mobile/widgets/app_bar_widget.dart';
 import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart';
 import 'package:frontend_client_mobile/widgets/mxh_fields_widget.dart';
@@ -65,9 +65,15 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 15),
             SocialWidget(
               icondata: null,
-              text: "Đăng ký bằng password",
+              text: "Đăng nhập bằng password",
               textColor: Colors.white,
               color: Colors.black,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BlankFormScreen()),
+                );
+              },
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Row(

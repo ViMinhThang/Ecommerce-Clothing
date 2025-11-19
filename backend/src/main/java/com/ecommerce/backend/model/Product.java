@@ -29,7 +29,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Lob
     private String name;
 
     @Lob

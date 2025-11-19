@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -203,7 +205,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> searchProducts(String name, Pageable pageable) {
-        return productRepository.findByNameContaining(name, pageable);
+        return productRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
     private String saveImage(MultipartFile image) throws IOException {
@@ -212,6 +214,6 @@ public class ProductServiceImpl implements ProductService {
         String newFilename = UUID.randomUUID().toString() + fileExtension;
         Path filePath = Paths.get(UPLOAD_DIR + newFilename);
         Files.copy(image.getInputStream(), filePath);
-        return "http://10.0.2.2:8080/uploads/" + newFilename;
+        return "http://10.0.2.2:8080/uploads/products/" + newFilename;
     }
 }

@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/frotend_client_moblie/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/frotend_client_moblie/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/frotend_client_moblie/build" />
+      <excludeFolder url="file://$MODULE_DIR$/frontend_client_mobile/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/frontend_client_mobile/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/frontend_client_mobile/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
