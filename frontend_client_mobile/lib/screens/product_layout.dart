@@ -57,7 +57,9 @@ class _ProductPageState extends State<ProductPage> {
       appBar: AppBar(
         leadingWidth: 56,
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: const Icon(Icons.chevron_left_rounded),
         ),
         centerTitle: true,

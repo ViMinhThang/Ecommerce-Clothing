@@ -31,7 +31,6 @@ public class ProductVariants {
     @JoinColumn(name = "product_id")
     @JsonBackReference
     @JsonIgnore
-    @JoinColumn(name = "product_id")
     private Product product;
 
     @ManyToOne

@@ -1,24 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 
 class ProductService {
   final ProductApiService _apiService = ApiClient.getProductApiService();
 
-  Future<List<Product>> getProducts({
+  Future<PageResponse<Product>> getProducts({
     String? name,
     int page = 0,
     int size = 10,
   }) async {
     final response = await _apiService.getProducts(name, page, size);
-    return response.data.content;
-  }
-
-  Future<List<Product>> searchProducts(String name) async {
-    final response = await _apiService.getProducts(name, 0, 10);
-    return response.data.content;
+    return response.data;
   }
 
   Future<Product> createProduct(Product product, {File? image}) async {

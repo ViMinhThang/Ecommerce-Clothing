@@ -14,12 +14,15 @@ class CategoryProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> initialize() async {
+    print("Calling API");
     if (_isLoading) return;
     await fetchCategories();
     _isLoading = true;
   }
 
   Future<void> fetchCategories() async {
+    print("Calling API");
+
     try {
       _categories = await _categoryService.getCategories();
     } catch (e) {

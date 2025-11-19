@@ -4,8 +4,10 @@ import 'package:frontend_client_mobile/models/product.dart'; // Adjust import
 class ProductListView extends StatelessWidget {
   final List<Product> products;
   final bool isLoading;
+  final bool isMoreLoading;
   final Function(Product) onEdit;
   final Function(Product) onDelete;
+  final ScrollController? scrollController;
 
   const ProductListView({
     super.key,
@@ -13,17 +15,28 @@ class ProductListView extends StatelessWidget {
     required this.isLoading,
     required this.onEdit,
     required this.onDelete,
+    this.isMoreLoading = false,
+    this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (isLoading && products.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return ListView.builder(
-      itemCount: products.length,
+      controller: scrollController,
+      itemCount: products.length + (isMoreLoading ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == products.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
         final p = products[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
