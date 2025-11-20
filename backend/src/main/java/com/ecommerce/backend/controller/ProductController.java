@@ -67,14 +67,14 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{categoryId}/{pageIndex}/{pageSize}")
-    public ResponseEntity<APIResponse<Page<ProductView>>> getProductByCategory(@PathVariable Long id, @PathVariable int pageIndex, @PathVariable int pageSize) {
+    public ResponseEntity<Page<ProductView>> getProductByCategory(@PathVariable Long categoryId, @PathVariable int pageIndex, @PathVariable int pageSize) {
         Pageable pageable =  PageRequest.of(pageIndex,pageSize);
-        Page<ProductView> res = productService.getProductsByCategory(id,"active", pageable);
+        Page<ProductView> res = productService.getProductsByCategory(categoryId,"active", pageable);
         return response(res);
     }
     // /api/products/filter?sizes=S&sizes=M&colors=RED&page=0&size=10
     @GetMapping("/filter")
-    public ResponseEntity<APIResponse<Page<ProductView>>> filter(ProductFilter filter, Pageable pageable) {
+    public ResponseEntity<Page<ProductView>> filter(ProductFilter filter, Pageable pageable) {
         Page<ProductView> res = productService.filterProduct(filter,pageable );
         return response(res);
     }
@@ -83,10 +83,10 @@ public class ProductController {
         return ResponseEntity.ok(new APIResponse<>("Success"
                 , productService.filterProductCount(filter), true));
     }
-    private ResponseEntity<APIResponse<Page<ProductView>>> response(Page<ProductView> res){
+    private ResponseEntity<Page<ProductView>> response(Page<ProductView> res){
         if(res.isEmpty()){
-            return ResponseEntity.badRequest().body(new APIResponse<>("List is empty", null, false));
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(new APIResponse<>("Success", res, true));
+        return ResponseEntity.ok(res);
     }
 }

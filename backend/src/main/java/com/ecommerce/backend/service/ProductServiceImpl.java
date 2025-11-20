@@ -169,23 +169,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
-        ProductVariants productVariants = new ProductVariants();
-        // create product
-        Product product = new Product();
-        product.setStatus(status);          // set status "active" to avoid get product has deleted
-        Category category = new Category();
-        category.setId(categoryId);
-        product.setCategory(category); // Search by category id
-
-        productVariants.setProduct(product);
-        Example<ProductVariants> example = Example.of(productVariants); // create Example
-
-        return productVariantRepository.findBy(example
-                , p -> p.page(pageable))
-                .map(x ->
-                        new ProductView(x.getProduct().getId(),x.getProduct().getName(),
-                                x.getProduct().getImageUrl(), x.getPrice().getBasePrice(),
-                                x.getPrice().getSalePrice(),x.getProduct().getDescription()));
+        return productRepository.findByCategoryIdAndStatus(categoryId,status, pageable)
+                .map(x -> {
+                    ProductVariants firstVariant = x.getVariants().isEmpty() ? null : x.getVariants().get(0);
+                    double basePrice = firstVariant != null ? firstVariant.getPrice().getBasePrice() : 0;
+                    double salePrice = firstVariant != null ? firstVariant.getPrice().getSalePrice() : 0;
+                    return new ProductView(x.getId(), x.getName(),
+                            x.getImageUrl(), basePrice, salePrice, x.getDescription());
+                });
     }
 
     @Override

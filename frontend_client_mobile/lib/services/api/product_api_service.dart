@@ -1,15 +1,14 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'product_api_service.g.dart';
 
-@RestApi(baseUrl: "http://10.0.2.2:8080/")
+@RestApi()
 abstract class ProductApiService {
-  factory ProductApiService(Dio dio, {String baseUrl}) = _ProductApiService;
+  factory ProductApiService(Dio dio, {String? baseUrl}) = _ProductApiService;
 
   @GET("api/products")
   Future<HttpResponse<PageResponse<Product>>> getProducts(
@@ -28,7 +27,7 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") File? image,
+    @Part(name: "image") MultipartFile? image,
   );
 
   @PUT("api/products/{id}")
@@ -39,9 +38,18 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") File? image,
+    @Part(name: "image") MultipartFile? image,
   );
 
   @DELETE("api/products/{id}")
   Future<void> deleteProduct(@Path("id") int id);
+
+  @GET("api/products/{categoryId}/{pageIndex}/{pageSize}")
+  Future<HttpResponse<PageResponse<ProductView>>> getProductsByCategory(
+    @Path("categoryId") int categoryId,
+    @Path("pageIndex") int pageIndex,
+    @Path("pageSize") int pageSize,
+  );
+  // @GET("api/products//filter/{categoryId}")
+  // Future filterProduct(int categoryId) async {}
 }

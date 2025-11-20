@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 
@@ -17,7 +18,7 @@ class ProductService {
     return response.data;
   }
 
-  Future<Product> createProduct(Product product, {File? image}) async {
+  Future<Product> createProduct(Product product, {MultipartFile? image}) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
@@ -30,7 +31,11 @@ class ProductService {
     );
   }
 
-  Future<Product> updateProduct(int id, Product product, {File? image}) async {
+  Future<Product> updateProduct(
+    int id,
+    Product product, {
+    MultipartFile? image,
+  }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
@@ -48,5 +53,23 @@ class ProductService {
 
   Future<void> deleteProduct(int id) async {
     await _apiService.deleteProduct(id);
+  }
+
+  Future<PageResponse<ProductView>> getProductsByCategory(
+    int categoryId,
+    int page,
+    int size,
+  ) async {
+    final response = await _apiService.getProductsByCategory(
+      categoryId,
+      page,
+      size,
+    );
+    return response.data;
+  }
+
+  Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
+    // final response = await _apiService.filterProduct(categoryId);
+    return null!;
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/controller/product_controller.dart';
-import 'package:frontend_client_mobile/screens/product/product_card_component.dart';
-
+import 'package:frontend_client_mobile/providers/product_provider.dart';
+import 'package:frontend_client_mobile/widgets/product_card.dart';
 import 'package:provider/provider.dart';
 
 class CatalogDetailScreen extends StatefulWidget {
-  const CatalogDetailScreen({super.key});
+  final int categoryId;
+  const CatalogDetailScreen({super.key, required this.categoryId});
 
   @override
   State<CatalogDetailScreen> createState() => _CatalogDetailScreenState();
@@ -16,7 +16,7 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductController>().fetchProducts();
+      context.read<ProductProvider>().fetchProductsByCategory(widget.categoryId, isRefresh: true);
     });
   }
 
@@ -26,7 +26,7 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
-    final productController = context.watch<ProductController>();
+    final productProvider = context.watch<ProductProvider>();
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
@@ -82,8 +82,8 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             sliver: SliverGrid(
               delegate: SliverChildBuilderDelegate((context, index) {
-                return ProductCard(product: productController.products[index]);
-              }, childCount: productController.products.length),
+                return ProductViewCard(product: productProvider.productViews[index]);
+              }, childCount: productProvider.productViews.length),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 8,

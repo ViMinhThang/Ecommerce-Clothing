@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
+
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart' as model;
 import 'package:frontend_client_mobile/widgets/image_picker_field.dart';
@@ -23,7 +22,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
   String _status = 'active';
-  File? _selectedImage;
+  XFile? _selectedImage;
   String? _currentImageUrl;
   bool _isSaving = false;
 
@@ -51,7 +50,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = pickedFile;
       });
     }
   }
