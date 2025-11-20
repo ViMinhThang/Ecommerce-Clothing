@@ -61,8 +61,19 @@ class _CatalogNavigatorState extends State<CatalogNavigator> {
                 }
                 break;
               case '/filter':
-                // Trang gốc của tab Catalog
-                builder = (BuildContext _) => FiltersPage();
+                // 1. Lấy arguments từ settings
+                final args = settings.arguments;
+                // 2. Kiểm tra và ép kiểu (giả sử categoryId là int)
+                if (args is int) {
+                  builder = (_) => FiltersPage(categoryId: args);
+                } else {
+                  // Xử lý lỗi nếu không truyền tham số hoặc sai kiểu
+                  return MaterialPageRoute(
+                    builder: (_) => const Scaffold(
+                      body: Center(child: Text('Missing Category ID')),
+                    ),
+                  );
+                }
                 break;
               case '/material':
                 // Trang con (trang search) của tab Catalog

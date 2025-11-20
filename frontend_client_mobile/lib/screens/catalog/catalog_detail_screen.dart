@@ -16,7 +16,10 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().fetchProductsByCategory(widget.categoryId, isRefresh: true);
+      context.read<ProductProvider>().fetchProductsByCategory(
+        widget.categoryId,
+        isRefresh: true,
+      );
     });
   }
 
@@ -57,7 +60,10 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
                     icon: Icons.filter_list_rounded,
                     label: 'Filter',
                     onTap: () async {
-                      await Navigator.pushNamed(context, "/filter");
+                      Navigator.of(context).pushNamed(
+                        '/filter',
+                        arguments: widget.categoryId, // Truyền ID vào đây
+                      );
                     },
                   ),
                   const SizedBox(width: 10),
@@ -82,7 +88,9 @@ class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             sliver: SliverGrid(
               delegate: SliverChildBuilderDelegate((context, index) {
-                return ProductViewCard(product: productProvider.productViews[index]);
+                return ProductViewCard(
+                  product: productProvider.productViews[index],
+                );
               }, childCount: productProvider.productViews.length),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
