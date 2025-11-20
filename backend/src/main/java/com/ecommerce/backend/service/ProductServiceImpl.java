@@ -199,6 +199,11 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
+    @Override
+    public FilterView getFilterAttributes(long categoryId) {
+        return productVariantRepository.findFilterAttributesByCategory(categoryId);
+    }
+
     private String saveImage(MultipartFile image) throws IOException {
         String originalFilename = image.getOriginalFilename();
         String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));

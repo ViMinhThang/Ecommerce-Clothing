@@ -3,6 +3,7 @@ package com.ecommerce.backend.controller;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.ProductView;
 import com.ecommerce.backend.model.Product;
+import com.ecommerce.backend.repository.FilterView;
 import com.ecommerce.backend.repository.filter.ProductFilter;
 import com.ecommerce.backend.response.APIResponse;
 import com.ecommerce.backend.service.ProductService;
@@ -72,17 +73,7 @@ public class ProductController {
         Page<ProductView> res = productService.getProductsByCategory(categoryId,"active", pageable);
         return response(res);
     }
-    // /api/products/filter?sizes=S&sizes=M&colors=RED&page=0&size=10
-    @GetMapping("/filter")
-    public ResponseEntity<Page<ProductView>> filter(ProductFilter filter, Pageable pageable) {
-        Page<ProductView> res = productService.filterProduct(filter,pageable );
-        return response(res);
-    }
-    @GetMapping("/filter/count")
-    public ResponseEntity<APIResponse<Long>> filterCount(ProductFilter filter) {
-        return ResponseEntity.ok(new APIResponse<>("Success"
-                , productService.filterProductCount(filter), true));
-    }
+
     private ResponseEntity<Page<ProductView>> response(Page<ProductView> res){
         if(res.isEmpty()){
             return ResponseEntity.badRequest().build();
