@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
-import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 
 class BlankFormScreen extends StatefulWidget {
   const BlankFormScreen({super.key});

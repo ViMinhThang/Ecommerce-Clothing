@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/product_layout.dart';
 import 'package:frontend_client_mobile/widgets/category_chip.dart';
 import 'package:provider/provider.dart';
@@ -15,23 +16,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
-
+  int _selectedCategoryIndex = 0;
+  int _selectedCategoryId = 0;
   @override
   void initState() {
     super.initState();
     // Initial Fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProductProvider>(context, listen: false).initialize();
+      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
     });
 
     // Infinite Scroll Listener
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        final provider = Provider.of<ProductProvider>(context, listen: false);
-        if (!provider.isMoreLoading && provider.hasMore) {
-          provider.loadMore();
-        }
+      bool isScrollAtBottom =
+          _scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200;
+      final provider = Provider.of<ProductProvider>(context, listen: false);
+      if (isScrollAtBottom && !provider.isMoreLoading && provider.hasMore) {
+        provider.loadMore();
+      }
+      if (isScrollAtBottom &&
+          provider.hasMore &&
+          !provider.isMoreLoading &&
+          _selectedCategoryIndex > 0) {
+        provider.loadMoreByCategory(_selectedCategoryId);
       }
     });
   }
@@ -40,6 +49,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onCategorySelected(int index, int categoryId) {
+    if (_selectedCategoryIndex == index)
+      return; // Bấm lại cái đang chọn thì bỏ qua
+
+    setState(() {
+      _selectedCategoryIndex = index; // Cập nhật UI (dấu chấm đen)
+      _selectedCategoryId = categoryId; // Lưu lại ID để dùng cho load more
+    });
+
+    // Gọi Provider reset list và load mới
+    context.read<ProductProvider>().fetchProductsByCategory(
+      categoryId,
+      isRefresh: true,
+    );
+
+    // (Tuỳ chọn) Cuộn lên đầu trang khi đổi category
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
   }
 
   @override
@@ -128,18 +158,52 @@ class _HomeScreenState extends State<HomeScreen> {
                           horizontal: 16,
                           vertical: 10,
                         ),
-                        child: Row(
-                          children: [
-                            const CategoryChip(label: 'All', isSelected: true),
-                            const SizedBox(width: 12),
-                            const CategoryChip(label: 'Dresses'),
-                            const SizedBox(width: 12),
-                            const CategoryChip(label: 'Jackets'),
-                            const SizedBox(width: 12),
-                            const CategoryChip(label: 'Coats'),
-                            const SizedBox(width: 12),
-                            const CategoryChip(label: 'Lingerie'),
-                          ],
+                        child: Consumer<CategoryProvider>(
+                          builder: (context, categoryProvider, child) {
+                            // 1. Check trạng thái Loading
+                            if (categoryProvider.isLoading) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            return Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: CategoryChip(
+                                    label: "All",
+                                    isSelected: _selectedCategoryIndex == 0,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategoryId = 0;
+                                        _selectedCategoryIndex = 0;
+                                      });
+                                      context
+                                          .read<ProductProvider>()
+                                          .initialize();
+                                    },
+                                  ),
+                                ),
+                                ...categoryProvider.categories.map((category) {
+                                  final index =
+                                      categoryProvider.categories.indexOf(
+                                        category,
+                                      ) +
+                                      1;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12.0),
+                                    child: CategoryChip(
+                                      label: category.name,
+                                      isSelected:
+                                          _selectedCategoryIndex == index,
+                                      onTap: () => _onCategorySelected(
+                                        index,
+                                        category.id!,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -151,8 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     productProvider.products.isEmpty)
                   const SliverFillRemaining(
                     child: Center(child: CircularProgressIndicator()),
-                  )
-                else
+                  ),
+                if (_selectedCategoryIndex == 0)
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -180,6 +244,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         );
                       }, childCount: productProvider.products.length),
+                    ),
+                  ),
+                if (_selectedCategoryIndex != 0)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.58,
+                            mainAxisSpacing: 24,
+                            crossAxisSpacing: 16,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final product = productProvider.productViews[index];
+                        return ProductViewCard(
+                          product: product,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProductPage(),
+                              ),
+                            );
+                          },
+                        );
+                      }, childCount: productProvider.productViews.length),
                     ),
                   ),
 

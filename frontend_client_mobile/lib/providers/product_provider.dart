@@ -1,22 +1,34 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/product_view.dart';
+import 'package:frontend_client_mobile/utils/file_utils.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/product.dart';
 import '../services/product_service.dart';
 
 class ProductProvider with ChangeNotifier {
   final ProductService _productService = ProductService();
-  List<Product> _products = [];
-  bool _isLoading = false;
-  bool _isMoreLoading = false;
+  List<Product> _products = []; 
+  List<ProductView> _productViews = []; 
+
+  bool _isLoading = false; // Loading to (giữa màn hình)
+  bool _isMoreLoading = false; // Loading nhỏ (dưới đáy)
   int _currentPage = 0;
   int _totalPages = 0;
   final int _pageSize = 10;
   String _searchQuery = '';
 
+  bool _hasMore = true;
+
+  int _currentCategoryId = 0;
+
+  // --- GETTERS ---
   List<Product> get products => _products;
+  List<ProductView> get productViews => _productViews;
   bool get isLoading => _isLoading;
   bool get isMoreLoading => _isMoreLoading;
-  bool get hasMore => _currentPage < _totalPages - 1;
+
+  // SỬA GETTER NÀY: Trả về biến _hasMore thay vì tính toán
+  bool get hasMore => _hasMore;
   Future<void> initialize() async {
     if (_isLoading) return;
     await fetchProducts();
@@ -76,11 +88,11 @@ class ProductProvider with ChangeNotifier {
     await fetchProducts(refresh: true);
   }
 
-  Future<void> addProduct(Product product, {File? image}) async {
+  Future<void> addProduct(Product product, {XFile? image}) async {
     try {
       final newProduct = await _productService.createProduct(
         product,
-        image: image,
+        image: await FileUtils.convertXFileToMultipart(image),
       );
       _products.add(newProduct);
       notifyListeners();
@@ -91,12 +103,12 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProduct(Product product, {File? image}) async {
+  Future<void> updateProduct(Product product, {XFile? image}) async {
     try {
       final updatedProduct = await _productService.updateProduct(
         product.id,
         product,
-        image: image,
+        image: await FileUtils.convertXFileToMultipart(image),
       );
       final index = _products.indexWhere((p) => p.id == product.id);
       if (index != -1) {
@@ -117,5 +129,74 @@ class ProductProvider with ChangeNotifier {
     } catch (e) {
       // Handle error
     }
+  }
+
+  Future<void> fetchProductsByCategory(
+    int categoryId, {
+    bool isRefresh = false,
+  }) async {
+    // --- GIAI ĐOẠN 1: THIẾT LẬP TRẠNG THÁI (SETUP) ---
+
+    // TRƯỜNG HỢP 1: Reset / Đổi Category / Refresh
+    if (isRefresh || categoryId != _currentCategoryId) {
+      _currentPage = 0;
+      _productViews = []; // Xóa list cũ ngay
+      _currentCategoryId = categoryId;
+      _hasMore = true; // QUAN TRỌNG: Phải reset cái này về true
+
+      _isLoading = true; // Bật loading to
+      _isMoreLoading = false; // Tắt loading nhỏ
+      notifyListeners();
+    }
+    // TRƯỜNG HỢP 2: Load more (Kéo xuống đáy)
+    else {
+      // Chốt chặn (Guard Clause): Nếu đang load hoặc hết hàng thì nghỉ
+      if (_isMoreLoading || !hasMore) {
+        return;
+      }
+
+      _isLoading = false; // Đảm bảo loading to đang tắt
+      _isMoreLoading = true; // Bật loading nhỏ
+      notifyListeners();
+    }
+
+    // --- GIAI ĐOẠN 2: GỌI API (CHUNG CHO CẢ 2 TRƯỜNG HỢP) ---
+    try {
+      var res = await _productService.getProductsByCategory(
+        categoryId,
+        _currentPage,
+        _pageSize,
+      );
+
+      // Xử lý dữ liệu trả về
+      if (res.content.isNotEmpty) {
+        // Logic nối list:
+        // Vì ở TRƯỜNG HỢP 1 ta đã gán _productViews = [] rồi,
+        // nên dùng addAll ở đây là an toàn cho cả 2 trường hợp.
+        _productViews.addAll(res.content);
+
+        _currentPage++; // Tăng page
+        _totalPages = res.totalPages;
+
+        // Cập nhật hasMore
+        if (res.content.length < _pageSize) {
+          _hasMore = false;
+        }
+      } else {
+        // Nếu content rỗng -> hết dữ liệu
+        _hasMore = false;
+      }
+    } catch (e) {
+      print("Lỗi load product: $e");
+    } finally {
+      // --- GIAI ĐOẠN 3: DỌN DẸP ---
+      _isLoading = false;
+      _isMoreLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void loadMoreByCategory(int selectedCategoryId) {
+    fetchProductsByCategory(selectedCategoryId, isRefresh: false);
   }
 }

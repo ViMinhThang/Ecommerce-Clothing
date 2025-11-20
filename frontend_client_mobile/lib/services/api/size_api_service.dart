@@ -4,9 +4,9 @@ import 'package:retrofit/retrofit.dart';
 
 part 'size_api_service.g.dart';
 
-@RestApi(baseUrl: "http://10.0.2.2:8080/")
+@RestApi()
 abstract class SizeApiService {
-  factory SizeApiService(Dio dio, {String baseUrl}) = _SizeApiService;
+  factory SizeApiService(Dio dio, {String? baseUrl}) = _SizeApiService;
 
   @GET("api/sizes")
   Future<List<Size>> getSizes();

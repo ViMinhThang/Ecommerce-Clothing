@@ -39,7 +39,7 @@ class EditProductViewModel extends ChangeNotifier {
 
   // State
   Category? _selectedCategory;
-  File? _selectedImage;
+  XFile? _selectedImage;
   List<ProductVariant> _variants = [];
   bool _isLoadingCategories = false;
   bool _isLoadingColors = false;
@@ -48,7 +48,7 @@ class EditProductViewModel extends ChangeNotifier {
 
   // Getters
   Category? get selectedCategory => _selectedCategory;
-  File? get selectedImage => _selectedImage;
+  XFile? get selectedImage => _selectedImage;
   List<ProductVariant> get variants => _variants;
   bool get isLoadingCategories => _isLoadingCategories;
   bool get isLoadingColors => _isLoadingColors;
@@ -66,7 +66,7 @@ class EditProductViewModel extends ChangeNotifier {
     }
   }
 
-  set selectedImage(File? value) {
+  set selectedImage(XFile? value) {
     if (_selectedImage != value) {
       _selectedImage = value;
       notifyListeners();
@@ -109,7 +109,7 @@ class EditProductViewModel extends ChangeNotifier {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        selectedImage = File(pickedFile.path);
+        selectedImage = pickedFile;
       }
     } catch (e) {
       debugPrint('Error picking image: $e');

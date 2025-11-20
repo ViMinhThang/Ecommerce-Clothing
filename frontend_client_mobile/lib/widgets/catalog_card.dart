@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart';
+import 'package:frontend_client_mobile/utils/file_utils.dart';
 
 class CatalogCard extends StatelessWidget {
   final Category category;
@@ -32,7 +33,7 @@ class CatalogCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   Image.network(
-                    category.imageUrl,
+                    FileUtils.fixImgUrl(category.imageUrl),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) {
                       return const Center(

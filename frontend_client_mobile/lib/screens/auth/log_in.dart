@@ -5,7 +5,7 @@ import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart';
 import 'package:frontend_client_mobile/widgets/mxh_fields_widget.dart';
 
 void main() {
-  runApp(MaterialApp(home: LoginScreen()));
+  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen()));
 }
 
 class LoginScreen extends StatefulWidget {
@@ -19,14 +19,12 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "", icons: null),
-
       body: Container(
         decoration: BoxDecoration(color: Colors.white),
 
         child: Column(
           children: [
-            SizedBox(height: 5),
+            SizedBox(height: 10),
             LogoTextWidget(
               text: "WELCOME TO QUOCTHIEN",
               imageUrl: 'assets/images/icon1.png',

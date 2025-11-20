@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? currentImage;
-  final File? selectedImage;
+  final XFile? selectedImage;
   final VoidCallback onPickImage;
 
   const ImagePickerField({
@@ -12,15 +14,32 @@ class ImagePickerField extends StatelessWidget {
     required this.selectedImage,
     required this.onPickImage,
   });
+  String _fixImageUrl(String url) {
+    if (kIsWeb && url.contains("10.0.2.2")) {
+      return url.replaceAll("10.0.2.2", "localhost");
+    }
+    print('Fixed image URL: $url');
+    return url;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final imageProvider = selectedImage != null
-        ? FileImage(selectedImage!)
-        : (currentImage != null && currentImage!.isNotEmpty
-              ? NetworkImage(currentImage!)
-              : const AssetImage('assets/placeholder.png') as ImageProvider);
-
+    ImageProvider? bgImage;
+    if (selectedImage != null) {
+      if (kIsWeb) {
+        // 🌐 WEB: XFile.path trên Web là một Blob URL -> Dùng NetworkImage
+        bgImage = NetworkImage(_fixImageUrl(selectedImage!.path));
+      } else {
+        // 📱 MOBILE: XFile.path là đường dẫn thật -> Dùng FileImage
+        bgImage = FileImage(File(selectedImage!.path));
+      }
+    } else if (currentImage != null && currentImage!.isNotEmpty) {
+      // Ảnh cũ từ server
+      bgImage = NetworkImage(_fixImageUrl(currentImage!));
+    } else {
+      // Ảnh mặc định
+      bgImage = const AssetImage('assets/placeholder.png');
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,7 +56,7 @@ class ImagePickerField extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                image: DecorationImage(image: bgImage, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 12),

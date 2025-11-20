@@ -11,9 +11,7 @@ part of 'category_api_service.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
 class _CategoryApiService implements CategoryApiService {
-  _CategoryApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8080/';
-  }
+  _CategoryApiService(this._dio, {this.baseUrl, this.errorLogger});
 
   final Dio _dio;
 
@@ -126,20 +124,12 @@ class _CategoryApiService implements CategoryApiService {
   }
 
   @override
-  Future<String> uploadCategoryImage(File imageFile) async {
+  Future<String> uploadCategoryImage(MultipartFile imageFile) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = FormData();
-    _data.files.add(
-      MapEntry(
-        'image',
-        MultipartFile.fromFileSync(
-          imageFile.path,
-          filename: imageFile.path.split(Platform.pathSeparator).last,
-        ),
-      ),
-    );
+    _data.files.add(MapEntry('image', imageFile));
     final _options = _setStreamType<String>(
       Options(
             method: 'POST',

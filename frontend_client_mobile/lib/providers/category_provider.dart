@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/utils/file_utils.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/category.dart';
 import '../services/category_service.dart';
 
@@ -72,9 +72,10 @@ class CategoryProvider with ChangeNotifier {
     }
   }
 
-  Future<String> uploadCategoryImage(File imageFile) async {
+  Future<String> uploadCategoryImage(XFile imageFile) async {
     try {
-      final imageUrl = await _categoryService.uploadCategoryImage(imageFile);
+      final multipartFile = await FileUtils.convertXFileToMultipart(imageFile);
+      final imageUrl = await _categoryService.uploadCategoryImage(multipartFile!);
       return imageUrl;
     } catch (e) {
       print('Error uploading category image: $e');
