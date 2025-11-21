@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'color_api_service.dart';
+part of 'filter_api_service.dart';
 
 // dart format off
 
@@ -10,8 +10,8 @@ part of 'color_api_service.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
-class _ColorApiService implements ColorApiService {
-  _ColorApiService(this._dio, {this.baseUrl, this.errorLogger});
+class _FilterApiService implements FilterApiService {
+  _FilterApiService(this._dio, {this.baseUrl, this.errorLogger});
 
   final Dio _dio;
 
@@ -20,27 +20,25 @@ class _ColorApiService implements ColorApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Color>> getColors() async {
+  Future<FilterResponse> getFilterAttributes(int categoryId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<Color>>(
+    final _options = _setStreamType<FilterResponse>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/colors',
+            'api/filter/init/${categoryId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<Color> _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late FilterResponse _value;
     try {
-      _value = _result.data!
-          .map((dynamic i) => Color.fromJson(i as Map<String, dynamic>))
-          .toList();
+      _value = FilterResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -49,26 +47,29 @@ class _ColorApiService implements ColorApiService {
   }
 
   @override
-  Future<Color> createColor(Color color) async {
+  Future<int> countProductAvailable(
+    Map<String, dynamic> filters,
+    int categoryId,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    _data.addAll(color.toJson());
-    final _options = _setStreamType<Color>(
+    _data.addAll(filters);
+    final _options = _setStreamType<int>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/colors',
+            'api/filter/count/${categoryId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late Color _value;
+    final _result = await _dio.fetch<int>(_options);
+    late int _value;
     try {
-      _value = Color.fromJson(_result.data!);
+      _value = _result.data!;
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -77,50 +78,38 @@ class _ColorApiService implements ColorApiService {
   }
 
   @override
-  Future<Color> updateColor(int id, Color color) async {
+  Future<HttpResponse<PageResponse<ProductView>>> filter(
+    Map<String, dynamic> filters,
+    int categoryId,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    _data.addAll(color.toJson());
-    final _options = _setStreamType<Color>(
-      Options(method: 'PUT', headers: _headers, extra: _extra)
+    _data.addAll(filters);
+    final _options = _setStreamType<HttpResponse<PageResponse<ProductView>>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/colors/${id}',
+            'api/filter/${categoryId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late Color _value;
+    late PageResponse<ProductView> _value;
     try {
-      _value = Color.fromJson(_result.data!);
+      _value = PageResponse<ProductView>.fromJson(
+        _result.data!,
+        (json) => ProductView.fromJson(json as Map<String, dynamic>),
+      );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
-    return _value;
-  }
-
-  @override
-  Future<void> deleteColor(int id) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
-      Options(method: 'DELETE', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            'api/colors/${id}',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    await _dio.fetch<void>(_options);
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

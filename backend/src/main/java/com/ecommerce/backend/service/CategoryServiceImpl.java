@@ -1,6 +1,8 @@
 package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.CategoryDTO; // Import CategoryDTO
+import com.ecommerce.backend.dto.CategoryView;
+import com.ecommerce.backend.dto.ProductView;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;

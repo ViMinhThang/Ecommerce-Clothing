@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../config/theme_config.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? currentImage;
-  final File? selectedImage;
+  final XFile? selectedImage;
   final VoidCallback onPickImage;
 
   const ImagePickerField({
@@ -13,6 +15,13 @@ class ImagePickerField extends StatelessWidget {
     required this.selectedImage,
     required this.onPickImage,
   });
+  String _fixImageUrl(String url) {
+    if (kIsWeb && url.contains("10.0.2.2")) {
+      return url.replaceAll("10.0.2.2", "localhost");
+    }
+    print('Fixed image URL: $url');
+    return url;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +108,7 @@ class ImagePickerField extends StatelessWidget {
       ),
       child: hasImage
           ? (selectedImage != null
-                ? Image.file(selectedImage!, fit: BoxFit.cover)
+                ? Image.file(File(selectedImage!.path), fit: BoxFit.cover)
                 : Image.network(
                     currentImage!,
                     fit: BoxFit.cover,

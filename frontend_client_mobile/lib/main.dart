@@ -13,7 +13,6 @@ import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
 import 'package:frontend_client_mobile/screens/auth/onBoarding_screen.dart';
-import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/config/theme_config.dart';

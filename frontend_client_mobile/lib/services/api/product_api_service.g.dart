@@ -11,9 +11,7 @@ part of 'product_api_service.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
 class _ProductApiService implements ProductApiService {
-  _ProductApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8080/';
-  }
+  _ProductApiService(this._dio, {this.baseUrl, this.errorLogger});
 
   final Dio _dio;
 
@@ -94,7 +92,7 @@ class _ProductApiService implements ProductApiService {
     String description,
     int categoryId,
     String variants,
-    File? image,
+    MultipartFile? image,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -106,15 +104,7 @@ class _ProductApiService implements ProductApiService {
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
     if (image != null) {
-      _data.files.add(
-        MapEntry(
-          'image',
-          MultipartFile.fromFileSync(
-            image.path,
-            filename: image.path.split(Platform.pathSeparator).last,
-          ),
-        ),
-      );
+      _data.files.add(MapEntry('image', image));
     }
     final _options = _setStreamType<Product>(
       Options(
@@ -149,7 +139,7 @@ class _ProductApiService implements ProductApiService {
     String description,
     int categoryId,
     String variants,
-    File? image,
+    MultipartFile? image,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -161,15 +151,7 @@ class _ProductApiService implements ProductApiService {
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
     if (image != null) {
-      _data.files.add(
-        MapEntry(
-          'image',
-          MultipartFile.fromFileSync(
-            image.path,
-            filename: image.path.split(Platform.pathSeparator).last,
-          ),
-        ),
-      );
+      _data.files.add(MapEntry('image', image));
     }
     final _options = _setStreamType<Product>(
       Options(
@@ -214,6 +196,41 @@ class _ProductApiService implements ProductApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     await _dio.fetch<void>(_options);
+  }
+
+  @override
+  Future<HttpResponse<PageResponse<ProductView>>> getProductsByCategory(
+    int categoryId,
+    int pageIndex,
+    int pageSize,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<HttpResponse<PageResponse<ProductView>>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'api/products/${categoryId}/${pageIndex}/${pageSize}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late PageResponse<ProductView> _value;
+    try {
+      _value = PageResponse<ProductView>.fromJson(
+        _result.data!,
+        (json) => ProductView.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

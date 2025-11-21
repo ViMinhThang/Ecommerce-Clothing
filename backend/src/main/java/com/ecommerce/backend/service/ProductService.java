@@ -3,6 +3,7 @@ package com.ecommerce.backend.service;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.ProductView;
 import com.ecommerce.backend.model.Product;
+import com.ecommerce.backend.repository.FilterView;
 import com.ecommerce.backend.repository.filter.ProductFilter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +31,6 @@ public interface ProductService {
     Long filterProductCount(ProductFilter filter);
 
     Page<Product> searchProducts(String name, Pageable pageable);
+
+    FilterView getFilterAttributes(long categoryId);
 }

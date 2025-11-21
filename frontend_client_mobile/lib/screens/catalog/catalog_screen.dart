@@ -68,11 +68,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
               return CatalogCard(
                 category: category,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CatalogDetailScreen(),
-                    ),
+                  Navigator.of(context).pushNamed(
+                    '/details',
+                    arguments: category.id, // Truyền ID vào đây
                   );
                 },
               );

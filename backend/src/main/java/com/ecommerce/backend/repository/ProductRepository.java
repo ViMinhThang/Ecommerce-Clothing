@@ -13,4 +13,6 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByNameContainingIgnoreCase(String search, Pageable pageable);
+    // SELECT * FROM product WHERE category_id = ? AND status = ?
+    Page<Product> findByCategoryIdAndStatus(long categoryId, String status, Pageable pageable);
 }
