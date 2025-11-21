@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/color.dart';
-import 'package:frontend_client_mobile/models/size.dart';
+import 'package:frontend_client_mobile/models/color.dart' as models;
+import 'package:frontend_client_mobile/models/size.dart' as models;
+import 'package:frontend_client_mobile/utils/color_utils.dart';
 import '../../../models/product_variant.dart';
 
 class VariantCard extends StatelessWidget {
   final int index;
   final ProductVariant variant;
-  final List<Color> colors;
-  final List<Size> sizes;
-  final void Function(int, Color) onColorChanged;
-  final void Function(int, Size) onSizeChanged;
+  final List<models.Color> colors;
+  final List<models.Size> sizes;
+  final void Function(int, models.Color) onColorChanged;
+  final void Function(int, models.Size) onSizeChanged;
   final void Function(int, String) onBasePriceChanged;
   final void Function(int, String) onSalePriceChanged;
   final void Function(int) onRemove;
@@ -29,36 +30,74 @@ class VariantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color(0xFFB0B0B0), // Visible mid-gray
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(20.0), // Increased padding for elegance
         child: Column(
           children: [
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<Color>(
+                  child: DropdownButtonFormField<models.Color>(
                     value: variant.color,
                     items: colors
-                        .map((color) => DropdownMenuItem(
-                              value: color,
-                              child: Text(color.colorName),
-                            ))
+                        .map(
+                          (color) => DropdownMenuItem<models.Color>(
+                            value: color,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: ColorUtils.getColorByName(
+                                      color.colorName,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(color.colorName),
+                              ],
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (value) => onColorChanged(index, value!),
                     decoration: _inputDecoration('Color'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: DropdownButtonFormField<Size>(
+                  child: DropdownButtonFormField<models.Size>(
                     value: variant.size,
                     items: sizes
-                        .map((size) => DropdownMenuItem(
-                              value: size,
-                              child: Text(size.sizeName),
-                            ))
+                        .map(
+                          (size) => DropdownMenuItem<models.Size>(
+                            value: size,
+                            child: Text(size.sizeName),
+                          ),
+                        )
                         .toList(),
                     onChanged: (value) => onSizeChanged(index, value!),
                     decoration: _inputDecoration('Size'),
@@ -66,7 +105,7 @@ class VariantCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -81,7 +120,7 @@ class VariantCard extends StatelessWidget {
                         double.tryParse(value ?? '') == null ? 'Invalid' : null,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     initialValue: variant.price.salePrice.toString(),
@@ -99,7 +138,12 @@ class VariantCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: const Color(0xFFEF5350), // Softer red
+                ),
+                splashRadius: 20,
+                tooltip: 'Remove variant',
                 onPressed: () => onRemove(index),
               ),
             ),
@@ -112,8 +156,29 @@ class VariantCard extends StatelessWidget {
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      border: const OutlineInputBorder(),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      labelStyle: const TextStyle(
+        fontSize: 13,
+        color: Color(0xFF6B6B6B),
+        fontWeight: FontWeight.w500,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: Color(0xFFB0B0B0), // Visible mid-gray
+          width: 1,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFB0B0B0), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF6B6B6B), width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      filled: true,
+      fillColor: Colors.white,
     );
   }
 }

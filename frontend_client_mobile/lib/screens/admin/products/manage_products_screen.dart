@@ -5,6 +5,7 @@ import 'package:frontend_client_mobile/widgets/admin/product_search_bar.dart';
 import 'package:frontend_client_mobile/widgets/admin/product_list_view.dart';
 import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
+import '../../../widgets/shared/stats_card.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -15,13 +16,16 @@ class ManageProductsScreen extends StatefulWidget {
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
   final ScrollController _scrollController = ScrollController();
-  
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).fetchProducts(refresh: true);
+      Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      ).fetchProducts(refresh: true);
     });
   }
 
@@ -66,6 +70,9 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         builder: (context, provider, child) {
           return Column(
             children: [
+              // Stats Dashboard
+              _buildStatsSection(provider),
+              const SizedBox(height: 16),
               ProductSearchBar(
                 onChanged: (value) => provider.searchProducts(value),
               ),
@@ -107,7 +114,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                           ],
                         ),
                       );
-  
+
                       if (confirmed == true) {
                         provider.deleteProduct(product.id);
                       }
@@ -118,6 +125,44 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildStatsSection(ProductProvider provider) {
+    return SizedBox(
+      height: 120,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          SizedBox(
+            width: 140,
+            child: StatsCard(
+              label: 'Products',
+              value: '${provider.products.length}',
+              icon: Icons.inventory_2_outlined,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 140,
+            child: StatsCard(
+              label: 'Categories',
+              value: '8',
+              icon: Icons.category_outlined,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 140,
+            child: StatsCard(
+              label: 'Total Variants',
+              value: '45',
+              icon: Icons.palette_outlined,
+            ),
+          ),
+        ],
       ),
     );
   }

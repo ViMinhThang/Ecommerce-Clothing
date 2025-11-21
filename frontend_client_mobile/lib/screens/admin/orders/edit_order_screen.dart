@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../layouts/admin_layout.dart';
-import '../../../widgets/status_dropdown.dart';
-import '../../../widgets/text_field_input.dart';
+import '../../../config/theme_config.dart';
 
 class EditOrderScreen extends StatefulWidget {
   final Map<String, dynamic>? order;
@@ -57,74 +56,169 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.order != null;
+
     return AdminLayout(
-      title: widget.order == null ? 'Thêm đơn hàng' : 'Chỉnh sửa đơn hàng',
+      title: isEditing ? 'Edit Order' : 'Add Order',
       selectedIndex: 5,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextFieldInput(
-              label: 'Customer name',
-              controller: _customerController,
-            ),
-            const SizedBox(height: 16),
-            TextFieldInput(
-              label: 'Total amount (₫)',
-              controller: _totalController,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextFieldInput(label: 'Order date', controller: _dateController),
-            const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(
-                  value: 'processing',
-                  child: Text('Processing'),
-                ),
-                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text(
-                      'Save changes',
-                      style: TextStyle(color: Colors.white),
+      body: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.spaceMD),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryWhite,
+            borderRadius: AppTheme.borderRadiusMD,
+            border: AppTheme.borderThin,
+            boxShadow: AppTheme.shadowSM,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 20,
+                    color: AppTheme.primaryBlack,
+                  ),
+                  const SizedBox(width: AppTheme.spaceXS),
+                  Text(
+                    'Order Details',
+                    style: AppTheme.h4.copyWith(fontSize: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              TextFormField(
+                controller: _customerController,
+                decoration: _inputDecoration('Customer Name'),
+                style: AppTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              TextFormField(
+                controller: _totalController,
+                decoration: _inputDecoration('Total Amount (₫)'),
+                keyboardType: TextInputType.number,
+                style: AppTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              TextFormField(
+                controller: _dateController,
+                decoration: _inputDecoration('Order Date'),
+                style: AppTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              DropdownButtonFormField<String>(
+                value: _status,
+                decoration: _inputDecoration('Status'),
+                items: const [
+                  DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                  DropdownMenuItem(
+                    value: 'processing',
+                    child: Text('Processing'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'completed',
+                    child: Text('Completed'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'cancelled',
+                    child: Text('Cancelled'),
+                  ),
+                ],
+                onChanged: (val) => setState(() => _status = val!),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _onSave,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBlack,
+                        foregroundColor: AppTheme.primaryWhite,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: AppTheme.borderRadiusSM,
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isEditing ? Icons.save_outlined : Icons.add,
+                            size: 18,
+                          ),
+                          const SizedBox(width: AppTheme.spaceXS),
+                          Text(
+                            isEditing ? 'Save Changes' : 'Create Order',
+                            style: AppTheme.button.copyWith(
+                              color: AppTheme.primaryWhite,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(color: Colors.black),
+                  const SizedBox(width: AppTheme.spaceSM),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryBlack,
+                        side: const BorderSide(
+                          color: AppTheme.mediumGray,
+                          width: 1,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: AppTheme.borderRadiusSM,
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: AppTheme.button.copyWith(
+                          color: AppTheme.primaryBlack,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  InputDecoration _inputDecoration(String label) => InputDecoration(
+    labelText: label,
+    labelStyle: AppTheme.bodyMedium.copyWith(
+      color: AppTheme.mediumGray,
+      fontWeight: FontWeight.w500,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: AppTheme.borderRadiusSM,
+      borderSide: const BorderSide(
+        color: Color(0xFFB0B0B0), // Visible mid-gray
+        width: 1,
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: AppTheme.borderRadiusSM,
+      borderSide: const BorderSide(color: Color(0xFFB0B0B0), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: AppTheme.borderRadiusSM,
+      borderSide: const BorderSide(color: AppTheme.mediumGray, width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppTheme.spaceMD,
+      vertical: 14,
+    ),
+    filled: true,
+    fillColor: AppTheme.primaryWhite,
+  );
 }

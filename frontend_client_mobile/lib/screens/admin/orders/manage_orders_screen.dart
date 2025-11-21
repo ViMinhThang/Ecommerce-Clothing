@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../layouts/admin_layout.dart';
 import 'edit_order_screen.dart';
 import 'orders_function.dart';
+import '../../../config/theme_config.dart';
 
 class ManageOrdersScreen extends StatefulWidget {
   const ManageOrdersScreen({super.key});
@@ -66,57 +67,129 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Order...',
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 2),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        boxShadow: AppTheme.shadowSM,
       ),
-      onChanged: (query) {
-        setState(() {
-          // nếu sau này có API thì lọc ở đây
-        });
-      },
+      child: TextField(
+        controller: _searchController,
+        style: AppTheme.bodyMedium,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
+          hintText: 'Search Order...',
+          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+          border: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: const BorderSide(
+              color: AppTheme.mediumGray,
+              width: 1.5,
+            ),
+          ),
+          filled: true,
+          fillColor: AppTheme.primaryWhite,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onChanged: (query) {
+          setState(() {
+            // nếu sau này có API thì lọc ở đây
+          });
+        },
+      ),
     );
   }
 
   Widget _buildListView() {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         final o = orders[index];
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryWhite,
+            borderRadius: AppTheme.borderRadiusMD,
+            border: AppTheme.borderThin,
+            boxShadow: AppTheme.shadowSM,
           ),
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.black,
-              child: Text(
-                '#${o['id']}',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+            contentPadding: const EdgeInsets.all(12),
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlack,
+                shape: BoxShape.circle,
+                boxShadow: AppTheme.shadowSM,
+              ),
+              child: Center(
+                child: Text(
+                  '#${o['id'].toString().substring(o['id'].toString().length - 2)}',
+                  style: AppTheme.h4.copyWith(
+                    color: AppTheme.primaryWhite,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ),
             title: Text(
               o['customer'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: AppTheme.h4.copyWith(fontSize: 16),
             ),
-            subtitle: Text('₫${o['total']} • ${o['date']} • ${o['status']}'),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '₫${o['total']} • ${o['date']}',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.mediumGray,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(o['status']).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: _getStatusColor(o['status']).withOpacity(0.5),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Text(
+                      o['status'].toString().toUpperCase(),
+                      style: AppTheme.bodySmall.copyWith(
+                        color: _getStatusColor(o['status']),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
                   tooltip: 'Edit Order',
+                  splashRadius: 20,
                   onPressed: () async {
                     final updated = await Navigator.push(
                       context,
@@ -136,8 +209,12 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Color(0xFFEF5350),
+                  ),
                   tooltip: 'Delete Order',
+                  splashRadius: 20,
                   onPressed: () => _onDeleteOrder(o),
                 ),
               ],
@@ -146,6 +223,21 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
         );
       },
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      case 'processing':
+        return Colors.blue;
+      default:
+        return AppTheme.mediumGray;
+    }
   }
 
   Future<void> _onAddOrder() async {

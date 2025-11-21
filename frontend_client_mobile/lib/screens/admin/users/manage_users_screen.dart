@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../layouts/admin_layout.dart';
 import 'edit_user_screen.dart';
 import 'users_function.dart';
+import '../../../config/theme_config.dart';
 
 class ManageUsersScreen extends StatefulWidget {
   const ManageUsersScreen({super.key});
@@ -66,50 +67,125 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search User...',
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 2),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        boxShadow: AppTheme.shadowSM,
       ),
-      onChanged: (query) {
-        setState(() {
-          // sau này lọc danh sách từ API ở đây
-        });
-      },
+      child: TextField(
+        controller: _searchController,
+        style: AppTheme.bodyMedium,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
+          hintText: 'Search User...',
+          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+          border: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: const BorderSide(
+              color: AppTheme.mediumGray,
+              width: 1.5,
+            ),
+          ),
+          filled: true,
+          fillColor: AppTheme.primaryWhite,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onChanged: (query) {
+          setState(() {
+            // sau này lọc danh sách từ API ở đây
+          });
+        },
+      ),
     );
   }
 
   Widget _buildListView() {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
       itemCount: users.length,
       itemBuilder: (context, index) {
         final u = users[index];
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryWhite,
+            borderRadius: AppTheme.borderRadiusMD,
+            border: AppTheme.borderThin,
+            boxShadow: AppTheme.shadowSM,
           ),
           child: ListTile(
-            title: Text(
-              u['name'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            contentPadding: const EdgeInsets.all(12),
+            leading: CircleAvatar(
+              backgroundColor: AppTheme.offWhite,
+              radius: 24,
+              child: Text(
+                u['name'].toString().substring(0, 1).toUpperCase(),
+                style: AppTheme.h4.copyWith(fontSize: 18),
+              ),
             ),
-            subtitle: Text('${u['email']} • ${u['role']}'),
+            title: Text(u['name'], style: AppTheme.h4.copyWith(fontSize: 16)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    u['email'],
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.mediumGray,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.veryLightGray,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          u['role'],
+                          style: AppTheme.bodySmall.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        u['status'],
+                        style: AppTheme.bodySmall.copyWith(
+                          color: u['status'] == 'active'
+                              ? Colors.green
+                              : Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
                   tooltip: 'Edit User',
+                  splashRadius: 20,
                   onPressed: () async {
                     final updated = await Navigator.push(
                       context,
@@ -129,8 +205,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Color(0xFFEF5350),
+                  ),
                   tooltip: 'Delete User',
+                  splashRadius: 20,
                   onPressed: () => _onDeleteUser(u),
                 ),
               ],

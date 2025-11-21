@@ -4,6 +4,7 @@ import 'package:frontend_client_mobile/models/color.dart'
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../layouts/admin_layout.dart';
+import '../../../config/theme_config.dart';
 import 'edit_color_screen.dart';
 
 class ManageColorsScreen extends StatefulWidget {
@@ -66,52 +67,93 @@ class _ManageColorsScreenState extends State<ManageColorsScreen> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search, color: Colors.black),
-        hintText: 'Search Color...',
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 2),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        boxShadow: AppTheme.shadowSM,
       ),
-      onChanged: (query) {
-        // Filter logic will go here when API is integrated
-      },
+      child: TextField(
+        controller: _searchController,
+        style: AppTheme.bodyMedium,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
+          hintText: 'Search Color...',
+          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+          border: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: const BorderSide(
+              color: AppTheme.mediumGray,
+              width: 1.5,
+            ),
+          ),
+          filled: true,
+          fillColor: AppTheme.primaryWhite,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onChanged: (query) {
+          // Filter logic will go here when API is integrated
+        },
+      ),
     );
   }
 
   Widget _buildListView(List<model.Color> colors) {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
       itemCount: colors.length,
       itemBuilder: (context, index) {
         final c = colors[index];
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryWhite,
+            borderRadius: AppTheme.borderRadiusMD,
+            border: AppTheme.borderThin,
+            boxShadow: AppTheme.shadowSM,
           ),
           child: ListTile(
-            title: Text(
-              c.colorName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            contentPadding: const EdgeInsets.all(12),
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.offWhite,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFB0B0B0), width: 1),
+              ),
+              child: Icon(
+                Icons.palette_outlined,
+                color: AppTheme.primaryBlack,
+                size: 20,
+              ),
             ),
-            subtitle: Text(
-              c.status, // Assuming status can be used as a subtitle
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            title: Text(c.colorName, style: AppTheme.h4.copyWith(fontSize: 16)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                c.status,
+                style: AppTheme.bodySmall.copyWith(
+                  color: c.status == 'active' ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
                   tooltip: 'Edit Color',
+                  splashRadius: 20,
                   onPressed: () async {
                     final updatedColor = await Navigator.push(
                       context,
@@ -127,8 +169,12 @@ class _ManageColorsScreenState extends State<ManageColorsScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Color(0xFFEF5350),
+                  ),
                   tooltip: 'Delete Color',
+                  splashRadius: 20,
                   onPressed: () => _onDeleteColor(c),
                 ),
               ],

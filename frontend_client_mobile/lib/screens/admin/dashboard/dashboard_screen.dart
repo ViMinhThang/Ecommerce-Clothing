@@ -3,6 +3,8 @@ import '../../../layouts/admin_layout.dart';
 import 'widgets/stats_grid.dart';
 import 'widgets/revenue_chart.dart';
 
+import '../../../config/theme_config.dart';
+
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -12,11 +14,15 @@ class DashboardScreen extends StatelessWidget {
       {
         'title': 'Total revenue',
         'value': '₫245.000.000',
-        'icon': Icons.monetization_on,
+        'icon': Icons.monetization_on_outlined,
       },
-      {'title': 'Orders', 'value': '1.280', 'icon': Icons.shopping_cart},
-      {'title': 'Product', 'value': '320', 'icon': Icons.inventory},
-      {'title': 'Users', 'value': '2.150', 'icon': Icons.people},
+      {
+        'title': 'Orders',
+        'value': '1.280',
+        'icon': Icons.shopping_cart_outlined,
+      },
+      {'title': 'Product', 'value': '320', 'icon': Icons.inventory_2_outlined},
+      {'title': 'Users', 'value': '2.150', 'icon': Icons.people_outline},
     ];
 
     final monthlyRevenue = [8, 10, 7, 12, 9, 11];
@@ -25,24 +31,19 @@ class DashboardScreen extends StatelessWidget {
       title: 'Admin Dashboard',
       selectedIndex: 0,
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Overview',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+            Text('Overview', style: AppTheme.h4.copyWith(fontSize: 20)),
+            const SizedBox(height: AppTheme.spaceMD),
 
             // 👉 Widget thống kê
             StatsGrid(stats: stats),
 
             const SizedBox(height: 24),
-            const Text(
-              'Monthly Revenue',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+            Text('Monthly Revenue', style: AppTheme.h4.copyWith(fontSize: 20)),
+            const SizedBox(height: AppTheme.spaceMD),
 
             // 👉 Widget biểu đồ doanh thu
             RevenueChart(data: monthlyRevenue),

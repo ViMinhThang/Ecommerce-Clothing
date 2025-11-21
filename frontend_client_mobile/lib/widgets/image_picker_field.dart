@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../config/theme_config.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? currentImage;
@@ -15,44 +16,119 @@ class ImagePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageProvider = selectedImage != null
-        ? FileImage(selectedImage!)
-        : (currentImage != null && currentImage!.isNotEmpty
-              ? NetworkImage(currentImage!)
-              : const AssetImage('assets/placeholder.png') as ImageProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 4, height: 16, color: AppTheme.primaryBlack),
+              const SizedBox(width: 12),
+              Text(
+                'PRODUCT IMAGE',
+                style: AppTheme.h4.copyWith(
+                  fontSize: 14,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primaryBlack,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceLG),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImagePreview(),
+              const SizedBox(width: 32),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton.icon(
+                      onPressed: onPickImage,
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryBlack,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 0,
+                          vertical: 16,
+                        ),
+                        alignment: Alignment.centerLeft,
+                      ),
+                      icon: const Icon(Icons.add_a_photo_outlined, size: 20),
+                      label: Text(
+                        'UPLOAD NEW IMAGE',
+                        style: AppTheme.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Max file size: 5MB\nSupported: JPG, PNG, WEBP',
+                      style: AppTheme.caption.copyWith(
+                        color: AppTheme.mediumGray,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Product image',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-              ),
+  Widget _buildImagePreview() {
+    final hasImage =
+        selectedImage != null ||
+        (currentImage != null && currentImage!.isNotEmpty);
+
+    return Container(
+      width: 200,
+      height: 250, // Portrait aspect ratio for fashion
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.zero, // Sharp corners
+      ),
+      child: hasImage
+          ? (selectedImage != null
+                ? Image.file(selectedImage!, fit: BoxFit.cover)
+                : Image.network(
+                    currentImage!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return _buildPlaceholder();
+                    },
+                  ))
+          : _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image_outlined, size: 32, color: AppTheme.mediumGray),
+          const SizedBox(height: 12),
+          Text(
+            'NO IMAGE',
+            style: AppTheme.caption.copyWith(
+              color: AppTheme.mediumGray,
+              fontSize: 11,
+              letterSpacing: 1,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: onPickImage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              icon: const Icon(Icons.upload),
-              label: const Text('Choose an image'),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

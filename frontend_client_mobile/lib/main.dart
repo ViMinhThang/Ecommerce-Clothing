@@ -16,6 +16,7 @@ import 'package:frontend_client_mobile/screens/auth/onBoarding_screen.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/config/theme_config.dart';
 
 void main() {
   runApp(
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'E-Commerce Admin',
-      initialRoute: '/',
+      initialRoute: '/dashboard',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
@@ -52,6 +53,69 @@ class MyApp extends StatelessWidget {
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
       },
+      theme: ThemeData(
+        useMaterial3: false,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppTheme.background,
+        primaryColor: AppTheme.primaryBlack,
+        colorScheme: ColorScheme(
+          brightness: Brightness.light,
+          primary: AppTheme.primaryBlack,
+          onPrimary: AppTheme.primaryWhite,
+          secondary: AppTheme.primaryBlack,
+          onSecondary: AppTheme.primaryWhite,
+          background: AppTheme.background,
+          onBackground: AppTheme.primaryBlack,
+          surface: AppTheme.primaryWhite,
+          onSurface: AppTheme.primaryBlack,
+          error: Colors.red,
+          onError: AppTheme.primaryWhite,
+        ),
+
+        // AppBar
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppTheme.primaryBlack,
+          foregroundColor: AppTheme.primaryWhite,
+          elevation: 2,
+          titleTextStyle: AppTheme.h2,
+        ),
+
+        // Buttons
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryBlack,
+            foregroundColor: AppTheme.primaryWhite,
+            textStyle: AppTheme.button,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppTheme.borderRadiusSM,
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: AppTheme.primaryBlack,
+            textStyle: AppTheme.button,
+          ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: AppTheme.primaryBlack,
+          foregroundColor: AppTheme.primaryWhite,
+        ),
+
+        // Input fields
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppTheme.primaryWhite,
+          border: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: BorderSide(color: AppTheme.mediumGray),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: BorderSide(color: AppTheme.primaryBlack),
+          ),
+        ),
+      ),
     );
   }
 }
