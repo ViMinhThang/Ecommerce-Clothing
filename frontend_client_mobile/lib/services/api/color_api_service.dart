@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/color.dart';
+import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'color_api_service.g.dart';
@@ -9,7 +10,10 @@ abstract class ColorApiService {
   factory ColorApiService(Dio dio, {String? baseUrl}) = _ColorApiService;
 
   @GET("api/colors")
-  Future<List<Color>> getColors();
+  Future<HttpResponse<PageResponse<Color>>> getColors(
+    @Query("page") int page,
+    @Query("size") int size,
+  );
 
   @POST("api/colors")
   Future<Color> createColor(@Body() Color color);

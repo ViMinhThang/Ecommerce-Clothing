@@ -29,7 +29,7 @@ class _FilterApiService implements FilterApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/filter/init/${categoryId}',
+            'api/filter/${categoryId}',
             queryParameters: queryParameters,
             data: _data,
           )

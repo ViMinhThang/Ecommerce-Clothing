@@ -1,10 +1,13 @@
 package com.ecommerce.backend.service;
 
-import com.ecommerce.backend.dto.SizeDTO; // Import SizeDTO
+import com.ecommerce.backend.dto.SizeDTO;
 import com.ecommerce.backend.model.Size;
 import com.ecommerce.backend.repository.SizeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +19,9 @@ public class SizeServiceImpl implements SizeService {
     private final SizeRepository sizeRepository;
 
     @Override
-    public List<Size> getAllSizes() {
-        return sizeRepository.findAll();
+    public Page<Size> getAllSizes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sizeRepository.findAll(pageable);
     }
 
     @Override

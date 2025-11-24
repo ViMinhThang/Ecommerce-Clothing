@@ -1,10 +1,13 @@
 package com.ecommerce.backend.service;
 
-import com.ecommerce.backend.dto.ColorDTO; // Import ColorDTO
+import com.ecommerce.backend.dto.ColorDTO;
 import com.ecommerce.backend.model.Color;
 import com.ecommerce.backend.repository.ColorRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +19,9 @@ public class ColorServiceImpl implements ColorService {
     private final ColorRepository colorRepository;
 
     @Override
-    public List<Color> getAllColors() {
-        return colorRepository.findAll();
+    public Page<Color> getAllColors(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return colorRepository.findAll(pageable);
     }
 
     @Override

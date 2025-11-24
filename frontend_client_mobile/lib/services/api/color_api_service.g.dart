@@ -20,12 +20,15 @@ class _ColorApiService implements ColorApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Color>> getColors() async {
+  Future<HttpResponse<PageResponse<Color>>> getColors(
+    int page,
+    int size,
+  ) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'page': page, r'size': size};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<Color>>(
+    final _options = _setStreamType<HttpResponse<PageResponse<Color>>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -35,17 +38,19 @@ class _ColorApiService implements ColorApiService {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<Color> _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late PageResponse<Color> _value;
     try {
-      _value = _result.data!
-          .map((dynamic i) => Color.fromJson(i as Map<String, dynamic>))
-          .toList();
+      _value = PageResponse<Color>.fromJson(
+        _result.data!,
+        (json) => Color.fromJson(json as Map<String, dynamic>),
+      );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
-    return _value;
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
   }
 
   @override

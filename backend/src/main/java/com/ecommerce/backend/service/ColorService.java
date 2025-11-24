@@ -1,13 +1,14 @@
 package com.ecommerce.backend.service;
 
-import com.ecommerce.backend.dto.ColorDTO; // Import ColorDTO
+import com.ecommerce.backend.dto.ColorDTO;
 import com.ecommerce.backend.model.Color;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface ColorService {
 
-    List<Color> getAllColors();
+    Page<Color> getAllColors(int page, int size);
 
     Color getColorById(Long id);
 

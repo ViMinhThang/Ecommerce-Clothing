@@ -1,12 +1,14 @@
 import 'package:frontend_client_mobile/models/size.dart';
+import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 
 class SizeService {
   final SizeApiService _apiService = ApiClient.getSizeApiService();
 
-  Future<List<Size>> getSizes() async {
-    return await _apiService.getSizes();
+  Future<PageResponse<Size>> getSizes({int page = 0, int size = 10}) async {
+    final response = await _apiService.getSizes(page, size);
+    return response.data;
   }
 
   Future<Size> createSize(Size size) async {

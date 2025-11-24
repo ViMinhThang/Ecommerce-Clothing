@@ -40,29 +40,23 @@ class ColorProvider with ChangeNotifier {
     }
 
     try {
-      // TODO: Update when backend API supports pagination
-      final allColors = await _colorService.getColors();
+      final pageResponse = await _colorService.getColors(
+        page: _currentPage,
+        size: _pageSize,
+      );
 
-      // Simulate pagination
-      final startIndex = _currentPage * _pageSize;
-      final endIndex = (startIndex + _pageSize).clamp(0, allColors.length);
+      final newColors = pageResponse.content;
+      _totalPages = pageResponse.totalPages;
 
-      if (startIndex < allColors.length) {
-        final pageColors = allColors.sublist(startIndex, endIndex);
-
-        if (refresh) {
-          _colors = pageColors;
-        } else {
-          _colors.addAll(pageColors);
-        }
-
-        _currentPage++;
-        _totalPages = (allColors.length / _pageSize).ceil();
-
-        if (endIndex >= allColors.length) {
-          _hasMore = false;
-        }
+      if (refresh) {
+        _colors = newColors;
       } else {
+        _colors.addAll(newColors);
+      }
+
+      _currentPage++;
+
+      if (_currentPage >= _totalPages) {
         _hasMore = false;
       }
 

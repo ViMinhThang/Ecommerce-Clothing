@@ -40,29 +40,23 @@ class SizeProvider with ChangeNotifier {
     }
 
     try {
-      // TODO: Update when backend API supports pagination
-      final allSizes = await _sizeService.getSizes();
+      final pageResponse = await _sizeService.getSizes(
+        page: _currentPage,
+        size: _pageSize,
+      );
 
-      // Simulate pagination
-      final startIndex = _currentPage * _pageSize;
-      final endIndex = (startIndex + _pageSize).clamp(0, allSizes.length);
+      final newSizes = pageResponse.content;
+      _totalPages = pageResponse.totalPages;
 
-      if (startIndex < allSizes.length) {
-        final pageSizes = allSizes.sublist(startIndex, endIndex);
-
-        if (refresh) {
-          _sizes = pageSizes;
-        } else {
-          _sizes.addAll(pageSizes);
-        }
-
-        _currentPage++;
-        _totalPages = (allSizes.length / _pageSize).ceil();
-
-        if (endIndex >= allSizes.length) {
-          _hasMore = false;
-        }
+      if (refresh) {
+        _sizes = newSizes;
       } else {
+        _sizes.addAll(newSizes);
+      }
+
+      _currentPage++;
+
+      if (_currentPage >= _totalPages) {
         _hasMore = false;
       }
 

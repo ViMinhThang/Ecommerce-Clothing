@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/size.dart';
+import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'size_api_service.g.dart';
@@ -9,7 +10,10 @@ abstract class SizeApiService {
   factory SizeApiService(Dio dio, {String? baseUrl}) = _SizeApiService;
 
   @GET("api/sizes")
-  Future<List<Size>> getSizes();
+  Future<HttpResponse<PageResponse<Size>>> getSizes(
+    @Query("page") int page,
+    @Query("size") int size,
+  );
 
   @POST("api/sizes")
   Future<Size> createSize(@Body() Size size);

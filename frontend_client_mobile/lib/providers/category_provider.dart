@@ -43,31 +43,23 @@ class CategoryProvider with ChangeNotifier {
     }
 
     try {
-      // TODO: Update this when backend API supports pagination
-      // For now, we'll simulate pagination with the existing getCategories()
-      final allCategories = await _categoryService.getCategories();
+      final pageResponse = await _categoryService.getCategories(
+        page: _currentPage,
+        size: _pageSize,
+      );
 
-      // Simulate pagination
-      final startIndex = _currentPage * _pageSize;
-      final endIndex = (startIndex + _pageSize).clamp(0, allCategories.length);
+      final newCategories = pageResponse.content;
+      _totalPages = pageResponse.totalPages;
 
-      if (startIndex < allCategories.length) {
-        final pageCategories = allCategories.sublist(startIndex, endIndex);
-
-        if (refresh) {
-          _categories = pageCategories;
-        } else {
-          _categories.addAll(pageCategories);
-        }
-
-        _currentPage++;
-        _totalPages = (allCategories.length / _pageSize).ceil();
-
-        // Check if there's more data
-        if (endIndex >= allCategories.length) {
-          _hasMore = false;
-        }
+      if (refresh) {
+        _categories = newCategories;
       } else {
+        _categories.addAll(newCategories);
+      }
+
+      _currentPage++;
+
+      if (_currentPage >= _totalPages) {
         _hasMore = false;
       }
 
