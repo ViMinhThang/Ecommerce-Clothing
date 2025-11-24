@@ -9,32 +9,95 @@ class CategoryProvider with ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   bool _isLoading = false;
+  bool _isMoreLoading = false;
+  int _currentPage = 0;
+  int _totalPages = 0;
+  final int _pageSize = 10;
+  String _searchQuery = '';
+  bool _hasMore = true;
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get isMoreLoading => _isMoreLoading;
+  bool get hasMore => _hasMore;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
 
   Future<void> initialize() async {
-    print("Calling API");
     if (_isLoading) return;
-    await fetchCategories();
-    _isLoading = true;
+    await fetchCategories(refresh: true);
   }
 
-  Future<void> fetchCategories() async {
-    print("Calling API");
+  Future<void> fetchCategories({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _categories = [];
+      _totalPages = 0;
+      _hasMore = true;
+      _isLoading = true;
+      notifyListeners();
+    } else {
+      if (_isMoreLoading || !_hasMore && _categories.isNotEmpty) return;
+      _isMoreLoading = true;
+      notifyListeners();
+    }
 
     try {
-      _categories = await _categoryService.getCategories();
+      // TODO: Update this when backend API supports pagination
+      // For now, we'll simulate pagination with the existing getCategories()
+      final allCategories = await _categoryService.getCategories();
+
+      // Simulate pagination
+      final startIndex = _currentPage * _pageSize;
+      final endIndex = (startIndex + _pageSize).clamp(0, allCategories.length);
+
+      if (startIndex < allCategories.length) {
+        final pageCategories = allCategories.sublist(startIndex, endIndex);
+
+        if (refresh) {
+          _categories = pageCategories;
+        } else {
+          _categories.addAll(pageCategories);
+        }
+
+        _currentPage++;
+        _totalPages = (allCategories.length / _pageSize).ceil();
+
+        // Check if there's more data
+        if (endIndex >= allCategories.length) {
+          _hasMore = false;
+        }
+      } else {
+        _hasMore = false;
+      }
+
+      print(
+        'Fetched categories: ${_categories.length}, Page: $_currentPage/$_totalPages',
+      );
     } catch (e) {
       print('Error fetching categories: $e');
+    } finally {
+      _isLoading = false;
+      _isMoreLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
+  }
+
+  Future<void> loadMore() async {
+    await fetchCategories(refresh: false);
+  }
+
+  Future<void> searchCategories(String query) async {
+    if (_searchQuery == query) return;
+    _searchQuery = query;
+    // TODO: Implement search when backend API supports it
+    await fetchCategories(refresh: true);
   }
 
   Future<Category> addCategory(Category category) async {
     try {
       final newCategory = await _categoryService.createCategory(category);
-      _categories.add(newCategory);
+      _categories.insert(0, newCategory); // Add to beginning
       notifyListeners();
       return newCategory;
     } catch (e) {
@@ -75,7 +138,9 @@ class CategoryProvider with ChangeNotifier {
   Future<String> uploadCategoryImage(XFile imageFile) async {
     try {
       final multipartFile = await FileUtils.convertXFileToMultipart(imageFile);
-      final imageUrl = await _categoryService.uploadCategoryImage(multipartFile!);
+      final imageUrl = await _categoryService.uploadCategoryImage(
+        multipartFile!,
+      );
       return imageUrl;
     } catch (e) {
       print('Error uploading category image: $e');

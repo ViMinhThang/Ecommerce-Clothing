@@ -6,33 +6,96 @@ class ColorProvider with ChangeNotifier {
   final ColorService _colorService = ColorService();
   List<Color> _colors = [];
   bool _isLoading = false;
+  bool _isMoreLoading = false;
+  int _currentPage = 0;
+  int _totalPages = 0;
+  final int _pageSize = 10;
+  String _searchQuery = '';
+  bool _hasMore = true;
 
   List<Color> get colors => _colors;
   bool get isLoading => _isLoading;
+  bool get isMoreLoading => _isMoreLoading;
+  bool get hasMore => _hasMore;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
 
   Future<void> initialize() async {
     if (_isLoading) return;
-    await fetchColors();
-    _isLoading = true;
+    await fetchColors(refresh: true);
   }
 
-  Future<void> fetchColors() async {
-    try {
-      _colors = await _colorService.getColors();
-    } catch (e) {
-      // Handle error
-      print('Error fetching colors: $e');
+  Future<void> fetchColors({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _colors = [];
+      _totalPages = 0;
+      _hasMore = true;
+      _isLoading = true;
+      notifyListeners();
+    } else {
+      if (_isMoreLoading || !_hasMore && _colors.isNotEmpty) return;
+      _isMoreLoading = true;
+      notifyListeners();
     }
-    notifyListeners();
+
+    try {
+      // TODO: Update when backend API supports pagination
+      final allColors = await _colorService.getColors();
+
+      // Simulate pagination
+      final startIndex = _currentPage * _pageSize;
+      final endIndex = (startIndex + _pageSize).clamp(0, allColors.length);
+
+      if (startIndex < allColors.length) {
+        final pageColors = allColors.sublist(startIndex, endIndex);
+
+        if (refresh) {
+          _colors = pageColors;
+        } else {
+          _colors.addAll(pageColors);
+        }
+
+        _currentPage++;
+        _totalPages = (allColors.length / _pageSize).ceil();
+
+        if (endIndex >= allColors.length) {
+          _hasMore = false;
+        }
+      } else {
+        _hasMore = false;
+      }
+
+      print(
+        'Fetched colors: ${_colors.length}, Page: $_currentPage/$_totalPages',
+      );
+    } catch (e) {
+      print('Error fetching colors: $e');
+    } finally {
+      _isLoading = false;
+      _isMoreLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMore() async {
+    await fetchColors(refresh: false);
+  }
+
+  Future<void> searchColors(String query) async {
+    if (_searchQuery == query) return;
+    _searchQuery = query;
+    await fetchColors(refresh: true);
   }
 
   Future<void> addColor(Color color) async {
     try {
       final newColor = await _colorService.createColor(color);
-      _colors.add(newColor);
+      _colors.insert(0, newColor);
       notifyListeners();
     } catch (e) {
       print('Error adding color: $e');
+      rethrow;
     }
   }
 
@@ -49,6 +112,7 @@ class ColorProvider with ChangeNotifier {
       }
     } catch (e) {
       print('Error updating color: $e');
+      rethrow;
     }
   }
 
@@ -59,6 +123,7 @@ class ColorProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error deleting color: $e');
+      rethrow;
     }
   }
 }

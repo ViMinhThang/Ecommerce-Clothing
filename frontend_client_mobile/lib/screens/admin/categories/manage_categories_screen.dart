@@ -15,14 +15,33 @@ class ManageCategoriesScreen extends StatefulWidget {
 
 class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     // Fetch categories when the screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+      Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      ).fetchCategories(refresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      Provider.of<CategoryProvider>(context, listen: false).loadMore();
+    }
   }
 
   @override
@@ -36,7 +55,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             Provider.of<CategoryProvider>(
               context,
               listen: false,
-            ).fetchCategories();
+            ).fetchCategories(refresh: true);
           },
           icon: const Icon(Icons.refresh),
         ),
@@ -60,7 +79,14 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 if (categoryProvider.categories.isEmpty) {
                   return const Center(child: Text('No categories found.'));
                 }
-                return _buildListView(categoryProvider.categories);
+                return RefreshIndicator(
+                  onRefresh: () =>
+                      categoryProvider.fetchCategories(refresh: true),
+                  child: _buildListView(
+                    categoryProvider.categories,
+                    categoryProvider.isMoreLoading,
+                  ),
+                );
               },
             ),
           ),
@@ -109,11 +135,20 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
-  Widget _buildListView(List<model.Category> categories) {
+  Widget _buildListView(List<model.Category> categories, bool isMoreLoading) {
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.only(bottom: 80), // Space for FAB
-      itemCount: categories.length,
+      itemCount: categories.length + (isMoreLoading ? 1 : 0),
       itemBuilder: (context, index) {
+        // Show loading indicator at bottom
+        if (index == categories.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         final c = categories[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
