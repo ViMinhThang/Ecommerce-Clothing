@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/utils/file_utils.dart';
 import 'package:image_picker/image_picker.dart';

@@ -29,7 +29,7 @@ class _FilterApiService implements FilterApiService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/filter/init/${categoryId}',
+            'api/filter/${categoryId}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -47,10 +47,7 @@ class _FilterApiService implements FilterApiService {
   }
 
   @override
-  Future<int> countProductAvailable(
-    Map<String, dynamic> filters,
-    int categoryId,
-  ) async {
+  Future<int> countProductAvailable(Map<String, dynamic> filters) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -60,7 +57,7 @@ class _FilterApiService implements FilterApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/filter/count/${categoryId}',
+            'api/filter/count',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -80,7 +77,6 @@ class _FilterApiService implements FilterApiService {
   @override
   Future<HttpResponse<PageResponse<ProductView>>> filter(
     Map<String, dynamic> filters,
-    int categoryId,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -91,7 +87,7 @@ class _FilterApiService implements FilterApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/filter/${categoryId}',
+            'api/filter',
             queryParameters: queryParameters,
             data: _data,
           )

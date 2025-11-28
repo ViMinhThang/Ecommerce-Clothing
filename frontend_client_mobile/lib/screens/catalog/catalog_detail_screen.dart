@@ -1,108 +1,123 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/providers/product_provider.dart';
+import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/widgets/product_card.dart';
 import 'package:provider/provider.dart';
 
-class CatalogDetailScreen extends StatefulWidget {
-  final int categoryId;
-  const CatalogDetailScreen({super.key, required this.categoryId});
-
-  @override
-  State<CatalogDetailScreen> createState() => _CatalogDetailScreenState();
-}
-
-class _CatalogDetailScreenState extends State<CatalogDetailScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().fetchProductsByCategory(
-        widget.categoryId,
-        isRefresh: true,
-      );
-    });
-  }
-
-  // int _bottomIndex = 1; // Catalog tab selected
-  bool _popular = true;
+class CatalogDetailScreen extends StatelessWidget {
+  final String categoryName;
+  final Map<String, dynamic> filterParams;
+  const CatalogDetailScreen({
+    super.key,
+    required this.categoryName,
+    required this.filterParams,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final categoryId = filterParams['categoryId'] as int;
     final padding = MediaQuery.paddingOf(context);
-    final productProvider = context.watch<ProductProvider>();
+
+    final filterProvider = context.watch<FilterProvider>();
+
+    // Chỉ lo cho "lần đầu / lần chưa có data"
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final fp = context.read<FilterProvider>();
+
+      // Chưa init cho category này -> init
+      if (fp.categoryId != categoryId) {
+        fp.initialize(categoryId);
+      }
+      // Cùng category mà chưa có data (VD vừa reset) -> load
+      else if (fp.productViews.isEmpty && !fp.isFiltering) {
+        fp.refreshProducts();
+      }
+      // Nếu đã có productViews thì KHÔNG làm gì (tránh gọi lại khi từ filter về)
+    });
+
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Catalog',
-          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
+        title: Text(
+          categoryName,
+          style: const TextStyle(
+            fontWeight: FontWeight.normal,
+            color: Colors.white,
+          ),
         ),
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Thanh filter/sort dạng chips
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
-              child: Row(
-                children: [
-                  _ChipButton(
-                    icon: Icons.filter_list_rounded,
-                    label: 'Filter',
-                    onTap: () async {
-                      Navigator.of(context).pushNamed(
-                        '/filter',
-                        arguments: widget.categoryId, // Truyền ID vào đây
-                      );
-                    },
+      body: Builder(
+        builder: (context) {
+          if (filterProvider.isLoading && filterProvider.productViews.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (filterProvider.productViews.isEmpty) {
+            return const Center(child: Text('No products found'));
+          }
+
+          return CustomScrollView(
+            slivers: [
+              // Thanh filter/sort dạng chips
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  child: Row(
+                    children: [
+                      _ChipButton(
+                        icon: Icons.filter_list_rounded,
+                        label: 'Filter',
+                        onTap: () async {
+                          // Đi tới filter page
+                          await Navigator.of(
+                            context,
+                          ).pushNamed('/filter', arguments: filterParams);
+                          await context
+                              .read<FilterProvider>()
+                              .refreshProducts();
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      const _SortChip(),
+                      const Spacer(),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {},
+                        icon: const Icon(Icons.tune_rounded),
+                        tooltip: 'More',
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  _ChipButton(
-                    icon: Icons.sort_rounded,
-                    label: _popular ? 'Popular' : 'Newest',
-                    onTap: () => setState(() => _popular = !_popular),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () {},
-                    icon: const Icon(Icons.tune_rounded),
-                    tooltip: 'More',
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          // Lưới 2 cột
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return ProductViewCard(
-                  product: productProvider.productViews[index],
-                );
-              }, childCount: productProvider.productViews.length),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 0.65,
-                // Chiều cao item: ảnh 3/4 + phần text => tăng slightly
+
+              // Lưới 2 cột
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final product = filterProvider.productViews[index];
+                    return ProductViewCard(product: product);
+                  }, childCount: filterProvider.productViews.length),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 0.65,
+                  ),
+                ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: padding.bottom + 8)),
-        ],
+              SliverToBoxAdapter(child: SizedBox(height: padding.bottom + 8)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -126,6 +141,32 @@ class _ChipButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    );
+  }
+}
+
+/// Widget riêng cho sort chip, tự nó là Stateful nên screen chính vẫn Stateless
+class _SortChip extends StatefulWidget {
+  const _SortChip({Key? key}) : super(key: key);
+
+  @override
+  State<_SortChip> createState() => _SortChipState();
+}
+
+class _SortChipState extends State<_SortChip> {
+  bool _popular = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ChipButton(
+      icon: Icons.sort_rounded,
+      label: _popular ? 'Popular' : 'Newest',
+      onTap: () {
+        setState(() {
+          _popular = !_popular;
+        });
+        // Nếu muốn sort local, sort lại filterProvider.productViews ở đây
+      },
     );
   }
 }

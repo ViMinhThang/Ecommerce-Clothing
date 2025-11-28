@@ -45,12 +45,9 @@ class _CatalogNavigatorState extends State<CatalogNavigator> {
                 builder = (BuildContext _) => CatalogScreen();
                 break;
               case '/details':
-                // 1. Lấy arguments từ settings
                 final args = settings.arguments;
-
-                // 2. Kiểm tra và ép kiểu (giả sử categoryId là int)
-                if (args is int) {
-                  builder = (_) => CatalogDetailScreen(categoryId: args);
+                if (args is Map<String, dynamic>) {
+                  builder = (_) => CatalogDetailScreen(filterParams: args, categoryName: args['categoryName'] as String);
                 } else {
                   // Xử lý lỗi nếu không truyền tham số hoặc sai kiểu
                   return MaterialPageRoute(
@@ -61,11 +58,9 @@ class _CatalogNavigatorState extends State<CatalogNavigator> {
                 }
                 break;
               case '/filter':
-                // 1. Lấy arguments từ settings
                 final args = settings.arguments;
-                // 2. Kiểm tra và ép kiểu (giả sử categoryId là int)
-                if (args is int) {
-                  builder = (_) => FiltersPage(categoryId: args);
+                if (args is Map<String, dynamic>) {
+                  builder = (_) => FiltersPage(filterParams: args);
                 } else {
                   // Xử lý lỗi nếu không truyền tham số hoặc sai kiểu
                   return MaterialPageRoute(

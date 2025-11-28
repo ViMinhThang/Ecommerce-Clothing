@@ -13,15 +13,13 @@ abstract class FilterApiService {
     @Path("categoryId") int categoryId,
   );
 
-  @POST("api/filter/count/{categoryId}")
+  @POST("api/filter/count")
   Future<int> countProductAvailable(
     @Body() Map<String, dynamic> filters,
-    @Path("categoryId") int categoryId,
   );
 
-  @POST("api/filter/{categoryId}")
+  @POST("api/filter")
   Future<HttpResponse<PageResponse<ProductView>>> filter(
     @Body() Map<String, dynamic> filters,
-    @Path("categoryId") int categoryId,
   );
 }

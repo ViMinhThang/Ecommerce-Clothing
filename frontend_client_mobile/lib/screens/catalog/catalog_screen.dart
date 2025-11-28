@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
-import 'package:frontend_client_mobile/screens/catalog/catalog_detail_screen.dart';
 import 'package:frontend_client_mobile/widgets/catalog_card.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +27,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         centerTitle: true,
         title: const Text(
           'Catalog',
-          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.white),
         ),
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
@@ -39,7 +38,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (provider.categories.isEmpty) {
             return const Center(
               child: Column(
@@ -70,7 +68,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 onTap: () {
                   Navigator.of(context).pushNamed(
                     '/details',
-                    arguments: category.id, // Truyền ID vào đây
+                    arguments: {
+                      'categoryId': category.id,
+                      'categoryName': category.name,
+                    }, // Truyền ID vào đây
                   );
                 },
               );
