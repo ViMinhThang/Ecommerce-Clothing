@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ProductVariantSpecifications {
-    private ProductVariantSpecifications() {}
+public class ProductSpecifications {
+    private ProductSpecifications() {}
     public static Specification<Product> build(ProductFilter f) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            Join<ProductVariants, Product> productJoin = root.join("product"); // join 2 bảng với nhau
-            Join<Product, Category> categoryJoin = productJoin.join("category");
+            Join<Product,ProductVariants> productJoin = root.join("variants"); // join 2 bảng với nhau
+            Join<Product, Category> categoryJoin = root.join("category");
             if (f.getCategoryId() > 0) {
                 predicates.add(cb.equal(categoryJoin.get("id"), f.getCategoryId()));
             }
@@ -31,9 +31,9 @@ public class ProductVariantSpecifications {
             Path<Double> pricePath;
             // Lấy giá theo trường hợp người dùng muốn tìm kiếm sản phẩm đang sale hay không
             if(f.isSale())
-                pricePath= root.get("price").get("salePrice");
+                pricePath= productJoin.get("price").get("salePrice");
             else
-                pricePath= root.get("price").get("basePrice");
+                pricePath= productJoin.get("price").get("basePrice");
 
             if (f.getMinPrice() > 0) {
                 // Dùng "greaterThanOrEqualTo" (>=)
@@ -47,7 +47,7 @@ public class ProductVariantSpecifications {
             }
             // Lọc với các Size được chọn
             if(f.getSizes() != null && !f.getSizes().isEmpty()){
-                Path<String> sizeNamePath = root.join("size").get("sizeName");
+                Path<String> sizeNamePath = productJoin.join("size").get("sizeName");
                 predicates.add(sizeNamePath.in(f.getSizes()));
             }
 
@@ -61,14 +61,14 @@ public class ProductVariantSpecifications {
             // Lọc với các Color được chọn
 
             if(f.getColors() != null && !f.getColors().isEmpty()){
-                Path<String> colorNamePath = root.join("color").get("colorName");
+                Path<String> colorNamePath = productJoin.join("color").get("colorName");
                 predicates.add(colorNamePath.in(f.getColors()));
             }
 
             // Lọc với các Material được chọn
 
             if(f.getMaterials() != null && !f.getMaterials().isEmpty()){
-                Path<String> materialNamePath = root.join("material").get("materialName");
+                Path<String> materialNamePath = productJoin.join("material").get("materialName");
                 predicates.add(materialNamePath.in(f.getMaterials()));
             }
 

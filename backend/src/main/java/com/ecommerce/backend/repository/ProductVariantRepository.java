@@ -23,7 +23,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariants,
                 MIN(p.base_price) as min_price,
                 MAX(p.base_price) as max_price
             FROM product_variants as pv
-            left join size as s ON pv.price_id = s.id
+            left join size as s ON pv.size_id = s.id
             left join material as m on m.id = pv.material_id
             left join color as c on c.id = pv.color_id
             left join price as p on p.id = pv.price_id
