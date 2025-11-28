@@ -5,6 +5,7 @@ import com.ecommerce.backend.model.Product;
 import com.ecommerce.backend.repository.FilterView;
 import com.ecommerce.backend.repository.filter.ProductFilter;
 import com.ecommerce.backend.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class FilterController {
     private final ProductService productService;
-    @PostMapping("/{categoryId}")
-    public ResponseEntity<Page<ProductView>> filter(@RequestBody ProductFilter filter, Pageable pageable) {
+    @PostMapping()
+    public ResponseEntity<Page<ProductView>> filter(@RequestBody @Valid ProductFilter filter, Pageable pageable) {
         Page<ProductView> res = productService.filterProduct(filter,pageable);
         return response(res);
     }
-    @PostMapping("/count/{categoryId}")
-    public ResponseEntity<Long> filterCount(@RequestBody ProductFilter filter, @PathVariable("categoryId") long categoryId) {
+    @PostMapping("/count")
+    public ResponseEntity<Long> filterCount(@RequestBody ProductFilter filter) {
         return ResponseEntity.ok(productService.filterProductCount(filter));
     }
     @GetMapping("/{categoryId}")

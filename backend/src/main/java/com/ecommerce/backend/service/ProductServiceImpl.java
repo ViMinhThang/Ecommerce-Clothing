@@ -10,7 +10,6 @@ import com.ecommerce.backend.repository.filter.ProductFilter;
 import com.ecommerce.backend.repository.filter.ProductSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -181,17 +181,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> filterProduct(ProductFilter filter, Pageable pageable) {
-        return productVariantRepository.findAll(ProductSpecifications.build(filter), pageable)
-                .map(x ->
-                new ProductView(x.getProduct().getId(),x.getProduct().getName(),
-                        x.getProduct().getImageUrl(), x.getPrice().getBasePrice(),
-                        x.getPrice().getSalePrice(),x.getProduct().getDescription()));
+        return productRepository.findAll(ProductSpecifications.build(filter), pageable)
+                .map(x ->{
+                    Optional<ProductVariants> firstVariant = x.getVariants().stream().findFirst();
+                    var basePrice = firstVariant.map(productVariants -> productVariants.getPrice().getBasePrice()).orElse(0.0);
+                    var salePrice = firstVariant.map(productVariants -> productVariants.getPrice().getBasePrice()).orElse(0.0);
+                    return new ProductView(x.getId(),x.getName(),
+                            x.getImageUrl(), basePrice,
+                            salePrice,x.getDescription());
+                    }
+                );
     }
 
     @Override
     public Long filterProductCount(ProductFilter filter) {
-        return productVariantRepository.count(ProductSpecifications.build(filter));
-
+        return productRepository.count(ProductSpecifications.build(filter));
     }
 
     @Override
