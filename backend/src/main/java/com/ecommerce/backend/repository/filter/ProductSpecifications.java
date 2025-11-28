@@ -1,5 +1,6 @@
 package com.ecommerce.backend.repository.filter;
 
+import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.model.Product;
 import com.ecommerce.backend.model.ProductVariants;
 import jakarta.persistence.criteria.Join;
@@ -11,13 +12,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ProductSpecifications {
-    private ProductSpecifications() {}
-    public static Specification<ProductVariants> build(ProductFilter f) {
+public class ProductVariantSpecifications {
+    private ProductVariantSpecifications() {}
+    public static Specification<Product> build(ProductFilter f) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             Join<ProductVariants, Product> productJoin = root.join("product"); // join 2 bảng với nhau
+            Join<Product, Category> categoryJoin = productJoin.join("category");
+            if (f.getCategoryId() > 0) {
+                predicates.add(cb.equal(categoryJoin.get("id"), f.getCategoryId()));
+            }
             if (f.getStatus() != null && !f.getStatus().isEmpty()) {
                 // Tạo điều kiện "bằng" (equal)
                 predicates.add(cb.equal(productJoin.get("status"), f.getStatus()));

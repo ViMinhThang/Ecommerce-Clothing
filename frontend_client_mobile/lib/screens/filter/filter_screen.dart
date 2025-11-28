@@ -3,97 +3,84 @@ import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:provider/provider.dart';
 
 class FiltersPage extends StatefulWidget {
-  final int categoryId;
-  const FiltersPage({super.key, required this.categoryId});
+  final Map<String, dynamic> filterParams;
+  const FiltersPage({super.key, required this.filterParams});
 
   @override
   State<FiltersPage> createState() => _FiltersPageState();
 }
 
 class _FiltersPageState extends State<FiltersPage> {
-  // Price
-  double _minPrice = 0;
-  double _maxPrice = 0;
+  bool _initialized = false;
+  late final int _categoryId;
 
-  // Toggles
-  bool _onSale = false;
-
-  // Size, Season, Material, Colors
-  final _palette = const [
-    Color(0xFFF3F788), // pale yellow
-    Color(0xFFF2F2F2), // very light gray
-    Color(0xFFE0E7FF), // soft blue
-    Color(0xFFC27063), // terracotta
-    Color(0xFF4D5579), // indigo
+  static const _palette = [
+    Color(0xFFF3F788),
+    Color(0xFFF2F2F2),
+    Color(0xFFE0E7FF),
+    Color(0xFFC27063),
+    Color(0xFF4D5579),
   ];
-
-  final Set<String> _selectedSizes = {};
-  final Set<String> _selectedSeasons = {};
-  final Set<String> _selectedMaterials = {};
-  final Set<int> _selectedColorIdx = {};
 
   @override
   void initState() {
     super.initState();
-    // Initial Fetch
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FilterProvider>(
-        context,
-        listen: false,
-      ).initialize(widget.categoryId);
-    });
-  }
+    _categoryId = widget.filterParams['categoryId'] as int;
 
-  void _reset() {
-    setState(() {
-      _minPrice = 95;
-      _maxPrice = 495;
-      _onSale = false;
-      _selectedSizes
-        ..clear()
-        ..addAll({'S', 'M'});
-      _selectedSeasons.clear();
-      _selectedMaterials
-        ..clear()
-        ..add('Cotton');
-      _selectedColorIdx
-        ..clear()
-        ..add(0);
+    // Chỉ init meta filter nếu khác category hiện tại
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final fp = context.read<FilterProvider>();
+
+      if (fp.categoryId != _categoryId) {
+        await fp.initialize(_categoryId);
+      }
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.chevron_left_rounded),
         ),
         centerTitle: true,
         title: const Text(
           'Filters',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         actions: [
-          TextButton(
-            onPressed: _reset,
-            child: const Text(
-              'Reset',
-              style: TextStyle(
-                color: Color(0xFFD32F2F),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          Consumer<FilterProvider>(
+            builder: (context, p, _) {
+              return TextButton(
+                onPressed: p.resetFilters,
+                child: const Text(
+                  'Reset',
+                  style: TextStyle(
+                    color: Color(0xFFD32F2F),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
       body: Consumer<FilterProvider>(
         builder: (context, filterProvider, child) {
+          // Nếu chưa init xong meta filter lần đầu thì show loading
+          if ((_initialized == false && filterProvider.isLoading) ||
+              filterProvider.categoryId == 0) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           return SafeArea(
             child: Column(
               children: [
@@ -110,12 +97,16 @@ class _FiltersPageState extends State<FiltersPage> {
                           children: [
                             _PillValue(
                               label: 'from',
-                              value: filterProvider.minPrice.toInt().toString(),
+                              value: filterProvider.selectedMinPrice
+                                  .toInt()
+                                  .toString(),
                             ),
                             const SizedBox(width: 8),
                             _PillValue(
                               label: 'to',
-                              value: filterProvider.maxPrice.toInt().toString(),
+                              value: filterProvider.selectedMaxPrice
+                                  .toInt()
+                                  .toString(),
                             ),
                             const Spacer(),
                           ],
@@ -124,15 +115,26 @@ class _FiltersPageState extends State<FiltersPage> {
                         RangeSlider(
                           min: filterProvider.minPrice.toDouble(),
                           max: filterProvider.maxPrice.toDouble(),
-                          values: RangeValues(_minPrice, _maxPrice),
+                          values: RangeValues(
+                            filterProvider.selectedMinPrice.clamp(
+                              filterProvider.minPrice.toDouble(),
+                              filterProvider.maxPrice.toDouble(),
+                            ),
+                            filterProvider.selectedMaxPrice.clamp(
+                              filterProvider.minPrice.toDouble(),
+                              filterProvider.maxPrice.toDouble(),
+                            ),
+                          ),
                           activeColor: Colors.black,
                           inactiveColor: const Color(0xFFE0E0E0),
                           onChanged: (v) {
-                            setState(() {
-                              _minPrice = v.start.roundToDouble();
-                              _maxPrice = v.end.roundToDouble();
-                            });
+                            filterProvider.setSelectedPriceRange(
+                              v.start.roundToDouble(),
+                              v.end.roundToDouble(),
+                            );
                           },
+                          onChangeEnd: (value) =>
+                              filterProvider.callUpdateMatchedCount(),
                         ),
                         const SizedBox(height: 8),
 
@@ -140,13 +142,14 @@ class _FiltersPageState extends State<FiltersPage> {
                         _RowTile(
                           label: 'Items on Sale',
                           trailing: Switch(
-                            value: _onSale,
+                            value: filterProvider.selectedOnSale,
                             activeThumbColor: Colors.white,
                             activeTrackColor: Colors.black,
-                            onChanged: (v) => setState(() => _onSale = v),
+                            onChanged: filterProvider.toggleOnSale,
                           ),
                         ),
                         const SizedBox(height: 8),
+
                         // Size
                         const _SectionTitle('Size'),
                         const SizedBox(height: 8),
@@ -157,17 +160,13 @@ class _FiltersPageState extends State<FiltersPage> {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: filterProvider.sizes.map((s) {
-                                  final selected = _selectedSizes.contains(s);
+                                  final selected = filterProvider.selectedSizes
+                                      .contains(s);
                                   return FilterChip(
                                     label: Text(s),
                                     selected: selected,
-                                    onSelected: (_) {
-                                      setState(() {
-                                        selected
-                                            ? _selectedSizes.remove(s)
-                                            : _selectedSizes.add(s);
-                                      });
-                                    },
+                                    onSelected: (_) =>
+                                        filterProvider.toggleSize(s),
                                     showCheckmark: false,
                                     labelStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
@@ -198,42 +197,29 @@ class _FiltersPageState extends State<FiltersPage> {
                         // Season
                         const _SectionTitle('Season'),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: filterProvider.seasons.map((s) {
-                                  final selected = filterProvider.seasons.contains(s);
-                                  return FilterChip(
-                                    label: Text(s),
-                                    selected: selected,
-                                    onSelected: (_) {
-                                      setState(() {
-                                        selected
-                                            ? _selectedSeasons.remove(s)
-                                            : _selectedSeasons.add(s);
-                                      });
-                                    },
-                                    showCheckmark: false,
-                                    labelStyle: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: selected
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                    selectedColor: Colors.black,
-                                    backgroundColor: const Color(0xFFF2F2F2),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  );
-                                }).toList(),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: filterProvider.seasons.map((season) {
+                            final selected = filterProvider.selectedSeasons
+                                .contains(season);
+                            return FilterChip(
+                              label: Text(season),
+                              selected: selected,
+                              onSelected: (_) =>
+                                  filterProvider.toggleSeason(season),
+                              showCheckmark: false,
+                              labelStyle: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: selected ? Colors.white : Colors.black,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
+                              selectedColor: Colors.black,
+                              backgroundColor: const Color(0xFFF2F2F2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            );
+                          }).toList(),
                         ),
                         const SizedBox(height: 16),
 
@@ -247,18 +233,14 @@ class _FiltersPageState extends State<FiltersPage> {
                                 spacing: 12,
                                 runSpacing: 12,
                                 children: List.generate(_palette.length, (i) {
+                                  final selected = filterProvider
+                                      .selectedColorIdx
+                                      .contains(i);
                                   return _ColorDot(
                                     color: _palette[i],
-                                    selected: filterProvider.colors.contains(i),
-                                    onTap: () {
-                                      setState(() {
-                                        if (_selectedColorIdx.contains(i)) {
-                                          _selectedColorIdx.remove(i);
-                                        } else {
-                                          _selectedColorIdx.add(i);
-                                        }
-                                      });
-                                    },
+                                    selected: selected,
+                                    onTap: () =>
+                                        filterProvider.toggleColorIndex(i),
                                   );
                                 }),
                               ),
@@ -273,6 +255,7 @@ class _FiltersPageState extends State<FiltersPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
+
                         // Material
                         const _SectionTitle('Material'),
                         const SizedBox(height: 8),
@@ -282,20 +265,17 @@ class _FiltersPageState extends State<FiltersPage> {
                               child: Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
-                                children: filterProvider.materials.map((m) {
-                                  final selected = filterProvider.materials.contains(
-                                    m,
-                                  );
+                                children: filterProvider.materials.map((
+                                  material,
+                                ) {
+                                  final selected = filterProvider
+                                      .selectedMaterials
+                                      .contains(material);
                                   return FilterChip(
-                                    label: Text(m),
+                                    label: Text(material),
                                     selected: selected,
-                                    onSelected: (_) {
-                                      setState(() {
-                                        selected
-                                            ? _selectedMaterials.remove(m)
-                                            : _selectedMaterials.add(m);
-                                      });
-                                    },
+                                    onSelected: (_) =>
+                                        filterProvider.toggleMaterial(material),
                                     showCheckmark: false,
                                     labelStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
@@ -342,9 +322,15 @@ class _FiltersPageState extends State<FiltersPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        // Không gọi initialize/refresh ở đây.
+                        // Chỉ pop về Category Detail.
+                        Navigator.pop(context);
+                      },
                       child: Text(
-                        'Show ${filterProvider.count} items',
+                        filterProvider.isCounting
+                            ? 'Loading...'
+                            : 'Show ${filterProvider.matchedCount} items',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),

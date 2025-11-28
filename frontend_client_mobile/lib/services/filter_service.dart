@@ -10,16 +10,14 @@ class FilterService {
 
   Future<HttpResponse<PageResponse<ProductView>>> filters(
     Map<String, dynamic> filters,
-    int categoryId,
   ) async {
-    return await _filterApiService.filter(filters, categoryId);
+    return await _filterApiService.filter(filters);
   }
 
   Future<int> countProductAvailable(
     Map<String, dynamic> filters,
-    int categoryId,
   ) async {
-    return await _filterApiService.countProductAvailable(filters, categoryId);
+    return await _filterApiService.countProductAvailable(filters);
   }
 
   Future<FilterResponse> getFilterAttributes(int categoryId) async {
