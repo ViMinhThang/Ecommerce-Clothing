@@ -1,7 +1,7 @@
 package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.ProductRequest;
-import com.ecommerce.backend.dto.ProductView;
+import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.model.Product;
 import com.ecommerce.backend.repository.FilterView;
 import com.ecommerce.backend.repository.filter.ProductFilter;
@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 public interface ProductService {
 

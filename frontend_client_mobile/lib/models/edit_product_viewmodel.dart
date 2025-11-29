@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart' hide Category;
+
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';

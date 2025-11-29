@@ -1,7 +1,6 @@
 package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.CategoryDTO; // Import CategoryDTO
-import com.ecommerce.backend.dto.CategoryView;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;

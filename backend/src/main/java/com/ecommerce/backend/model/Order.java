@@ -1,11 +1,13 @@
 package com.ecommerce.backend.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -13,6 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Table(name = "orders")
 public class Order {
 
@@ -28,4 +31,18 @@ public class Order {
     private List<OrderItem> orderItems;
 
     private double totalPrice;
+    private String status;
+
+    @Column(nullable = false, updatable = false)
+    @CreatedDate
+    private LocalDateTime createdDate;
+
+    @Column(updatable = true, nullable = true)
+    @LastModifiedDate
+    private LocalDateTime updatedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "updated_by")
+    @LastModifiedBy
+    private User updatedBy;
 }

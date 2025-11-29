@@ -1,7 +1,6 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.ProductView;
-import com.ecommerce.backend.model.Product;
+import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.repository.FilterView;
 import com.ecommerce.backend.repository.filter.ProductFilter;
 import com.ecommerce.backend.service.ProductService;

@@ -3,7 +3,7 @@ package com.ecommerce.backend.service;
 import com.ecommerce.backend.dto.PriceRequest;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.ProductVariantRequest;
-import com.ecommerce.backend.dto.ProductView;
+import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.model.*;
 import com.ecommerce.backend.repository.*;
 import com.ecommerce.backend.repository.filter.ProductFilter;
