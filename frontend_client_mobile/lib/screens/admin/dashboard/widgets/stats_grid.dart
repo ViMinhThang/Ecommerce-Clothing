@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../config/theme_config.dart';
 
+class DashboardStat {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const DashboardStat({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+}
+
 class StatsGrid extends StatelessWidget {
-  final List<Map<String, dynamic>> stats;
+  final List<DashboardStat> stats;
   const StatsGrid({super.key, required this.stats});
 
   @override
@@ -36,11 +48,7 @@ class StatsGrid extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
                 ),
-                child: Icon(
-                  item['icon'] as IconData,
-                  color: AppTheme.primaryBlack,
-                  size: 20,
-                ),
+                child: Icon(item.icon, color: AppTheme.primaryBlack, size: 20),
               ),
               const SizedBox(width: AppTheme.spaceMD),
               Expanded(
@@ -49,7 +57,7 @@ class StatsGrid extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      item['title'] as String,
+                      item.title,
                       style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.mediumGray,
                         fontWeight: FontWeight.w500,
@@ -59,7 +67,7 @@ class StatsGrid extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item['value'] as String,
+                      item.value,
                       style: AppTheme.h4.copyWith(fontSize: 18),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

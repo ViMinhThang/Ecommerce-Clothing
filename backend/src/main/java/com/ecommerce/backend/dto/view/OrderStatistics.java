@@ -5,7 +5,6 @@ import lombok.*;
 @Getter
 @Setter
 @AllArgsConstructor
-@RequiredArgsConstructor
 @NoArgsConstructor
 public class OrderStatistics {
     private int totalOrderByDay;

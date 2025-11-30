@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -20,7 +22,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
     private final ProductVariantsRepository productVariantsRepository;
-
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     // thêm 2 repository mới
     private final MaterialRepository materialRepository;
     private final SeasonRepository seasonRepository;
@@ -282,6 +285,68 @@ public class DatabaseSeeder implements CommandLineRunner {
                     productVariantsRepository.save(variant);
                 }
             }
+        }
+        createSampleOrders(user1,user2);
+    }
+    private void createSampleOrders(User user1, User user2) {
+        List<ProductVariants> allVariants = productVariantsRepository.findAll();
+        if (allVariants.isEmpty()) return;
+
+        Random random = new Random();
+
+        // Muốn số lượng order > 10, ví dụ tạo 12–15 orders
+        int totalOrders = 12 + random.nextInt(4); // 12,13,14,15
+
+        for (int idx = 0; idx < totalOrders; idx++) {
+            User owner = (idx % 2 == 0) ? user1 : user2;
+
+            Order order = new Order();
+            order.setUser(owner);
+
+            // Set status: trộn COMPLETED, PENDING, CANCELLED
+            if (idx % 3 == 0) {
+                order.setStatus("COMPLETED".toLowerCase());
+            } else if (idx % 3 == 1) {
+                order.setStatus("PENDING".toLowerCase());
+            } else {
+                order.setStatus("CANCELLED".toLowerCase()); // trạng thái cancel
+            }
+
+            order.setCreatedDate(LocalDateTime.now().minusDays(5 - (idx % 5)));
+            order.setUpdatedDate(LocalDateTime.now().minusDays(4 - (idx % 4)));
+            order.setUpdatedBy(owner);
+
+            order.setOrderItems(new ArrayList<>());
+            order = orderRepository.save(order);
+
+            List<OrderItem> items = new ArrayList<>();
+            double total = 0.0;
+
+            // Mỗi order có từ 1–4 item
+            int itemCount = 1 + random.nextInt(4);
+            for (int i = 0; i < itemCount; i++) {
+                ProductVariants pv = allVariants.get(random.nextInt(allVariants.size()));
+
+                // Số lượng mỗi item 1–5
+                int qty = 1 + random.nextInt(5);
+
+                OrderItem item = new OrderItem();
+                item.setOrder(order);
+                item.setProductVariants(pv);
+                item.setQuantity(qty);
+                item.setPriceAtPurchase(pv.getPrice().getSalePrice());
+                item.setStatus("active");
+                item.setCreatedDate(order.getCreatedDate());
+                item.setUpdatedDate(order.getUpdatedDate());
+
+                total += item.getPriceAtPurchase() * qty;
+                items.add(item);
+            }
+
+            orderItemRepository.saveAll(items);
+            order.setOrderItems(items);
+            order.setTotalPrice(total);
+            orderRepository.save(order);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.OrderDTO;
+import com.ecommerce.backend.dto.view.OrderDetailView;
 import com.ecommerce.backend.dto.view.OrderStatistics;
 import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.mapper.OrderMapper;
@@ -36,8 +37,8 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public Order getOrderById(long id) {
-        return orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+    public OrderDetailView getOrderById(long id) {
+        return orderRepository.findById(id).map(OrderMapper::toOrderDetailView).orElseThrow(() -> new RuntimeException("Not found"));
     }
 
     @Override
@@ -114,18 +115,18 @@ public class OrderServiceImpl implements OrderService{
         for (var o : orders) {
             var date = o.getCreatedDate();
             var price = o.getTotalPrice();
-
-            if (!date.isBefore(startOfToday) && !date.isAfter(endOfToday)) {
+            var isCompleted = "completed".equals(o.getStatus());
+            if (isCompleted && !date.isBefore(startOfToday) && !date.isAfter(endOfToday)) {
                 totalOrderByDay++;
                 totalPriceOrderByDay += price;
             }
 
-            if (!date.isBefore(startOfWeek) && !date.isAfter(endOfWeek)) {
+            if (isCompleted && !date.isBefore(startOfWeek) && !date.isAfter(endOfWeek)) {
                 totalOrderByWeek++;
                 totalPriceOrderByWeek += price;
             }
 
-            if (!date.isBefore(startOfMonth) && !date.isAfter(endOfMonth)) {
+            if (isCompleted && !date.isBefore(startOfMonth) && !date.isAfter(endOfMonth)) {
                 totalOrderByMonth++;
                 totalPriceOrderByMonth += price;
             }
