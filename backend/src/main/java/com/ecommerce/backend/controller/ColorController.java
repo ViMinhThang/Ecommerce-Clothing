@@ -4,11 +4,16 @@ import com.ecommerce.backend.dto.ColorDTO; // Import ColorDTO
 import com.ecommerce.backend.model.Color;
 import com.ecommerce.backend.service.ColorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/colors")
@@ -18,8 +23,21 @@ public class ColorController {
     private final ColorService colorService;
 
     @GetMapping
-    public ResponseEntity<List<Color>> getAllColors() {
-        List<Color> colors = colorService.getAllColors();
+    public ResponseEntity<Page<Color>> getAllColors(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Color> colors;
+
+        if (name != null && !name.isEmpty()) {
+            colors = colorService.searchColors(name, pageable);
+        } else {
+            colors = colorService.getAllColors().stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toList(),
+                            list -> new PageImpl<>(list, pageable, list.size())));
+        }
         return ResponseEntity.ok(colors);
     }
 
@@ -36,7 +54,9 @@ public class ColorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) { // Changed parameter to ColorDTO
+    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) { // Changed
+                                                                                                      // parameter to
+                                                                                                      // ColorDTO
         Color updatedColor = colorService.updateColor(id, colorDTO);
         return ResponseEntity.ok(updatedColor);
     }

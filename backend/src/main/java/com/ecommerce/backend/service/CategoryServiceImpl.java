@@ -5,6 +5,8 @@ import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,6 +69,11 @@ public class CategoryServiceImpl implements CategoryService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload category image", e);
         }
+    }
+
+    @Override
+    public Page<Category> searchCategories(String name, Pageable pageable) {
+        return categoryRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
     // ==================== Private Helper Methods ====================
