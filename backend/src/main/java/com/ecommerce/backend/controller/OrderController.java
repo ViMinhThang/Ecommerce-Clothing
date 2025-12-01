@@ -1,6 +1,7 @@
 package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.OrderDTO;
+import com.ecommerce.backend.dto.view.OrderDetailView;
 import com.ecommerce.backend.dto.view.OrderStatistics;
 import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.model.Order;
@@ -45,9 +46,8 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Order Order = orderService.getOrderById(id);
-        return ResponseEntity.ok(Order);
+    public ResponseEntity<OrderDetailView> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
     @PostMapping

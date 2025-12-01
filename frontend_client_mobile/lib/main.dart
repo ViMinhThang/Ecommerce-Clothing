@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
+import 'package:frontend_client_mobile/providers/dashboard_provider.dart';
 import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
+import 'package:frontend_client_mobile/providers/order_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
@@ -27,6 +29,8 @@ void main() {
         ChangeNotifierProvider(create: (context) => ColorProvider()),
         ChangeNotifierProvider(create: (context) => SizeProvider()),
         ChangeNotifierProvider(create: (context) => FilterProvider()),
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
+        ChangeNotifierProvider(create: (context) => DashboardProvider()),
       ],
       child: const MyApp(),
     ),
@@ -42,7 +46,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'E-Commerce Admin',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/dashboard',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
