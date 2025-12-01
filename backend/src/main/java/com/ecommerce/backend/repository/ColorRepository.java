@@ -8,5 +8,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ColorRepository extends JpaRepository<Color, Long> {
-    Page<Color> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
+    Page<Color> findByColorNameContainingIgnoreCase(String name, Pageable pageable);}

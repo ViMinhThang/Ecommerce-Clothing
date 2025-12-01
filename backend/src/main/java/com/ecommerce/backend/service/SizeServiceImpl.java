@@ -52,6 +52,6 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public Page<Size> searchSizes(String name, Pageable pageable) {
-        return sizeRepository.findByNameContainingIgnoreCase(name, pageable);
+        return sizeRepository.findBySizeNameContainingIgnoreCase(name, pageable);
     }
 }

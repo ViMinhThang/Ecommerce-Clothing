@@ -112,8 +112,7 @@ class _ManageUsersScreenState
     }
   }
 
-  @override
-  Widget buildLeadingWidget(Map<String, dynamic> item) {
+  Widget _buildLeadingWidget(Map<String, dynamic> item) {
     return CircleAvatar(
       backgroundColor: AppTheme.offWhite,
       radius: 24,
@@ -124,11 +123,9 @@ class _ManageUsersScreenState
     );
   }
 
-  @override
-  String getItemTitle(Map<String, dynamic> item) => item['name'];
+  String _getItemTitle(Map<String, dynamic> item) => item['name'];
 
-  @override
-  Widget? buildSubtitle(Map<String, dynamic> item) {
+  Widget? _buildSubtitle(Map<String, dynamic> item) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -154,15 +151,14 @@ class _ManageUsersScreenState
   @override
   Widget buildList() {
     final items = getItems();
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+    return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         return AdminListItem(
-          leading: buildLeadingWidget(item),
-          title: getItemTitle(item),
-          subtitle: buildSubtitle(item),
+          leading: _buildLeadingWidget(item),
+          title: _getItemTitle(item),
+          subtitle: _buildSubtitle(item),
           onEdit: () => navigateToEdit(item),
           onDelete: () => handleDelete(item),
           editTooltip: 'Edit User',

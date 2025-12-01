@@ -52,6 +52,6 @@ public class ColorServiceImpl implements ColorService {
 
     @Override
     public Page<Color> searchColors(String name, Pageable pageable) {
-        return colorRepository.findByNameContainingIgnoreCase(name, pageable);
+        return colorRepository.findByColorNameContainingIgnoreCase(name, pageable);
     }
 }

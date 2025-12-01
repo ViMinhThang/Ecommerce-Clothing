@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SizeRepository extends JpaRepository<Size, Long> {
-    Page<Size> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Size> findBySizeNameContainingIgnoreCase(String name, Pageable pageable);
 }

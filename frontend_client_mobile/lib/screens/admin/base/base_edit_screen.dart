@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../layouts/admin_layout.dart';
 import '../../../config/theme_config.dart';
 import '../../../widgets/shared/form_action_buttons.dart';
 
@@ -63,36 +62,71 @@ abstract class BaseEditScreenState<T, S extends BaseEditScreen<T>>
   /// Check if currently in editing mode
   bool get isEditing => widget.entity != null;
 
+  /// Build the header image widget (optional)
+  /// If provided, this will be displayed in the FlexibleSpaceBar of the SliverAppBar
+  Widget? buildHeaderImage() => null;
+
   // Template method - defines the structure
   @override
   Widget build(BuildContext context) {
-    return AdminLayout(
-      title: getScreenTitle(),
-      selectedIndex: getSelectedIndex(),
-      body: buildFormBody(),
+    final headerImage = buildHeaderImage();
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: headerImage != null ? 250.0 : 0.0,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: AppTheme.primaryBlack),
+            title: headerImage == null
+                ? Text(
+                    getScreenTitle(),
+                    style: AppTheme.h3.copyWith(color: AppTheme.primaryBlack),
+                  )
+                : null,
+            flexibleSpace: headerImage != null
+                ? FlexibleSpaceBar(background: headerImage)
+                : null,
+          ),
+          SliverToBoxAdapter(child: buildFormBody()),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(child: buildActionButtons()),
+      ),
     );
   }
 
   Widget buildFormBody() {
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryWhite,
-          borderRadius: AppTheme.borderRadiusMD,
-          border: AppTheme.borderThin,
-          boxShadow: AppTheme.shadowSM,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (buildHeaderImage() != null) ...[
+            // If we have a header image, we might want to show the title here or just the form
+            // For now, let's show the section header
             buildSectionHeader(),
             const SizedBox(height: AppTheme.spaceMD),
-            buildFormFields(),
-            const SizedBox(height: 32),
-            buildActionButtons(),
           ],
-        ),
+          buildFormFields(),
+          // Add some bottom padding to avoid content being hidden by the sticky bar
+          const SizedBox(height: 80),
+        ],
       ),
     );
   }

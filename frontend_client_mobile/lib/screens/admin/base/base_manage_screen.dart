@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../layouts/admin_layout.dart';
+import '../../../config/theme_config.dart';
 import '../../../widgets/shared/admin_search_bar.dart';
 import '../../../widgets/shared/empty_state_widget.dart';
+import '../../../widgets/admin/admin_drawer.dart';
 
 /// Abstract base class for all management screens following Template Method pattern
 ///
@@ -67,63 +68,92 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
   /// Handle delete action
   Future<void> handleDelete(T item);
 
-  /// Build the leading widget for list item
-  Widget buildLeadingWidget(T item);
+  /// Build optional header widgets to display before the list (e.g., stats)
+  List<Widget> buildHeaderWidgets() => [];
 
-  /// Get the title text from item
-  String getItemTitle(T item);
-
-  /// Build the subtitle widget for list item (optional)
-  Widget? buildSubtitle(T item);
+  /// Build the list widget (must return a Sliver, e.g., SliverList)
+  Widget buildList();
 
   // Template method - defines the structure
   @override
   Widget build(BuildContext context) {
-    return AdminLayout(
-      title: getScreenTitle(),
-      selectedIndex: getSelectedIndex(),
-      actions: [
-        IconButton(onPressed: refreshData, icon: const Icon(Icons.refresh)),
-      ],
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      drawer: AdminDrawer(selectedIndex: getSelectedIndex()),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: Text(
+              getScreenTitle(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryBlack,
+              ),
+            ),
+            backgroundColor: AppTheme.background,
+            surfaceTintColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: AppTheme.primaryBlack),
+            actions: [
+              IconButton(
+                onPressed: refreshData,
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
+            pinned: true,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Column(
+                children: [
+                  ...buildHeaderWidgets(),
+                  if (buildHeaderWidgets().isNotEmpty)
+                    const SizedBox(height: 16),
+                  AdminSearchBar(
+                    hintText: getSearchHint(),
+                    controller: searchController,
+                    onChanged: onSearchChanged,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: buildContent(),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: navigateToAdd,
         backgroundColor: Colors.black,
+        elevation: 4,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: buildBody(),
-    );
-  }
-
-  Widget buildBody() {
-    return Column(
-      children: [
-        AdminSearchBar(
-          hintText: getSearchHint(),
-          controller: searchController,
-          onChanged: onSearchChanged,
-        ),
-        const SizedBox(height: 16),
-        Expanded(child: buildContent()),
-      ],
     );
   }
 
   Widget buildContent() {
     if (isLoading() && getItems().isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (getItems().isEmpty) {
-      return EmptyStateWidget(
-        message: 'No ${getEntityName()}s found.',
-        icon: getEmptyStateIcon(),
+      return SliverFillRemaining(
+        child: EmptyStateWidget(
+          message: 'No ${getEntityName()}s found.',
+          icon: getEmptyStateIcon(),
+        ),
       );
     }
 
     return buildList();
   }
-
-  Widget buildList();
 
   /// Hook for search functionality
   void onSearchChanged(String query) {

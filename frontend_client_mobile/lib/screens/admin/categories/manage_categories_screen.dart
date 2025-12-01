@@ -7,6 +7,7 @@ import '../../../widgets/shared/admin_list_item.dart';
 import '../../../widgets/shared/confirmation_dialog.dart';
 import '../base/base_manage_screen.dart';
 import 'edit_category_screen.dart';
+import '../../../utils/image_helper.dart';
 
 class ManageCategoriesScreen extends BaseManageScreen<model.Category> {
   const ManageCategoriesScreen({super.key});
@@ -45,6 +46,11 @@ class _ManageCategoriesScreenState
   @override
   void refreshData() {
     _categoryProvider.fetchCategories();
+  }
+
+  @override
+  void onSearchChanged(String query) {
+    _categoryProvider.searchCategories(query);
   }
 
   @override
@@ -92,8 +98,8 @@ class _ManageCategoriesScreenState
     }
   }
 
-  @override
-  Widget buildLeadingWidget(model.Category item) {
+  Widget _buildLeadingWidget(model.Category item) {
+    final imageUrl = ImageHelper.getFullImageUrl(item.imageUrl);
     return Container(
       width: 60,
       height: 60,
@@ -104,9 +110,9 @@ class _ManageCategoriesScreenState
       ),
       child: ClipRRect(
         borderRadius: AppTheme.borderRadiusSM,
-        child: item.imageUrl.isNotEmpty
+        child: imageUrl.isNotEmpty
             ? Image.network(
-                item.imageUrl,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
                     Icon(Icons.broken_image, color: AppTheme.lightGray),
@@ -116,11 +122,9 @@ class _ManageCategoriesScreenState
     );
   }
 
-  @override
-  String getItemTitle(model.Category item) => item.name;
+  String _getItemTitle(model.Category item) => item.name;
 
-  @override
-  Widget? buildSubtitle(model.Category item) {
+  Widget? _buildSubtitle(model.Category item) {
     return Text(
       item.description,
       maxLines: 1,
@@ -132,15 +136,14 @@ class _ManageCategoriesScreenState
   @override
   Widget buildList() {
     final items = getItems();
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+    return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         return AdminListItem(
-          leading: buildLeadingWidget(item),
-          title: getItemTitle(item),
-          subtitle: buildSubtitle(item),
+          leading: _buildLeadingWidget(item),
+          title: _getItemTitle(item),
+          subtitle: _buildSubtitle(item),
           onEdit: () => navigateToEdit(item),
           onDelete: () => handleDelete(item),
           editTooltip: 'Edit Category',

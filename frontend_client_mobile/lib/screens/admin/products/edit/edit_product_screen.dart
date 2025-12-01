@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/section/form_sections.dart';
+import 'package:frontend_client_mobile/screens/admin/products/edit/section/action_buttons_section.dart';
 import 'package:frontend_client_mobile/widgets/discard_dialog.dart';
 import 'package:frontend_client_mobile/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
@@ -95,7 +96,30 @@ class _EditProductScreenState
             Navigator.of(context).pop();
           }
         },
-        child: super.build(context),
+        child: Scaffold(
+          body: Stack(
+            children: [
+              Consumer<EditProductViewModel>(
+                builder: (context, viewModel, _) =>
+                    Form(key: _formKey, child: const ProductForm()),
+              ),
+              LoadingOverlay(isVisible: _viewModel.isSaving),
+            ],
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: const ActionButtonsSection(),
+          ),
+        ),
       ),
     );
   }

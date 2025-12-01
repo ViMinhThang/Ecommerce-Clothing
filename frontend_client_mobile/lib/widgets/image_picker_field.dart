@@ -8,12 +8,14 @@ class ImagePickerField extends StatelessWidget {
   final String? currentImage;
   final XFile? selectedImage;
   final VoidCallback onPickImage;
+  final String label;
 
   const ImagePickerField({
     super.key,
     required this.currentImage,
     required this.selectedImage,
     required this.onPickImage,
+    this.label = 'IMAGE',
   });
   String _fixImageUrl(String url) {
     if (kIsWeb && url.contains("10.0.2.2")) {
@@ -35,7 +37,7 @@ class ImagePickerField extends StatelessWidget {
               Container(width: 4, height: 16, color: AppTheme.primaryBlack),
               const SizedBox(width: 12),
               Text(
-                'PRODUCT IMAGE',
+                label.toUpperCase(),
                 style: AppTheme.h4.copyWith(
                   fontSize: 14,
                   letterSpacing: 1.2,
@@ -100,22 +102,25 @@ class ImagePickerField extends StatelessWidget {
         (currentImage != null && currentImage!.isNotEmpty);
 
     return Container(
-      width: 200,
-      height: 250, // Portrait aspect ratio for fashion
+      width: 120,
+      height: 160, // Reduced height
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.zero, // Sharp corners
+        borderRadius: BorderRadius.circular(8), // Rounded corners
       ),
       child: hasImage
-          ? (selectedImage != null
-                ? Image.file(File(selectedImage!.path), fit: BoxFit.cover)
-                : Image.network(
-                    currentImage!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildPlaceholder();
-                    },
-                  ))
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: selectedImage != null
+                  ? Image.file(File(selectedImage!.path), fit: BoxFit.cover)
+                  : Image.network(
+                      currentImage!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildPlaceholder();
+                      },
+                    ),
+            )
           : _buildPlaceholder(),
     );
   }

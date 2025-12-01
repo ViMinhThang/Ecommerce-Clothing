@@ -49,6 +49,11 @@ class _ManageSizesScreenState
   }
 
   @override
+  void onSearchChanged(String query) {
+    _sizeProvider.searchSizes(query);
+  }
+
+  @override
   List<model.Size> getItems() {
     return context.watch<SizeProvider>().sizes;
   }
@@ -93,8 +98,7 @@ class _ManageSizesScreenState
     }
   }
 
-  @override
-  Widget buildLeadingWidget(model.Size item) {
+  Widget _buildLeadingWidget(model.Size item) {
     return Container(
       width: 40,
       height: 40,
@@ -112,26 +116,23 @@ class _ManageSizesScreenState
     );
   }
 
-  @override
-  String getItemTitle(model.Size item) => item.sizeName;
+  String _getItemTitle(model.Size item) => item.sizeName;
 
-  @override
-  Widget? buildSubtitle(model.Size item) {
+  Widget? _buildSubtitle(model.Size item) {
     return StatusBadge(label: item.status);
   }
 
   @override
   Widget buildList() {
     final items = getItems();
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+    return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         return AdminListItem(
-          leading: buildLeadingWidget(item),
-          title: getItemTitle(item),
-          subtitle: buildSubtitle(item),
+          leading: _buildLeadingWidget(item),
+          title: _getItemTitle(item),
+          subtitle: _buildSubtitle(item),
           onEdit: () => navigateToEdit(item),
           onDelete: () => handleDelete(item),
           editTooltip: 'Edit Size',

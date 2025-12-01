@@ -24,8 +24,8 @@ class ActionButtonsSection extends StatelessWidget {
                 disabledBackgroundColor: AppTheme.mediumGray,
                 disabledForegroundColor: AppTheme.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // Sharp corners
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 elevation: 0,
               ),
@@ -59,8 +59,8 @@ class ActionButtonsSection extends StatelessWidget {
                 foregroundColor: AppTheme.primaryBlack,
                 side: const BorderSide(color: AppTheme.primaryBlack, width: 1),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // Sharp corners
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Text(

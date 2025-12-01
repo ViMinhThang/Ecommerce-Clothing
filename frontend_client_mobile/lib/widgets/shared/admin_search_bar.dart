@@ -20,8 +20,14 @@ class AdminSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusSM,
-        boxShadow: AppTheme.shadowSM,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: TextField(
         controller: controller,
@@ -30,23 +36,11 @@ class AdminSearchBar extends StatelessWidget {
           prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
           hintText: hintText,
           hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
-          border: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: const BorderSide(
-              color: AppTheme.mediumGray,
-              width: 1.5,
-            ),
-          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
           filled: true,
-          fillColor: AppTheme.primaryWhite,
+          fillColor: Colors.transparent,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
         onChanged: onChanged,

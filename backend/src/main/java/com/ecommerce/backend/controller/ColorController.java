@@ -1,19 +1,15 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.ColorDTO; // Import ColorDTO
+import com.ecommerce.backend.dto.ColorDTO;
 import com.ecommerce.backend.model.Color;
 import com.ecommerce.backend.service.ColorService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/colors")
@@ -23,20 +19,14 @@ public class ColorController {
     private final ColorService colorService;
 
     @GetMapping
-    public ResponseEntity<Page<Color>> getAllColors(
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Color> colors;
+    public ResponseEntity<List<Color>> getAllColors(
+            @RequestParam(required = false) String name) {
+        List<Color> colors;
 
         if (name != null && !name.isEmpty()) {
-            colors = colorService.searchColors(name, pageable);
+            colors = colorService.searchColors(name, Pageable.unpaged()).getContent();
         } else {
-            colors = colorService.getAllColors().stream()
-                    .collect(Collectors.collectingAndThen(
-                            Collectors.toList(),
-                            list -> new PageImpl<>(list, pageable, list.size())));
+            colors = colorService.getAllColors();
         }
         return ResponseEntity.ok(colors);
     }
@@ -48,15 +38,13 @@ public class ColorController {
     }
 
     @PostMapping
-    public ResponseEntity<Color> createColor(@RequestBody ColorDTO colorDTO) { // Changed parameter to ColorDTO
+    public ResponseEntity<Color> createColor(@RequestBody ColorDTO colorDTO) {
         Color createdColor = colorService.createColor(colorDTO);
         return new ResponseEntity<>(createdColor, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) { // Changed
-                                                                                                      // parameter to
-                                                                                                      // ColorDTO
+    public ResponseEntity<Color> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) {
         Color updatedColor = colorService.updateColor(id, colorDTO);
         return ResponseEntity.ok(updatedColor);
     }

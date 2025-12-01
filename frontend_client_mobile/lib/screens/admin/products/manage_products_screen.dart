@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/edit_product_screen.dart';
 import 'package:frontend_client_mobile/widgets/admin/product_list_view.dart';
 import 'package:provider/provider.dart';
-import '../../../widgets/shared/admin_search_bar.dart';
+
 import '../../../widgets/shared/confirmation_dialog.dart';
 import '../base/base_manage_screen.dart';
 import '../../../widgets/shared/stats_card.dart';
@@ -18,6 +19,7 @@ class ManageProductsScreen extends BaseManageScreen<Product> {
 
 class _ManageProductsScreenState
     extends BaseManageScreenState<Product, ManageProductsScreen> {
+  Timer? _debounce;
   final ScrollController _scrollController = ScrollController();
 
   ProductProvider get _productProvider =>
@@ -31,6 +33,7 @@ class _ManageProductsScreenState
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -109,53 +112,12 @@ class _ManageProductsScreenState
   }
 
   @override
-  Widget buildLeadingWidget(Product item) {
-    // ProductListView handles this internally
-    throw UnimplementedError('Use ProductListView instead');
-  }
-
-  @override
-  String getItemTitle(Product item) {
-    // ProductListView handles this internally
-    throw UnimplementedError('Use ProductListView instead');
-  }
-
-  @override
-  Widget? buildSubtitle(Product item) {
-    // ProductListView handles this internally
-    return null;
-  }
-
-  @override
-  void onSearchChanged(String query) {
-    _productProvider.searchProducts(query);
-  }
-
-  // Override buildBody to add stats section
-  @override
-  Widget buildBody() {
-    return Consumer<ProductProvider>(
-      builder: (context, provider, child) {
-        return Column(
-          children: [
-            _buildStatsSection(provider),
-            const SizedBox(height: 16),
-            AdminSearchBar(
-              hintText: getSearchHint(),
-              controller: searchController,
-              onChanged: onSearchChanged,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => provider.fetchProducts(refresh: true),
-                child: buildContent(),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  List<Widget> buildHeaderWidgets() {
+    return [
+      Consumer<ProductProvider>(
+        builder: (context, provider, child) => _buildStatsSection(provider),
+      ),
+    ];
   }
 
   @override
@@ -176,7 +138,9 @@ class _ManageProductsScreenState
       height: 120,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+        ), // Reduced padding as parent has padding
         children: [
           SizedBox(
             width: 140,
@@ -207,5 +171,13 @@ class _ManageProductsScreenState
         ],
       ),
     );
+  }
+
+  @override
+  void onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _productProvider.searchProducts(query);
+    });
   }
 }

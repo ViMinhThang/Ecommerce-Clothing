@@ -49,6 +49,11 @@ class _ManageColorsScreenState
   }
 
   @override
+  void onSearchChanged(String query) {
+    _colorProvider.searchColors(query);
+  }
+
+  @override
   List<model.Color> getItems() {
     return context.watch<ColorProvider>().colors;
   }
@@ -93,8 +98,7 @@ class _ManageColorsScreenState
     }
   }
 
-  @override
-  Widget buildLeadingWidget(model.Color item) {
+  Widget _buildLeadingWidget(model.Color item) {
     return Container(
       width: 40,
       height: 40,
@@ -111,26 +115,23 @@ class _ManageColorsScreenState
     );
   }
 
-  @override
-  String getItemTitle(model.Color item) => item.colorName;
+  String _getItemTitle(model.Color item) => item.colorName;
 
-  @override
-  Widget? buildSubtitle(model.Color item) {
+  Widget? _buildSubtitle(model.Color item) {
     return StatusBadge(label: item.status);
   }
 
   @override
   Widget buildList() {
     final items = getItems();
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+    return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         return AdminListItem(
-          leading: buildLeadingWidget(item),
-          title: getItemTitle(item),
-          subtitle: buildSubtitle(item),
+          leading: _buildLeadingWidget(item),
+          title: _getItemTitle(item),
+          subtitle: _buildSubtitle(item),
           onEdit: () => navigateToEdit(item),
           onDelete: () => handleDelete(item),
           editTooltip: 'Edit Color',

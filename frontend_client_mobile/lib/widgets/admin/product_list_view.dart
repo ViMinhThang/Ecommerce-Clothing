@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import '../../config/theme_config.dart';
+import '../../utils/image_helper.dart';
 
 class ProductListView extends StatelessWidget {
   final List<Product> products;
@@ -23,10 +24,12 @@ class ProductListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading && products.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: AppTheme.primaryBlack,
-          strokeWidth: 2,
+      return const SliverFillRemaining(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.primaryBlack,
+            strokeWidth: 2,
+          ),
         ),
       );
     }
@@ -35,9 +38,7 @@ class ProductListView extends StatelessWidget {
       return _buildEmptyState();
     }
 
-    return ListView.builder(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return SliverList.builder(
       itemCount: products.length + (isMoreLoading ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == products.length) {
@@ -62,22 +63,28 @@ class ProductListView extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.lightGray),
-          const SizedBox(height: AppTheme.spaceMD),
-          Text(
-            'No products yet',
-            style: AppTheme.h3.copyWith(color: AppTheme.mediumGray),
-          ),
-          const SizedBox(height: AppTheme.spaceXS),
-          Text(
-            'Create your first product to get started',
-            style: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
-          ),
-        ],
+    return SliverFillRemaining(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 64,
+              color: AppTheme.lightGray,
+            ),
+            const SizedBox(height: AppTheme.spaceMD),
+            Text(
+              'No products yet',
+              style: AppTheme.h3.copyWith(color: AppTheme.mediumGray),
+            ),
+            const SizedBox(height: AppTheme.spaceXS),
+            Text(
+              'Create your first product to get started',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -139,6 +146,7 @@ class _ProductCardState extends State<_ProductCard> {
   }
 
   Widget _buildProductImage() {
+    final imageUrl = ImageHelper.getFullImageUrl(widget.product.imageUrl);
     return Container(
       width: 80,
       height: 80,
@@ -149,11 +157,9 @@ class _ProductCardState extends State<_ProductCard> {
       ),
       child: ClipRRect(
         borderRadius: AppTheme.borderRadiusSM,
-        child:
-            widget.product.imageUrl != null &&
-                widget.product.imageUrl!.isNotEmpty
+        child: imageUrl.isNotEmpty
             ? Image.network(
-                widget.product.imageUrl!,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _buildPlaceholderImage();

@@ -20,9 +20,10 @@ class _SizeApiService implements SizeApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Size>> getSizes() async {
+  Future<List<Size>> getSizes(String? name) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'name': name};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<List<Size>>(
