@@ -1,28 +1,49 @@
 import 'package:flutter/material.dart';
-import '../../../layouts/admin_layout.dart';
-import 'edit_order_screen.dart';
-import 'orders_function.dart';
 import '../../../config/theme_config.dart';
+import '../../../widgets/shared/admin_list_item.dart';
+import '../../../widgets/shared/status_badge.dart';
+import '../../../widgets/shared/confirmation_dialog.dart';
+import '../base/base_manage_screen.dart';
+import 'edit_order_screen.dart';
 
-class ManageOrdersScreen extends StatefulWidget {
+class ManageOrdersScreen extends BaseManageScreen<Map<String, dynamic>> {
   const ManageOrdersScreen({super.key});
 
   @override
   State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> orders = [];
+class _ManageOrdersScreenState
+    extends BaseManageScreenState<Map<String, dynamic>, ManageOrdersScreen> {
+  List<Map<String, dynamic>> _orders = [];
 
   @override
-  void initState() {
-    super.initState();
+  String getScreenTitle() => 'Order Management';
+
+  @override
+  int getSelectedIndex() => 5;
+
+  @override
+  String getEntityName() => 'order';
+
+  @override
+  IconData getEmptyStateIcon() => Icons.shopping_cart_outlined;
+
+  @override
+  String getSearchHint() => 'Search Order...';
+
+  @override
+  void fetchData() {
     _loadMockData();
   }
 
+  @override
+  void refreshData() {
+    setState(() => _loadMockData());
+  }
+
   void _loadMockData() {
-    orders = [
+    _orders = [
       {
         'id': 1001,
         'customer': 'Nguyễn Văn A',
@@ -41,214 +62,116 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: 'Order Management',
-      selectedIndex: 5,
-      actions: [
-        IconButton(
-          onPressed: () => setState(_loadMockData),
-          icon: const Icon(Icons.refresh),
-        ),
-      ],
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        onPressed: _onAddOrder,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          const SizedBox(height: 16),
-          Expanded(child: _buildListView()),
-        ],
-      ),
+  List<Map<String, dynamic>> getItems() => _orders;
+
+  @override
+  bool isLoading() => false;
+
+  @override
+  Future<void> navigateToAdd() async {
+    final newOrder = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditOrderScreen()),
     );
+    if (newOrder != null && mounted) {
+      setState(() => _orders.add(newOrder));
+    }
   }
 
-  Widget _buildSearchBar() {
+  @override
+  Future<void> navigateToEdit(Map<String, dynamic> item) async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditOrderScreen(entity: item)),
+    );
+
+    if (updated != null && mounted) {
+      setState(() {
+        final index = _orders.indexWhere((o) => o['id'] == updated['id']);
+        if (index != -1) _orders[index] = updated;
+      });
+    }
+  }
+
+  @override
+  Future<void> handleDelete(Map<String, dynamic> item) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Delete Confirm',
+      message: 'Are you sure you want to delete order #${item['id']}?',
+    );
+
+    if (confirmed && mounted) {
+      setState(() {
+        _orders.removeWhere((o) => o['id'] == item['id']);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Deleted order #${item['id']}')));
+    }
+  }
+
+  @override
+  Widget buildLeadingWidget(Map<String, dynamic> item) {
+    final orderId = item['id'].toString();
+    final lastTwo = orderId.substring(orderId.length - 2);
     return Container(
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusSM,
+        color: AppTheme.primaryBlack,
+        shape: BoxShape.circle,
         boxShadow: AppTheme.shadowSM,
       ),
-      child: TextField(
-        controller: _searchController,
-        style: AppTheme.bodyMedium,
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
-          hintText: 'Search Order...',
-          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
-          border: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
+      child: Center(
+        child: Text(
+          '#$lastTwo',
+          style: AppTheme.h4.copyWith(
+            color: AppTheme.primaryWhite,
+            fontSize: 14,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: const BorderSide(
-              color: AppTheme.mediumGray,
-              width: 1.5,
-            ),
-          ),
-          filled: true,
-          fillColor: AppTheme.primaryWhite,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
-        onChanged: (query) {
-          setState(() {
-            // nếu sau này có API thì lọc ở đây
-          });
-        },
       ),
     );
   }
 
-  Widget _buildListView() {
+  @override
+  String getItemTitle(Map<String, dynamic> item) => item['customer'];
+
+  @override
+  Widget? buildSubtitle(Map<String, dynamic> item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '₫${item['total']} • ${item['date']}',
+          style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+        ),
+        const SizedBox(height: 4),
+        StatusBadge(label: item['status'], type: StatusBadgeType.orderStatus),
+      ],
+    );
+  }
+
+  @override
+  Widget buildList() {
+    final items = getItems();
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 80),
-      itemCount: orders.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final o = orders[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryWhite,
-            borderRadius: AppTheme.borderRadiusMD,
-            border: AppTheme.borderThin,
-            boxShadow: AppTheme.shadowSM,
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(12),
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryBlack,
-                shape: BoxShape.circle,
-                boxShadow: AppTheme.shadowSM,
-              ),
-              child: Center(
-                child: Text(
-                  '#${o['id'].toString().substring(o['id'].toString().length - 2)}',
-                  style: AppTheme.h4.copyWith(
-                    color: AppTheme.primaryWhite,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-            title: Text(
-              o['customer'],
-              style: AppTheme.h4.copyWith(fontSize: 16),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '₫${o['total']} • ${o['date']}',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.mediumGray,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(o['status']).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: _getStatusColor(o['status']).withOpacity(0.5),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Text(
-                      o['status'].toString().toUpperCase(),
-                      style: AppTheme.bodySmall.copyWith(
-                        color: _getStatusColor(o['status']),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
-                  tooltip: 'Edit Order',
-                  splashRadius: 20,
-                  onPressed: () async {
-                    final updated = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditOrderScreen(order: o),
-                      ),
-                    );
-
-                    if (updated != null) {
-                      setState(() {
-                        final index = orders.indexWhere(
-                          (item) => item['id'] == updated['id'],
-                        );
-                        if (index != -1) orders[index] = updated;
-                      });
-                    }
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Color(0xFFEF5350),
-                  ),
-                  tooltip: 'Delete Order',
-                  splashRadius: 20,
-                  onPressed: () => _onDeleteOrder(o),
-                ),
-              ],
-            ),
-          ),
+        final item = items[index];
+        return AdminListItem(
+          leading: buildLeadingWidget(item),
+          title: getItemTitle(item),
+          subtitle: buildSubtitle(item),
+          onEdit: () => navigateToEdit(item),
+          onDelete: () => handleDelete(item),
+          editTooltip: 'Edit Order',
+          deleteTooltip: 'Delete Order',
         );
       },
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      case 'processing':
-        return Colors.blue;
-      default:
-        return AppTheme.mediumGray;
-    }
-  }
-
-  Future<void> _onAddOrder() async {
-    final newOrder = await addOrder(context, const EditOrderScreen());
-    if (newOrder != null) {
-      setState(() => orders.add(newOrder));
-    }
-  }
-
-  Future<void> _onDeleteOrder(Map<String, dynamic> order) async {
-    final deleted = await deleteOrder(context, orders, order);
-    if (deleted) setState(() {});
   }
 }
