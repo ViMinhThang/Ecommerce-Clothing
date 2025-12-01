@@ -2,231 +2,154 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart' as model;
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:provider/provider.dart';
-import '../../../layouts/admin_layout.dart';
 import '../../../config/theme_config.dart';
+import '../../../widgets/shared/admin_list_item.dart';
+import '../../../widgets/shared/confirmation_dialog.dart';
+import '../base/base_manage_screen.dart';
 import 'edit_category_screen.dart';
+import '../../../utils/image_helper.dart';
 
-class ManageCategoriesScreen extends StatefulWidget {
+class ManageCategoriesScreen extends BaseManageScreen<model.Category> {
   const ManageCategoriesScreen({super.key});
 
   @override
   State<ManageCategoriesScreen> createState() => _ManageCategoriesScreenState();
 }
 
-class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
-  final TextEditingController _searchController = TextEditingController();
+class _ManageCategoriesScreenState
+    extends BaseManageScreenState<model.Category, ManageCategoriesScreen> {
+  CategoryProvider get _categoryProvider =>
+      Provider.of<CategoryProvider>(context, listen: false);
 
   @override
-  void initState() {
-    super.initState();
-    // Fetch categories when the screen initializes
+  String getScreenTitle() => 'Category Management';
+
+  @override
+  int getSelectedIndex() => 4;
+
+  @override
+  String getEntityName() => 'category';
+
+  @override
+  IconData getEmptyStateIcon() => Icons.category_outlined;
+
+  @override
+  String getSearchHint() => 'Search Category...';
+
+  @override
+  void fetchData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+      _categoryProvider.fetchCategories();
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: 'Category Management',
-      selectedIndex: 4,
-      actions: [
-        IconButton(
-          onPressed: () {
-            Provider.of<CategoryProvider>(
-              context,
-              listen: false,
-            ).fetchCategories();
-          },
-          icon: const Icon(Icons.refresh),
-        ),
-      ],
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onAddCategory,
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Consumer<CategoryProvider>(
-              builder: (context, categoryProvider, child) {
-                if (categoryProvider.isLoading &&
-                    categoryProvider.categories.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (categoryProvider.categories.isEmpty) {
-                  return const Center(child: Text('No categories found.'));
-                }
-                return _buildListView(categoryProvider.categories);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
+  void refreshData() {
+    _categoryProvider.fetchCategories();
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusSM,
-        boxShadow: AppTheme.shadowSM,
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: AppTheme.bodyMedium,
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
-          hintText: 'Search Category...',
-          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
-          border: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top, // Use the thin border color
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: const BorderSide(
-              color: AppTheme.mediumGray,
-              width: 1.5,
-            ),
-          ),
-          filled: true,
-          fillColor: AppTheme.primaryWhite,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        ),
-        onChanged: (query) {
-          // Filter logic will go here when API is integrated
-        },
-      ),
-    );
+  @override
+  void onSearchChanged(String query) {
+    _categoryProvider.searchCategories(query);
   }
 
-  Widget _buildListView(List<model.Category> categories) {
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80), // Space for FAB
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final c = categories[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryWhite,
-            borderRadius: AppTheme.borderRadiusMD,
-            border: AppTheme.borderThin,
-            boxShadow: AppTheme.shadowSM,
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(12),
-            leading: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppTheme.offWhite,
-                borderRadius: AppTheme.borderRadiusSM,
-                border: Border.all(color: const Color(0xFFB0B0B0), width: 1),
-              ),
-              child: ClipRRect(
-                borderRadius: AppTheme.borderRadiusSM,
-                child: c.imageUrl.isNotEmpty
-                    ? Image.network(
-                        c.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.broken_image, color: AppTheme.lightGray),
-                      )
-                    : Icon(
-                        Icons.image_not_supported,
-                        color: AppTheme.lightGray,
-                      ),
-              ),
-            ),
-            title: Text(c.name, style: AppTheme.h4.copyWith(fontSize: 16)),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                c.description,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTheme.bodySmall,
-              ),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
-                  tooltip: 'Edit Category',
-                  splashRadius: 20,
-                  onPressed: () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditCategoryScreen(category: c),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Color(0xFFEF5350),
-                  ),
-                  tooltip: 'Delete Category',
-                  splashRadius: 20,
-                  onPressed: () => _onDeleteCategory(c),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  @override
+  List<model.Category> getItems() {
+    return context.watch<CategoryProvider>().categories;
   }
 
-  Future<void> _onAddCategory() async {
-    Navigator.push(
+  @override
+  bool isLoading() {
+    return context.watch<CategoryProvider>().isLoading;
+  }
+
+  @override
+  Future<void> navigateToAdd() async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const EditCategoryScreen()),
     );
   }
 
-  Future<void> _onDeleteCategory(model.Category category) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Confirm'),
-        content: Text(
-          'Are you sure you want to delete category "${category.name}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+  @override
+  Future<void> navigateToEdit(model.Category item) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditCategoryScreen(entity: item)),
+    );
+  }
+
+  @override
+  Future<void> handleDelete(model.Category item) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Delete Confirm',
+      message: 'Are you sure you want to delete category "${item.name}"?',
     );
 
-    if (confirm == true) {
-      Provider.of<CategoryProvider>(
-        context,
-        listen: false,
-      ).removeCategory(category.id as int);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Đã xóa "${category.name}"')));
+    if (confirmed && mounted) {
+      await _categoryProvider.removeCategory(item.id as int);
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Deleted "${item.name}"')));
+      }
     }
+  }
+
+  Widget _buildLeadingWidget(model.Category item) {
+    final imageUrl = ImageHelper.getFullImageUrl(item.imageUrl);
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppTheme.offWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: Border.all(color: const Color(0xFFB0B0B0), width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: AppTheme.borderRadiusSM,
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Icon(Icons.broken_image, color: AppTheme.lightGray),
+              )
+            : Icon(Icons.image_not_supported, color: AppTheme.lightGray),
+      ),
+    );
+  }
+
+  String _getItemTitle(model.Category item) => item.name;
+
+  Widget? _buildSubtitle(model.Category item) {
+    return Text(
+      item.description,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTheme.bodySmall,
+    );
+  }
+
+  @override
+  Widget buildList() {
+    final items = getItems();
+    return SliverList.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return AdminListItem(
+          leading: _buildLeadingWidget(item),
+          title: _getItemTitle(item),
+          subtitle: _buildSubtitle(item),
+          onEdit: () => navigateToEdit(item),
+          onDelete: () => handleDelete(item),
+          editTooltip: 'Edit Category',
+          deleteTooltip: 'Delete Category',
+        );
+      },
+    );
   }
 }

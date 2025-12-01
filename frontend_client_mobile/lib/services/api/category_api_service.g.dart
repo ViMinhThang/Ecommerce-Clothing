@@ -20,9 +20,10 @@ class _CategoryApiService implements CategoryApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Category>> getCategories() async {
+  Future<List<Category>> getCategories(String? name) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'name': name};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<List<Category>>(

@@ -47,108 +47,125 @@ class VariantCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0), // Increased padding for elegance
-        child: Column(
-          children: [
-            Row(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              12,
+              24,
+              12,
+              12,
+            ), // Top padding for delete button
+            child: Column(
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<models.Color>(
-                    value: variant.color,
-                    items: colors
-                        .map(
-                          (color) => DropdownMenuItem<models.Color>(
-                            value: color,
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: ColorUtils.getColorByName(
-                                      color.colorName,
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<models.Color>(
+                        value: variant.color,
+                        items: colors
+                            .map(
+                              (color) => DropdownMenuItem<models.Color>(
+                                value: color,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: ColorUtils.getColorByName(
+                                          color.colorName,
+                                        ),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
+                                        ),
+                                      ),
                                     ),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1,
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        color.colorName,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(color.colorName),
-                              ],
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => onColorChanged(index, value!),
-                    decoration: _inputDecoration('Color'),
-                  ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) => onColorChanged(index, value!),
+                        decoration: _inputDecoration('Color'),
+                        isExpanded: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<models.Size>(
+                        value: variant.size,
+                        items: sizes
+                            .map(
+                              (size) => DropdownMenuItem<models.Size>(
+                                value: size,
+                                child: Text(size.sizeName),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) => onSizeChanged(index, value!),
+                        decoration: _inputDecoration('Size'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<models.Size>(
-                    value: variant.size,
-                    items: sizes
-                        .map(
-                          (size) => DropdownMenuItem<models.Size>(
-                            value: size,
-                            child: Text(size.sizeName),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => onSizeChanged(index, value!),
-                    decoration: _inputDecoration('Size'),
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: variant.price.basePrice.toString(),
+                        decoration: _inputDecoration('Base Price'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (value) => onBasePriceChanged(index, value),
+                        validator: (value) =>
+                            double.tryParse(value ?? '') == null
+                            ? 'Invalid'
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: variant.price.salePrice.toString(),
+                        decoration: _inputDecoration('Sale Price'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (value) => onSalePriceChanged(index, value),
+                        validator: (value) =>
+                            double.tryParse(value ?? '') == null
+                            ? 'Invalid'
+                            : null,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: variant.price.basePrice.toString(),
-                    decoration: _inputDecoration('Base Price'),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onChanged: (value) => onBasePriceChanged(index, value),
-                    validator: (value) =>
-                        double.tryParse(value ?? '') == null ? 'Invalid' : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    initialValue: variant.price.salePrice.toString(),
-                    decoration: _inputDecoration('Sale Price'),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onChanged: (value) => onSalePriceChanged(index, value),
-                    validator: (value) =>
-                        double.tryParse(value ?? '') == null ? 'Invalid' : null,
-                  ),
-                ),
-              ],
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
+              splashRadius: 16,
+              tooltip: 'Remove variant',
+              onPressed: () => onRemove(index),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: const Color(0xFFEF5350), // Softer red
-                ),
-                splashRadius: 20,
-                tooltip: 'Remove variant',
-                onPressed: () => onRemove(index),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -176,7 +193,10 @@ class VariantCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFF6B6B6B), width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 12,
+      ), // Reduced padding
       filled: true,
       fillColor: Colors.white,
     );

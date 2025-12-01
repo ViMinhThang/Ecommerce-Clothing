@@ -9,7 +9,7 @@ abstract class ColorApiService {
   factory ColorApiService(Dio dio, {String? baseUrl}) = _ColorApiService;
 
   @GET("api/colors")
-  Future<List<Color>> getColors();
+  Future<List<Color>> getColors(@Query("name") String? name);
 
   @POST("api/colors")
   Future<Color> createColor(@Body() Color color);

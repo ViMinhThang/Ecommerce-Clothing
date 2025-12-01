@@ -6,6 +6,7 @@ class SizeProvider with ChangeNotifier {
   final SizeService _sizeService = SizeService();
   List<Size> _sizes = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
   List<Size> get sizes => _sizes;
   bool get isLoading => _isLoading;
@@ -20,12 +21,20 @@ class SizeProvider with ChangeNotifier {
 
   Future<void> fetchSizes() async {
     try {
-      _sizes = await _sizeService.getSizes();
+      _sizes = await _sizeService.getSizes(
+        name: _searchQuery.isEmpty ? null : _searchQuery,
+      );
     } catch (e) {
       // Handle error
       print('Error fetching sizes: $e');
     }
     notifyListeners();
+  }
+
+  Future<void> searchSizes(String name) async {
+    if (_searchQuery == name) return;
+    _searchQuery = name;
+    await fetchSizes();
   }
 
   // In your SizeProvider

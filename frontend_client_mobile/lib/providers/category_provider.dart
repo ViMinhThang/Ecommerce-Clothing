@@ -8,6 +8,7 @@ class CategoryProvider with ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
@@ -23,11 +24,19 @@ class CategoryProvider with ChangeNotifier {
     print("Calling API");
 
     try {
-      _categories = await _categoryService.getCategories();
+      _categories = await _categoryService.getCategories(
+        name: _searchQuery.isEmpty ? null : _searchQuery,
+      );
     } catch (e) {
       print('Error fetching categories: $e');
     }
     notifyListeners();
+  }
+
+  Future<void> searchCategories(String name) async {
+    if (_searchQuery == name) return;
+    _searchQuery = name;
+    await fetchCategories();
   }
 
   Future<Category> addCategory(Category category) async {
@@ -74,7 +83,9 @@ class CategoryProvider with ChangeNotifier {
   Future<String> uploadCategoryImage(XFile imageFile) async {
     try {
       final multipartFile = await FileUtils.convertXFileToMultipart(imageFile);
-      final imageUrl = await _categoryService.uploadCategoryImage(multipartFile!);
+      final imageUrl = await _categoryService.uploadCategoryImage(
+        multipartFile!,
+      );
       return imageUrl;
     } catch (e) {
       print('Error uploading category image: $e');

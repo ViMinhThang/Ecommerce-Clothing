@@ -9,7 +9,7 @@ abstract class SizeApiService {
   factory SizeApiService(Dio dio, {String? baseUrl}) = _SizeApiService;
 
   @GET("api/sizes")
-  Future<List<Size>> getSizes();
+  Future<List<Size>> getSizes(@Query("name") String? name);
 
   @POST("api/sizes")
   Future<Size> createSize(@Body() Size size);

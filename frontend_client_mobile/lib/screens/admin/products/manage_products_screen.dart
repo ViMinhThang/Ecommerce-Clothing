@@ -1,36 +1,39 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
+import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/edit_product_screen.dart';
-import 'package:frontend_client_mobile/widgets/admin/product_search_bar.dart';
 import 'package:frontend_client_mobile/widgets/admin/product_list_view.dart';
 import 'package:provider/provider.dart';
-import '../../../layouts/admin_layout.dart';
+
+import '../../../widgets/shared/confirmation_dialog.dart';
+import '../base/base_manage_screen.dart';
 import '../../../widgets/shared/stats_card.dart';
 
-class ManageProductsScreen extends StatefulWidget {
+class ManageProductsScreen extends BaseManageScreen<Product> {
   const ManageProductsScreen({super.key});
 
   @override
   State<ManageProductsScreen> createState() => _ManageProductsScreenState();
 }
 
-class _ManageProductsScreenState extends State<ManageProductsScreen> {
+class _ManageProductsScreenState
+    extends BaseManageScreenState<Product, ManageProductsScreen> {
+  Timer? _debounce;
   final ScrollController _scrollController = ScrollController();
+
+  ProductProvider get _productProvider =>
+      Provider.of<ProductProvider>(context, listen: false);
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(
-        context,
-        listen: false,
-      ).fetchProducts(refresh: true);
-    });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -38,94 +41,95 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      Provider.of<ProductProvider>(context, listen: false).loadMore();
+      _productProvider.loadMore();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: 'Product Management',
-      selectedIndex: 1,
-      actions: [
-        IconButton(
-          onPressed: () => Provider.of<ProductProvider>(
-            context,
-            listen: false,
-          ).fetchProducts(refresh: true),
-          icon: const Icon(Icons.refresh),
-        ),
-      ],
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EditProductScreen()),
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Consumer<ProductProvider>(
-        builder: (context, provider, child) {
-          return Column(
-            children: [
-              // Stats Dashboard
-              _buildStatsSection(provider),
-              const SizedBox(height: 16),
-              ProductSearchBar(
-                onChanged: (value) => provider.searchProducts(value),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => provider.fetchProducts(refresh: true),
-                  child: ProductListView(
-                    scrollController: _scrollController,
-                    products: provider.products,
-                    isLoading: provider.isLoading,
-                    isMoreLoading: provider.isMoreLoading,
-                    onEdit: (product) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditProductScreen(product: product),
-                        ),
-                      );
-                    },
-                    onDelete: (product) async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Product'),
-                          content: const Text(
-                            'Are you sure you want to delete this product?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
+  String getScreenTitle() => 'Product Management';
 
-                      if (confirmed == true) {
-                        provider.deleteProduct(product.id);
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+  @override
+  int getSelectedIndex() => 1;
+
+  @override
+  String getEntityName() => 'product';
+
+  @override
+  IconData getEmptyStateIcon() => Icons.inventory_2_outlined;
+
+  @override
+  String getSearchHint() => 'Search Product...';
+
+  @override
+  void fetchData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _productProvider.fetchProducts(refresh: true);
+    });
+  }
+
+  @override
+  void refreshData() {
+    _productProvider.fetchProducts(refresh: true);
+  }
+
+  @override
+  List<Product> getItems() {
+    return context.watch<ProductProvider>().products;
+  }
+
+  @override
+  bool isLoading() {
+    return context.watch<ProductProvider>().isLoading;
+  }
+
+  @override
+  Future<void> navigateToAdd() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditProductScreen()),
+    );
+  }
+
+  @override
+  Future<void> navigateToEdit(Product item) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditProductScreen(product: item)),
+    );
+  }
+
+  @override
+  Future<void> handleDelete(Product item) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete this product?',
+    );
+
+    if (confirmed && mounted) {
+      _productProvider.deleteProduct(item.id);
+    }
+  }
+
+  @override
+  List<Widget> buildHeaderWidgets() {
+    return [
+      Consumer<ProductProvider>(
+        builder: (context, provider, child) => _buildStatsSection(provider),
       ),
+    ];
+  }
+
+  @override
+  Widget buildList() {
+    final provider = context.watch<ProductProvider>();
+    return ProductListView(
+      scrollController: _scrollController,
+      products: provider.products,
+      isLoading: provider.isLoading,
+      isMoreLoading: provider.isMoreLoading,
+      onEdit: navigateToEdit,
+      onDelete: handleDelete,
     );
   }
 
@@ -134,7 +138,9 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       height: 120,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+        ), // Reduced padding as parent has padding
         children: [
           SizedBox(
             width: 140,
@@ -165,5 +171,13 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _productProvider.searchProducts(query);
+    });
   }
 }

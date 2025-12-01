@@ -1,10 +1,12 @@
 package com.ecommerce.backend.service;
 
-import com.ecommerce.backend.dto.CategoryDTO; // Import CategoryDTO
+import com.ecommerce.backend.dto.CategoryDTO;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,14 +17,19 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service implementation for Category operations.
+ * Handles CRUD operations and image upload for categories.
+ */
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
-    private final CategoryRepository categoryRepository;
+    private static final String UPLOAD_DIR = "uploads/categories/";
+    private static final String IMAGE_URL_PREFIX = "/uploads/categories/";
+    private static final String FILE_NAME_SEPARATOR = "_";
 
-    // Define the upload directory
-    private final String UPLOAD_DIR = "uploads/categories/"; // Corrected to be a local path
+    private final CategoryRepository categoryRepository;
 
     @Override
     public List<Category> getAllCategories() {
@@ -31,29 +38,20 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category getCategoryById(Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
+        return findCategoryOrThrow(id);
     }
 
     @Override
-    public Category createCategory(CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
-        Category category = new Category();
-        category.setName(categoryDTO.getName());
-        category.setDescription(categoryDTO.getDescription());
-        category.setImageUrl(categoryDTO.getImageUrl());
-        category.setStatus(categoryDTO.getStatus());
+    public Category createCategory(CategoryDTO categoryDTO) {
+        Category category = buildCategoryFromDTO(new Category(), categoryDTO);
         return categoryRepository.save(category);
     }
 
     @Override
-    public Category updateCategory(Long id, CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
-        Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
-        existingCategory.setName(categoryDTO.getName());
-        existingCategory.setDescription(categoryDTO.getDescription());
-        existingCategory.setImageUrl(categoryDTO.getImageUrl());
-        existingCategory.setStatus(categoryDTO.getStatus());
-        return categoryRepository.save(existingCategory);
+    public Category updateCategory(Long id, CategoryDTO categoryDTO) {
+        Category existingCategory = findCategoryOrThrow(id);
+        Category updatedCategory = buildCategoryFromDTO(existingCategory, categoryDTO);
+        return categoryRepository.save(updatedCategory);
     }
 
     @Override
@@ -64,24 +62,75 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public String uploadCategoryImage(MultipartFile imageFile) {
         try {
-            // Create the upload directory if it doesn't exist
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // Generate a unique file name
-            String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-            Path filePath = uploadPath.resolve(fileName);
-
-            // Save the file
-            Files.copy(imageFile.getInputStream(), filePath);
-
-            // Return the URL/path to the saved image
-            // Assuming the images are served from /uploads endpoint
-            return "/uploads/categories/" + fileName;
+            ensureUploadDirectoryExists();
+            String fileName = generateUniqueFileName(imageFile);
+            Path filePath = saveImageFile(imageFile, fileName);
+            return buildImageUrl(fileName);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload image", e);
+            throw new RuntimeException("Failed to upload category image", e);
         }
+    }
+
+    @Override
+    public Page<Category> searchCategories(String name, Pageable pageable) {
+        return categoryRepository.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+    // ==================== Private Helper Methods ====================
+
+    /**
+     * Finds a category by ID or throws EntityNotFoundException
+     */
+    private Category findCategoryOrThrow(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
+    }
+
+    /**
+     * Builds a Category entity from CategoryDTO
+     * Applies all DTO fields to the category entity
+     */
+    private Category buildCategoryFromDTO(Category category, CategoryDTO dto) {
+        category.setName(dto.getName());
+        category.setDescription(dto.getDescription());
+        category.setImageUrl(dto.getImageUrl());
+        category.setStatus(dto.getStatus());
+        return category;
+    }
+
+    /**
+     * Ensures the upload directory exists, creates it if necessary
+     */
+    private void ensureUploadDirectoryExists() throws IOException {
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+    }
+
+    /**
+     * Generates a unique filename for the uploaded image
+     * Format: {UUID}_{originalFilename}
+     */
+    private String generateUniqueFileName(MultipartFile imageFile) {
+        String originalFilename = imageFile.getOriginalFilename();
+        return UUID.randomUUID().toString() + FILE_NAME_SEPARATOR + originalFilename;
+    }
+
+    /**
+     * Saves the image file to the upload directory
+     */
+    private Path saveImageFile(MultipartFile imageFile, String fileName) throws IOException {
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(imageFile.getInputStream(), filePath);
+        return filePath;
+    }
+
+    /**
+     * Builds the public URL for the uploaded image
+     */
+    private String buildImageUrl(String fileName) {
+        return IMAGE_URL_PREFIX + fileName;
     }
 }

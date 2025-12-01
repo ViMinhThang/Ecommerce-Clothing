@@ -5,6 +5,8 @@ import com.ecommerce.backend.model.Size;
 import com.ecommerce.backend.repository.SizeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,5 +48,10 @@ public class SizeServiceImpl implements SizeService {
     @Override
     public void deleteSize(Long id) {
         sizeRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<Size> searchSizes(String name, Pageable pageable) {
+        return sizeRepository.findBySizeNameContainingIgnoreCase(name, pageable);
     }
 }

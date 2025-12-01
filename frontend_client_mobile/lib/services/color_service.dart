@@ -5,9 +5,8 @@ import 'package:frontend_client_mobile/services/api/color_api_service.dart';
 class ColorService {
   final ColorApiService _apiService = ApiClient.getColorApiService();
 
-  Future<List<Color>> getColors() async {
-    final response = _apiService.getColors();
-    return await _apiService.getColors();
+  Future<List<Color>> getColors({String? name}) async {
+    return await _apiService.getColors(name);
   }
 
   Future<Color> createColor(Color color) async {

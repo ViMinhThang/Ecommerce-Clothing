@@ -3,106 +3,158 @@ import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/section/form_sections.dart';
+import 'package:frontend_client_mobile/screens/admin/products/edit/section/action_buttons_section.dart';
 import 'package:frontend_client_mobile/widgets/discard_dialog.dart';
 import 'package:frontend_client_mobile/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
-import '../../../../layouts/admin_layout.dart';
 import '../../../../models/product.dart';
 import '../../../../providers/category_provider.dart';
 import '../../../../providers/product_provider.dart';
+import '../../../admin/base/base_edit_screen.dart';
 
-void main() {
-  runApp(const EditProductScreen());
-}
-
-class EditProductScreen extends StatefulWidget {
-  final Product? product;
-
-  const EditProductScreen({super.key, this.product});
+class EditProductScreen extends BaseEditScreen<Product> {
+  const EditProductScreen({super.key, Product? product})
+    : super(entity: product);
 
   @override
   State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
-class _EditProductScreenState extends State<EditProductScreen> {
+class _EditProductScreenState
+    extends BaseEditScreenState<Product, EditProductScreen> {
   late final EditProductViewModel _viewModel;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _initialized = false;
+  bool _viewModelInitialized = false;
+
+  @override
+  String getScreenTitle() => isEditing ? 'Edit Product' : 'Create Product';
+
+  @override
+  int getSelectedIndex() => 1;
+
+  @override
+  String getEntityName() => 'Product';
+
+  @override
+  IconData getSectionIcon() => Icons.inventory_2_outlined;
+
+  @override
+  void initializeForm() {
+    // ViewModel initialization is deferred to didChangeDependencies
+    // because it needs access to providers
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized) {
+    if (!_viewModelInitialized) {
       _viewModel = EditProductViewModel(
-        existingProduct: widget.product,
+        existingProduct: widget.entity,
         productProvider: Provider.of<ProductProvider>(context, listen: false),
         categoryProvider: Provider.of<CategoryProvider>(context, listen: false),
         colorProvider: Provider.of<ColorProvider>(context, listen: false),
         sizeProvider: Provider.of<SizeProvider>(context, listen: false),
       )..initialize();
-      _initialized = true;
+      _viewModelInitialized = true;
     }
   }
 
   @override
-  void dispose() {
+  void disposeControllers() {
     _viewModel.dispose();
-    super.dispose();
   }
 
-  Future<bool> _onWillPop() async {
-    if (_viewModel.isSaving) return false;
-    if (!_viewModel.hasUnsavedChanges()) return true;
-    return await showDiscardDialog(context) ?? false;
+  @override
+  bool validateForm() {
+    return _viewModel.validateForm(_formKey);
   }
 
-  Future<void> _handleSave() async {
-    try {
-      if (!_viewModel.validateForm(_formKey)) return;
-      await _viewModel.saveProduct();
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _viewModel.isEditing ? 'Product updated' : 'Product created',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    }
+  @override
+  Future<void> saveEntity() async {
+    await _viewModel.saveProduct();
   }
 
+  // Override build to add WillPopScope and ViewModel provider
   @override
   Widget build(BuildContext context) {
+    if (!_viewModelInitialized) {
+      // Return placeholder until viewModel is initialized
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return ChangeNotifierProvider.value(
       value: _viewModel,
-      child: WillPopScope(
-        onWillPop: _onWillPop,
-        child: AdminLayout(
-          title: widget.product != null ? 'Edit Product' : 'Create Product',
-          selectedIndex: 1,
+      child: PopScope(
+        canPop: !_viewModel.isSaving && !_viewModel.hasUnsavedChanges(),
+        onPopInvoked: (didPop) async {
+          if (didPop) return;
+          if (_viewModel.isSaving) return;
+          if (!_viewModel.hasUnsavedChanges()) return;
+
+          final shouldPop = await showDiscardDialog(context) ?? false;
+          if (shouldPop && mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+        child: Scaffold(
           body: Stack(
             children: [
-              _buildForm(),
+              Consumer<EditProductViewModel>(
+                builder: (context, viewModel, _) =>
+                    Form(key: _formKey, child: const ProductForm()),
+              ),
               LoadingOverlay(isVisible: _viewModel.isSaving),
             ],
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: const ActionButtonsSection(),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildForm() {
+  // Override buildFormBody to add loading overlay
+  @override
+  Widget buildFormBody() {
+    return Stack(
+      children: [
+        super.buildFormBody(),
+        LoadingOverlay(isVisible: _viewModel.isSaving),
+      ],
+    );
+  }
+
+  // Override buildFormFields to use the ProductForm sections
+  @override
+  Widget buildFormFields() {
     return Consumer<EditProductViewModel>(
       builder: (context, viewModel, _) =>
           Form(key: _formKey, child: const ProductForm()),
     );
+  }
+
+  // Override buildActionButtons - ProductForm has its own action buttons
+  @override
+  Widget buildActionButtons() {
+    // Return empty container since ProductForm includes ActionButtonsSection
+    return const SizedBox.shrink();
+  }
+
+  // Override to customize section header
+  @override
+  Widget buildSectionHeader() {
+    // Return empty since ProductForm manages its own sections
+    return const SizedBox.shrink();
   }
 }
