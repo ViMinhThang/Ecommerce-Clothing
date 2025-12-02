@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart' as model;
 import 'package:frontend_client_mobile/providers/category_provider.dart';
+import 'package:frontend_client_mobile/utils/file_utils.dart';
 import 'package:provider/provider.dart';
 import '../../../config/theme_config.dart';
 import '../../../widgets/shared/admin_list_item.dart';
@@ -99,7 +100,7 @@ class _ManageCategoriesScreenState
   }
 
   Widget _buildLeadingWidget(model.Category item) {
-    final imageUrl = ImageHelper.getFullImageUrl(item.imageUrl);
+    final imageUrl = FileUtils.fixImgUrl(item.imageUrl);
     return Container(
       width: 60,
       height: 60,

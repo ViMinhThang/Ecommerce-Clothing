@@ -28,17 +28,17 @@ class FilterProvider with ChangeNotifier {
   final Set<int> _selectedColorIdx = {};
 
   // ----- Trạng thái hệ thống -----
-  bool _isLoading = false;     // đang load metadata filter
-  bool _isCounting = false;    // đang gọi API đếm matched
-  bool _isFiltering = false;   // đang load trang đầu
+  bool _isLoading = false; // đang load metadata filter
+  bool _isCounting = false; // đang gọi API đếm matched
+  bool _isFiltering = false; // đang load trang đầu
   bool _isFetchingMore = false; // đang load trang tiếp theo
   int _matchedCount = 0;
   int _categoryId = 0;
 
   // ----- Phân trang -----
-  int _page = 0;            // index page hiện tại (0-based như PageResponse.number)
+  int _page = 0; // index page hiện tại (0-based như PageResponse.number)
   final int _pageSize = 10; // size mặc định
-  bool _hasMore = true;     // còn page tiếp không
+  bool _hasMore = true; // còn page tiếp không
 
   // ----- Kết quả product theo filter -----
   List<ProductView> _productViews = [];
@@ -79,8 +79,10 @@ class FilterProvider with ChangeNotifier {
   bool get hasActiveFilter {
     final isPriceChanged =
         _selectedMinPrice != _minPrice || _selectedMaxPrice != _maxPrice;
-    final hasSizes = _selectedSizes.length != _sizes.length; // nếu default là chọn hết
-    final hasOthers = _selectedOnSale ||
+    final hasSizes =
+        _selectedSizes.length != _sizes.length; // nếu default là chọn hết
+    final hasOthers =
+        _selectedOnSale ||
         _selectedSeasons.isNotEmpty ||
         _selectedMaterials.isNotEmpty ||
         _selectedColorIdx.isNotEmpty;
@@ -158,12 +160,13 @@ class FilterProvider with ChangeNotifier {
       final baseFilters = _buildFiltersMap();
       final request = {
         ...baseFilters,
-        'page': _page,      // nếu backend dùng 1-based: dùng 0 hoặc 1, xem chú ý ở dưới
+        'page':
+            _page, // nếu backend dùng 1-based: dùng 0 hoặc 1, xem chú ý ở dưới
         'size': _pageSize,
       };
 
-      final HttpResponse<PageResponse<ProductView>> response =
-          await _service.filters(request);
+      final HttpResponse<PageResponse<ProductView>> response = await _service
+          .filters(request);
 
       final pageData = response.data;
       _productViews = pageData.content;
@@ -201,8 +204,8 @@ class FilterProvider with ChangeNotifier {
         'size': _pageSize,
       };
 
-      final HttpResponse<PageResponse<ProductView>> response =
-          await _service.filters(request);
+      final HttpResponse<PageResponse<ProductView>> response = await _service
+          .filters(request);
 
       final pageData = response.data;
       _productViews.addAll(pageData.content);
@@ -319,6 +322,26 @@ class FilterProvider with ChangeNotifier {
     } else {
       _selectedColorIdx.add(idx);
     }
+    notifyListeners();
+    _updateMatchedCount();
+  }
+
+  void resetSizesSelection() {
+    _selectedSizes
+      ..clear()
+      ..addAll(_sizes);
+    notifyListeners();
+    _updateMatchedCount();
+  }
+
+  void resetMaterialsSelection() {
+    _selectedMaterials.clear();
+    notifyListeners();
+    _updateMatchedCount();
+  }
+
+  void resetColorsSelection() {
+    _selectedColorIdx.clear();
     notifyListeners();
     _updateMatchedCount();
   }

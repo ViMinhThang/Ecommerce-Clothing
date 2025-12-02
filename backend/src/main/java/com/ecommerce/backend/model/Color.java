@@ -22,6 +22,8 @@ public class Color {
 
     private String colorName;
 
+    private String colorCode;
+
     private String status;
 
     @Column(nullable = false, updatable = false)

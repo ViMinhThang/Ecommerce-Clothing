@@ -54,7 +54,7 @@ public class ProductSpecifications {
             // Lọc với các Season được chọn
 
             if(f.getSeasons() != null && !f.getSeasons().isEmpty()){
-                Path<String> seasonNamePath = root.join("season").get("seasonName");
+                Path<String> seasonNamePath = productJoin.join("season").get("seasonName");
                 predicates.add(seasonNamePath.in(f.getSeasons()));
             }
 

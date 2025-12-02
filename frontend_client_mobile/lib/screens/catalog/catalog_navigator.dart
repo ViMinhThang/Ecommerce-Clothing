@@ -47,7 +47,11 @@ class _CatalogNavigatorState extends State<CatalogNavigator> {
               case '/details':
                 final args = settings.arguments;
                 if (args is Map<String, dynamic>) {
-                  builder = (_) => CatalogDetailScreen(filterParams: args, categoryName: args['categoryName'] as String);
+                  builder = (_) => CatalogDetailScreen(
+                    filterParams: args,
+                    categoryName: args['categoryName'] as String,
+                    categoryId: args['categoryId'] as int,
+                  );
                 } else {
                   // Xử lý lỗi nếu không truyền tham số hoặc sai kiểu
                   return MaterialPageRoute(
@@ -65,7 +69,7 @@ class _CatalogNavigatorState extends State<CatalogNavigator> {
                   // Xử lý lỗi nếu không truyền tham số hoặc sai kiểu
                   return MaterialPageRoute(
                     builder: (_) => const Scaffold(
-                      body: Center(child: Text('Missing Category ID')),
+                      body: Center(child: Text('Missing data')),
                     ),
                   );
                 }

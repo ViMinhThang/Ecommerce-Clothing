@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -14,14 +15,6 @@ class _FiltersPageState extends State<FiltersPage> {
   bool _initialized = false;
   late final int _categoryId;
 
-  static const _palette = [
-    Color(0xFFF3F788),
-    Color(0xFFF2F2F2),
-    Color(0xFFE0E7FF),
-    Color(0xFFC27063),
-    Color(0xFF4D5579),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -30,9 +23,13 @@ class _FiltersPageState extends State<FiltersPage> {
     // Chỉ init meta filter nếu khác category hiện tại
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final fp = context.read<FilterProvider>();
+      final colorProvider = context.read<ColorProvider>();
 
       if (fp.categoryId != _categoryId) {
         await fp.initialize(_categoryId);
+      }
+      if (colorProvider.colors.isEmpty && !colorProvider.isLoading) {
+        await colorProvider.fetchColors();
       }
       if (mounted) {
         setState(() {
@@ -229,20 +226,8 @@ class _FiltersPageState extends State<FiltersPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: List.generate(_palette.length, (i) {
-                                  final selected = filterProvider
-                                      .selectedColorIdx
-                                      .contains(i);
-                                  return _ColorDot(
-                                    color: _palette[i],
-                                    selected: selected,
-                                    onTap: () =>
-                                        filterProvider.toggleColorIndex(i),
-                                  );
-                                }),
+                              child: _ColorOptions(
+                                filterProvider: filterProvider,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -417,6 +402,66 @@ class _PillValue extends StatelessWidget {
   }
 }
 
+class _ColorOptions extends StatelessWidget {
+  const _ColorOptions({required this.filterProvider});
+
+  final FilterProvider filterProvider;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ColorProvider>(
+      builder: (context, colorProvider, _) {
+        final availableColors = filterProvider.colors;
+        if (availableColors.isEmpty) {
+          return const Text(
+            'No colors available',
+            style: TextStyle(color: Color(0xFF9E9E9E)),
+          );
+        }
+
+        if (colorProvider.colors.isEmpty) {
+          return const SizedBox(
+            height: 32,
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        final lookup = {
+          for (final color in colorProvider.colors)
+            color.colorName.toLowerCase(): color.colorCode,
+        };
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: List.generate(availableColors.length, (index) {
+            final colorName = availableColors[index];
+            final colorKey = colorName.toLowerCase();
+            final hexCode = lookup[colorKey];
+            final swatch = _colorFromHex(hexCode);
+            final selected = filterProvider.selectedColorIdx.contains(index);
+
+            return Tooltip(
+              message: colorName,
+              child: _ColorDot(
+                color: swatch,
+                selected: selected,
+                onTap: () => filterProvider.toggleColorIndex(index),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
 class _ColorDot extends StatelessWidget {
   final Color color;
   final bool selected;
@@ -450,5 +495,30 @@ class _ColorDot extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Color _colorFromHex(String? value) {
+  if (value == null || value.isEmpty) {
+    return Colors.grey.shade400;
+  }
+
+  var hex = value.trim();
+  if (hex.startsWith('#')) {
+    hex = hex.substring(1);
+  }
+
+  if (hex.length == 6) {
+    hex = 'FF$hex';
+  }
+
+  if (hex.length != 8) {
+    return Colors.grey.shade400;
+  }
+
+  try {
+    return Color(int.parse(hex, radix: 16));
+  } catch (_) {
+    return Colors.grey.shade400;
   }
 }

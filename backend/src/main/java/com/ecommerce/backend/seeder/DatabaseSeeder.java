@@ -7,13 +7,15 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {
+
+    private static final int MIN_TOTAL_PRODUCTS = 50; // muốn tối thiểu 50 sản phẩm
+    private static final int DUMMY_PRODUCT_COUNT = 48; // cộng thêm 2 sản phẩm mẫu = 50
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -24,13 +26,27 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ProductVariantsRepository productVariantsRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    // thêm 2 repository mới
     private final MaterialRepository materialRepository;
     private final SeasonRepository seasonRepository;
 
     @Override
-    public void run(String... args) throws Exception {
-        // ===== Users =====
+    public void run(String... args) {
+        List<User> users = seedUsers();
+        Map<String, Category> categories = seedCategories();
+        List<Color> colors = initColor();
+        Map<String, Size> sizes = seedSizes10();            // 10 size
+        Map<String, Material> materials = seedMaterials();
+        Map<String, Season> seasons = seedSeasons();
+        Map<String, Price> samplePrices = seedSamplePrices();
+        Map<String, Product> sampleProducts = seedSampleProducts(categories);
+        seedSampleProductVariants(sampleProducts, colors, sizes, materials, seasons, samplePrices);
+        seedDummyProductsAndVariants(sizes);                // dùng list size 10
+        createSampleOrders(users.get(0), users.get(1));
+    }
+
+    // ================== SEED METHODS ==================
+
+    private List<User> seedUsers() {
         User user1 = new User();
         user1.setUsername("john.doe");
         user1.setPassword("password");
@@ -41,11 +57,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         user2.setPassword("password");
         user2.setEmail("jane.doe@example.com");
 
-        List<User> users = userRepository.saveAll(List.of(user1, user2));
-        user1 = users.get(0);
-        user2 = users.get(1);
+        return userRepository.saveAll(List.of(user1, user2));
+    }
 
-        // ===== Categories =====
+    private Map<String, Category> seedCategories() {
         Category category1 = new Category();
         category1.setName("Dresses");
         category1.setDescription("Various genres of Dresses");
@@ -88,39 +103,64 @@ public class DatabaseSeeder implements CommandLineRunner {
         category7.setImageUrl("http://10.0.2.2:8080/uploads/categories/Collections.png");
         category7.setStatus("active");
 
-        List<Category> categories = categoryRepository.saveAll(
+        List<Category> saved = categoryRepository.saveAll(
                 List.of(category1, category2, category3, category4, category5, category6, category7)
         );
-        category1 = categories.get(0);
-        category2 = categories.get(1);
 
-        // ===== Colors =====
-        Color color1 = new Color();
-        color1.setColorName("Black");
-        color1.setStatus("active");
+        return saved.stream().collect(Collectors.toMap(Category::getName, c -> c));
+    }
 
-        Color color2 = new Color();
-        color2.setColorName("White");
-        color2.setStatus("active");
+    /**
+     * Seed ít nhất 10 size (ví dụ: XXS, XS, S, M, L, XL, XXL, 3XL, 4XL, 5XL)
+     */
+    private Map<String, Size> seedSizes10() {
+        Size s1 = new Size();
+        s1.setSizeName("XXS");
+        s1.setStatus("active");
 
-        List<Color> colors = colorRepository.saveAll(List.of(color1, color2));
-        color1 = colors.get(0);
-        color2 = colors.get(1);
+        Size s2 = new Size();
+        s2.setSizeName("XS");
+        s2.setStatus("active");
 
-        // ===== Sizes =====
-        Size size1 = new Size();
-        size1.setSizeName("M");
-        size1.setStatus("active");
+        Size s3 = new Size();
+        s3.setSizeName("S");
+        s3.setStatus("active");
 
-        Size size2 = new Size();
-        size2.setSizeName("L");
-        size2.setStatus("active");
+        Size s4 = new Size();
+        s4.setSizeName("M");
+        s4.setStatus("active");
 
-        List<Size> sizes = sizeRepository.saveAll(List.of(size1, size2));
-        size1 = sizes.get(0);
-        size2 = sizes.get(1);
+        Size s5 = new Size();
+        s5.setSizeName("L");
+        s5.setStatus("active");
 
-        // ===== Materials =====
+        Size s6 = new Size();
+        s6.setSizeName("XL");
+        s6.setStatus("active");
+
+        Size s7 = new Size();
+        s7.setSizeName("XXL");
+        s7.setStatus("active");
+
+        Size s8 = new Size();
+        s8.setSizeName("3XL");
+        s8.setStatus("active");
+
+        Size s9 = new Size();
+        s9.setSizeName("4XL");
+        s9.setStatus("active");
+
+        Size s10 = new Size();
+        s10.setSizeName("5XL");
+        s10.setStatus("active");
+
+        List<Size> saved = sizeRepository.saveAll(
+                List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10)
+        );
+        return saved.stream().collect(Collectors.toMap(Size::getSizeName, s -> s));
+    }
+
+    private Map<String, Material> seedMaterials() {
         Material material1 = new Material();
         material1.setMaterialName("Cotton");
         material1.setStatus("active");
@@ -133,14 +173,13 @@ public class DatabaseSeeder implements CommandLineRunner {
         material3.setMaterialName("Leather");
         material3.setStatus("active");
 
-        List<Material> materials = materialRepository.saveAll(
+        List<Material> saved = materialRepository.saveAll(
                 List.of(material1, material2, material3)
         );
-        material1 = materials.get(0);
-        material2 = materials.get(1);
-        material3 = materials.get(2);
+        return saved.stream().collect(Collectors.toMap(Material::getMaterialName, m -> m));
+    }
 
-        // ===== Seasons =====
+    private Map<String, Season> seedSeasons() {
         Season season1 = new Season();
         season1.setSeasonName("Spring");
         season1.setStatus("active");
@@ -157,15 +196,13 @@ public class DatabaseSeeder implements CommandLineRunner {
         season4.setSeasonName("Winter");
         season4.setStatus("active");
 
-        List<Season> seasons = seasonRepository.saveAll(
+        List<Season> saved = seasonRepository.saveAll(
                 List.of(season1, season2, season3, season4)
         );
-        season1 = seasons.get(0);
-        season2 = seasons.get(1);
-        season3 = seasons.get(2);
-        season4 = seasons.get(3);
+        return saved.stream().collect(Collectors.toMap(Season::getSeasonName, s -> s));
+    }
 
-        // ===== Prices (ví dụ sản phẩm mẫu) =====
+    private Map<String, Price> seedSamplePrices() {
         Price price1 = new Price();
         price1.setBasePrice(100.0);
         price1.setSalePrice(80.0);
@@ -176,126 +213,168 @@ public class DatabaseSeeder implements CommandLineRunner {
         price2.setSalePrice(150.0);
         price2.setStatus("active");
 
-        List<Price> prices = priceRepository.saveAll(List.of(price1, price2));
-        price1 = prices.get(0);
-        price2 = prices.get(1);
+        List<Price> saved = priceRepository.saveAll(List.of(price1, price2));
 
-        // ===== Products mẫu =====
+        Map<String, Price> map = new HashMap<>();
+        map.put("P1", saved.get(0));
+        map.put("P2", saved.get(1));
+        return map;
+    }
+
+    private Map<String, Product> seedSampleProducts(Map<String, Category> categories) {
         Product product1 = new Product();
         product1.setName("Laptop");
         product1.setDescription("A powerful laptop");
-        product1.setCategory(category1);
+        product1.setCategory(categories.get("Dresses")); // category1
         product1.setImageUrl("http://10.0.2.2:8080/uploads/products/3a3df57f-af6a-45c2-93c1-c4d3924616b6.jpg");
         product1.setStatus("active");
 
         Product product2 = new Product();
         product2.setName("The Lord of the Rings");
         product2.setDescription("A classic fantasy novel");
-        product2.setCategory(category2);
+        product2.setCategory(categories.get("Jackets")); // category2
         product2.setImageUrl("http://10.0.2.2:8080/uploads/products/5f1cd65a-196a-40c8-aa44-1d36eb0c9263.jpg");
         product2.setStatus("active");
 
-        List<Product> products = productRepository.saveAll(List.of(product1, product2));
-        product1 = products.get(0);
-        product2 = products.get(1);
+        List<Product> saved = productRepository.saveAll(List.of(product1, product2));
 
-        // ===== Product variants mẫu =====
+        Map<String, Product> map = new HashMap<>();
+        map.put("Laptop", saved.get(0));
+        map.put("LotR", saved.get(1));
+        return map;
+    }
+
+    private void seedSampleProductVariants(
+            Map<String, Product> sampleProducts,
+            List<Color> colors,
+            Map<String, Size> sizes,
+            Map<String, Material> materials,
+            Map<String, Season> seasons,
+            Map<String, Price> samplePrices
+    ) {
+        Color colorBlack = colors.stream()
+                .filter(c -> "Black".equalsIgnoreCase(c.getColorName()))
+                .findFirst().orElse(colors.get(0));
+        Color colorWhite = colors.stream()
+                .filter(c -> "White".equalsIgnoreCase(c.getColorName()))
+                .findFirst().orElse(colors.get(1));
+
+        Product laptop = sampleProducts.get("Laptop");
+        Product lotr = sampleProducts.get("LotR");
+
+        // chọn 1–2 size phổ biến trong 10 size cho sample (ở đây dùng M và L)
+        Size sizeM = sizes.get("M");
+        Size sizeL = sizes.get("L");
+
         ProductVariants variant1 = new ProductVariants();
-        variant1.setProduct(product1);
-        variant1.setColor(color1);
-        variant1.setSize(size1);
-        variant1.setPrice(price1);
+        variant1.setProduct(laptop);
+        variant1.setColor(colorBlack);
+        variant1.setSize(sizeM);
+        variant1.setPrice(samplePrices.get("P1"));
         variant1.setStatus("active");
-        // nếu ProductVariants có field material/season (tuỳ model):
-        variant1.setMaterial(material1);
-        variant1.setSeason(season1);
+        variant1.setMaterial(materials.get("Cotton"));
+        variant1.setSeason(seasons.get("Spring"));
 
         ProductVariants variant2 = new ProductVariants();
-        variant2.setProduct(product2);
-        variant2.setColor(color2);
-        variant2.setSize(size2);
-        variant2.setPrice(price2);
+        variant2.setProduct(lotr);
+        variant2.setColor(colorWhite);
+        variant2.setSize(sizeL);
+        variant2.setPrice(samplePrices.get("P2"));
         variant2.setStatus("active");
-        variant2.setMaterial(material2);
-        variant2.setSeason(season2);
+        variant2.setMaterial(materials.get("Wool"));
+        variant2.setSeason(seasons.get("Summer"));
 
         productVariantsRepository.saveAll(List.of(variant1, variant2));
+    }
 
-        // ===== Dummy products =====
-        if (productRepository.count() < 50) {
-            Random random = new Random();
-            List<Category> allCategories = categoryRepository.findAll();
-            List<Color> allColors = colorRepository.findAll();
-            List<Size> allSizes = sizeRepository.findAll();
-            List<Material> allMaterials = materialRepository.findAll();
-            List<Season> allSeasons = seasonRepository.findAll();
+    /**
+     * Tạo dummy product & variants sao cho tổng số product ~ 50
+     */
+    private void seedDummyProductsAndVariants(Map<String, Size> sizeMap) {
+        long currentCount = productRepository.count();
+        if (currentCount >= MIN_TOTAL_PRODUCTS) return;
 
-            for (int i = 1; i <= 25; i++) {
-                Product product = new Product();
-                product.setName("Dummy Product " + i);
-                product.setDescription("Description for dummy product " + i);
-                product.setCategory(
-                        allCategories.get(random.nextInt(allCategories.size()))
-                );
-                product.setImageUrl(
-                        "http://10.0.2.2:8080/uploads/products/placeholder.jpg"
-                );
-                product.setStatus("active");
-                product = productRepository.save(product);
+        int needToCreate = (int) Math.max(MIN_TOTAL_PRODUCTS - currentCount, DUMMY_PRODUCT_COUNT);
+        // để đơn giản, vẫn tạo DUMMY_PRODUCT_COUNT (48) như config bên trên
+        int productToCreate = DUMMY_PRODUCT_COUNT;
 
-                // 1–3 variants cho mỗi product
-                int variantCount = random.nextInt(3) + 1;
-                for (int j = 0; j < variantCount; j++) {
-                    ProductVariants variant = new ProductVariants();
-                    variant.setProduct(product);
+        Random random = new Random();
+        List<Category> allCategories = categoryRepository.findAll();
+        List<Color> allColors = colorRepository.findAll();
+        List<Size> allSizes = new ArrayList<>(sizeMap.values()); // 10 size
+        List<Material> allMaterials = materialRepository.findAll();
+        List<Season> allSeasons = seasonRepository.findAll();
+
+        for (int i = 1; i <= productToCreate; i++) {
+            Product product = new Product();
+            product.setName("Dummy Product " + i);
+            product.setDescription("Description for dummy product " + i);
+            product.setCategory(
+                    allCategories.get(random.nextInt(allCategories.size()))
+            );
+            product.setImageUrl(
+                    "http://10.0.2.2:8080/uploads/products/placeholder.jpg"
+            );
+            product.setStatus("active");
+            product = productRepository.save(product);
+
+            int variantCount = random.nextInt(3) + 1; // 1–3 variants
+            for (int j = 0; j < variantCount; j++) {
+                ProductVariants variant = new ProductVariants();
+                variant.setProduct(product);
+
+                if (!allColors.isEmpty()) {
                     variant.setColor(
                             allColors.get(random.nextInt(allColors.size()))
                     );
+                }
+
+                // chọn random trong 10 size
+                if (!allSizes.isEmpty()) {
                     variant.setSize(
                             allSizes.get(random.nextInt(allSizes.size()))
                     );
-
-                    // Giá ít số lẻ: chia cho 10 và nhân lại để làm tròn chục
-                    double rawBase = 10.0 + random.nextDouble() * 90.0; // 10–100
-                    double basePrice = Math.round(rawBase / 10.0) * 10.0;       // 10,20,...,100
-                    double salePrice = basePrice * 0.9;
-                    salePrice = Math.round(salePrice / 10.0) * 10.0;           // cũng làm tròn chục
-
-                    Price price = new Price();
-                    price.setBasePrice(basePrice);
-                    price.setSalePrice(salePrice);
-                    price.setStatus("active");
-                    price = priceRepository.save(price);
-
-                    variant.setPrice(price);
-                    variant.setStatus("active");
-
-                    // gán material/season cho variant (nếu model có)
-                    if (!allMaterials.isEmpty()) {
-                        variant.setMaterial(
-                                allMaterials.get(random.nextInt(allMaterials.size()))
-                        );
-                    }
-                    if (!allSeasons.isEmpty()) {
-                        variant.setSeason(
-                                allSeasons.get(random.nextInt(allSeasons.size()))
-                        );
-                    }
-
-                    productVariantsRepository.save(variant);
                 }
+
+                double rawBase = 10.0 + random.nextDouble() * 90.0; // 10–100
+                double basePrice = Math.round(rawBase / 10.0) * 10.0;
+                double salePrice = basePrice * 0.9;
+                salePrice = Math.round(salePrice / 10.0) * 10.0;
+
+                Price price = new Price();
+                price.setBasePrice(basePrice);
+                price.setSalePrice(salePrice);
+                price.setStatus("active");
+                price = priceRepository.save(price);
+
+                variant.setPrice(price);
+                variant.setStatus("active");
+
+                if (!allMaterials.isEmpty()) {
+                    variant.setMaterial(
+                            allMaterials.get(random.nextInt(allMaterials.size()))
+                    );
+                }
+                if (!allSeasons.isEmpty()) {
+                    variant.setSeason(
+                            allSeasons.get(random.nextInt(allSeasons.size()))
+                    );
+                }
+
+                productVariantsRepository.save(variant);
             }
         }
-        createSampleOrders(user1,user2);
     }
+
+    // ================== ORDERS & COLORS ==================
+
     private void createSampleOrders(User user1, User user2) {
         List<ProductVariants> allVariants = productVariantsRepository.findAll();
         if (allVariants.isEmpty()) return;
 
         Random random = new Random();
 
-        // Muốn số lượng order > 10, ví dụ tạo 12–15 orders
-        int totalOrders = 12 + random.nextInt(4); // 12,13,14,15
+        int totalOrders = 12 + random.nextInt(4); // 12–15
 
         for (int idx = 0; idx < totalOrders; idx++) {
             User owner = (idx % 2 == 0) ? user1 : user2;
@@ -303,13 +382,12 @@ public class DatabaseSeeder implements CommandLineRunner {
             Order order = new Order();
             order.setUser(owner);
 
-            // Set status: trộn COMPLETED, PENDING, CANCELLED
             if (idx % 3 == 0) {
-                order.setStatus("COMPLETED".toLowerCase());
+                order.setStatus("completed");
             } else if (idx % 3 == 1) {
-                order.setStatus("PENDING".toLowerCase());
+                order.setStatus("pending");
             } else {
-                order.setStatus("CANCELLED".toLowerCase()); // trạng thái cancel
+                order.setStatus("cancelled");
             }
 
             order.setCreatedDate(LocalDateTime.now().minusDays(5 - (idx % 5)));
@@ -322,12 +400,9 @@ public class DatabaseSeeder implements CommandLineRunner {
             List<OrderItem> items = new ArrayList<>();
             double total = 0.0;
 
-            // Mỗi order có từ 1–4 item
             int itemCount = 1 + random.nextInt(4);
             for (int i = 0; i < itemCount; i++) {
                 ProductVariants pv = allVariants.get(random.nextInt(allVariants.size()));
-
-                // Số lượng mỗi item 1–5
                 int qty = 1 + random.nextInt(5);
 
                 OrderItem item = new OrderItem();
@@ -348,5 +423,61 @@ public class DatabaseSeeder implements CommandLineRunner {
             order.setTotalPrice(total);
             orderRepository.save(order);
         }
+    }
+
+    private List<Color> initColor() {
+        Color c1 = new Color();
+        c1.setColorName("Black");
+        c1.setColorCode("#000000");
+        c1.setStatus("active");
+
+        Color c2 = new Color();
+        c2.setColorName("Blue");
+        c2.setColorCode("#1E88E5");
+        c2.setStatus("active");
+
+        Color c3 = new Color();
+        c3.setColorName("Green");
+        c3.setColorCode("#2E7D32");
+        c3.setStatus("active");
+
+        Color c4 = new Color();
+        c4.setColorName("Red");
+        c4.setColorCode("#D32F2F");
+        c4.setStatus("active");
+
+        Color c5 = new Color();
+        c5.setColorName("Pink");
+        c5.setColorCode("#F8BBD0");
+        c5.setStatus("active");
+
+        Color c6 = new Color();
+        c6.setColorName("Orange");
+        c6.setColorCode("#FFA000");
+        c6.setStatus("active");
+
+        Color c7 = new Color();
+        c7.setColorName("Beige");
+        c7.setColorCode("#F0E1C6");
+        c7.setStatus("active");
+
+        Color c8 = new Color();
+        c8.setColorName("Grey");
+        c8.setColorCode("#BDBDBD");
+        c8.setStatus("active");
+
+        Color c9 = new Color();
+        c9.setColorName("White");
+        c9.setColorCode("#FFFFFF");
+        c9.setStatus("active");
+
+        Color c10 = new Color();
+        c10.setColorName("Purple");
+        c10.setColorCode("#673AB7");
+        c10.setStatus("active");
+
+        return colorRepository.saveAll(
+                List.of(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10)
+        );
     }
 }

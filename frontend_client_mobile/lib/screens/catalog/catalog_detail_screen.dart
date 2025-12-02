@@ -5,33 +5,28 @@ import 'package:provider/provider.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
+  final int categoryId;
   final Map<String, dynamic> filterParams;
   const CatalogDetailScreen({
     super.key,
     required this.categoryName,
+    required this.categoryId,
     required this.filterParams,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categoryId = filterParams['categoryId'] as int;
     final padding = MediaQuery.paddingOf(context);
-
     final filterProvider = context.watch<FilterProvider>();
 
-    // Chỉ lo cho "lần đầu / lần chưa có data"
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final fp = context.read<FilterProvider>();
-
-      // Chưa init cho category này -> init
-      if (fp.categoryId != categoryId) {
+      if (fp.categoryId == 0 || fp.categoryId != categoryId) {
         fp.initialize(categoryId);
       }
-      // Cùng category mà chưa có data (VD vừa reset) -> load
       else if (fp.productViews.isEmpty && !fp.isFiltering) {
         fp.refreshProducts();
       }
-      // Nếu đã có productViews thì KHÔNG làm gì (tránh gọi lại khi từ filter về)
     });
 
     return Scaffold(

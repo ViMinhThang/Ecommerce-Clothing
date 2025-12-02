@@ -1,145 +1,128 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/providers/filter_provider.dart';
+import 'package:provider/provider.dart';
 
 class FilterMaterialLayout extends StatelessWidget {
   const FilterMaterialLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialFilterPage();
+    return const MaterialFilterPage();
   }
 }
 
-class MaterialFilterPage extends StatefulWidget {
+class MaterialFilterPage extends StatelessWidget {
   const MaterialFilterPage({super.key});
 
   @override
-  State<MaterialFilterPage> createState() => _MaterialFilterPageState();
-}
-
-class _MaterialFilterPageState extends State<MaterialFilterPage> {
-  final List<String> _materials = const [
-    'Polyester / synthetic',
-    'Viscose',
-    'Cotton',
-    'Denim',
-    'Lyocell',
-    'Linen',
-    'Modal',
-    'Organic cotton',
-    'Silk',
-  ];
-
-  final Set<int> _selected = {};
-
-  void _toggle(int i) {
-    setState(() {
-      if (_selected.contains(i)) {
-        _selected.remove(i);
-      } else {
-        _selected.add(i);
-      }
-    });
-  }
-
-  void _reset() {
-    setState(_selected.clear);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 56,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: const Icon(Icons.chevron_left_rounded),
-        ),
-        centerTitle: true,
-        title: const Text(
-          'Material',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _reset,
-            child: const Text(
-              'Reset',
+    return Consumer<FilterProvider>(
+      builder: (context, provider, _) {
+        final materials = provider.materials;
+        return Scaffold(
+          appBar: AppBar(
+            leadingWidth: 56,
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.chevron_left_rounded),
+            ),
+            centerTitle: true,
+            title: const Text(
+              'Material',
               style: TextStyle(
-                color: Color(0xFFD32F2F),
                 fontWeight: FontWeight.w600,
+                color: Colors.black,
               ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: provider.resetMaterialsSelection,
+                child: const Text(
+                  'Reset',
+                  style: TextStyle(
+                    color: Color(0xFFD32F2F),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: materials.isEmpty
+                      ? const _EmptyPlaceholder(
+                          message: 'Chưa có chất liệu nào',
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: materials.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, i) {
+                            final label = materials[i];
+                            final checked = provider.selectedMaterials.contains(
+                              label,
+                            );
+                            return _MaterialRow(
+                              label: label,
+                              checked: checked,
+                              onTap: () => provider.toggleMaterial(label),
+                            );
+                          },
+                        ),
+                ),
+                SafeArea(
+                  top: false,
+                  minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF4A4A4A),
+                            side: const BorderSide(color: Color(0xFFE0E0E0)),
+                            backgroundColor: const Color(0xFFF2F2F2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('More filters'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            provider.isCounting
+                                ? 'Loading...'
+                                : 'Show ${provider.matchedCount} items',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                itemCount: _materials.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, i) {
-                  final checked = _selected.contains(i);
-                  return _MaterialRow(
-                    label: _materials[i],
-                    checked: checked,
-                    onTap: () => _toggle(i),
-                  );
-                },
-              ),
-            ),
-            // Bottom actions
-            SafeArea(
-              top: false,
-              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF4A4A4A),
-                        side: const BorderSide(color: Color(0xFFE0E0E0)),
-                        backgroundColor: const Color(0xFFF2F2F2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      onPressed: () {},
-                      child: const Text('More filters'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      onPressed: () {},
-                      child: const Text(
-                        'Show 248 items',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -186,6 +169,21 @@ class _MaterialRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyPlaceholder extends StatelessWidget {
+  final String message;
+  const _EmptyPlaceholder({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        message,
+        style: TextStyle(color: Theme.of(context).hintColor),
       ),
     );
   }
