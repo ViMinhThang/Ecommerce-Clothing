@@ -7,6 +7,7 @@ class AdminListItem extends StatelessWidget {
   final Widget leading;
   final String title;
   final Widget? subtitle;
+  final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final String? editTooltip;
@@ -17,6 +18,7 @@ class AdminListItem extends StatelessWidget {
     required this.leading,
     required this.title,
     this.subtitle,
+    this.onTap,
     this.onEdit,
     this.onDelete,
     this.editTooltip,
@@ -35,6 +37,7 @@ class AdminListItem extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
+        onTap: onTap,
         leading: leading,
         title: Text(title, style: AppTheme.h4.copyWith(fontSize: 16)),
         subtitle: subtitle != null

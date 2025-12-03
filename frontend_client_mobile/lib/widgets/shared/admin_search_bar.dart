@@ -7,12 +7,14 @@ class AdminSearchBar extends StatelessWidget {
   final String hintText;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
 
   const AdminSearchBar({
     super.key,
     required this.hintText,
     this.onChanged,
     this.controller,
+    this.focusNode,
   });
 
   @override
@@ -31,6 +33,7 @@ class AdminSearchBar extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         style: AppTheme.bodyMedium,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),

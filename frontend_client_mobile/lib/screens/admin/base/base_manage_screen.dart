@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../config/theme_config.dart';
+import '../../../widgets/admin/admin_drawer.dart';
 import '../../../widgets/shared/admin_search_bar.dart';
 import '../../../widgets/shared/empty_state_widget.dart';
-import '../../../widgets/admin/admin_drawer.dart';
 
 /// Abstract base class for all management screens following Template Method pattern
 ///
@@ -71,6 +71,15 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
   /// Build optional header widgets to display before the list (e.g., stats)
   List<Widget> buildHeaderWidgets() => [];
 
+  /// Build the search section widget.
+  /// Defaults to the standard AdminSearchBar but can be overridden for
+  /// advanced behaviors like autocomplete.
+  Widget buildSearchSection() => AdminSearchBar(
+    hintText: getSearchHint(),
+    controller: searchController,
+    onChanged: onSearchChanged,
+  );
+
   /// Build the list widget (must return a Sliver, e.g., SliverList)
   Widget buildList();
 
@@ -107,17 +116,17 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
-              child: Column(
-                children: [
-                  ...buildHeaderWidgets(),
-                  if (buildHeaderWidgets().isNotEmpty)
-                    const SizedBox(height: 16),
-                  AdminSearchBar(
-                    hintText: getSearchHint(),
-                    controller: searchController,
-                    onChanged: onSearchChanged,
-                  ),
-                ],
+              child: Builder(
+                builder: (context) {
+                  final headerWidgets = buildHeaderWidgets();
+                  return Column(
+                    children: [
+                      ...headerWidgets,
+                      if (headerWidgets.isNotEmpty) const SizedBox(height: 16),
+                      buildSearchSection(),
+                    ],
+                  );
+                },
               ),
             ),
           ),

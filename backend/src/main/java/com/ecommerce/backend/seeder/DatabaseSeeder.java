@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,8 +15,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {
 
-    private static final int MIN_TOTAL_PRODUCTS = 50; // muốn tối thiểu 50 sản phẩm
-    private static final int DUMMY_PRODUCT_COUNT = 48; // cộng thêm 2 sản phẩm mẫu = 50
+    private static final int MIN_TOTAL_PRODUCTS = 50;
+    private static final int DUMMY_PRODUCT_COUNT = 48;
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -28,10 +29,23 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final OrderItemRepository orderItemRepository;
     private final MaterialRepository materialRepository;
     private final SeasonRepository seasonRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Override
     public void run(String... args) {
-        List<User> users = seedUsers();
+        // 1. Seed roles
+        seedRolesIfNotExists();
+
+        // 2. Seed admin user
+        User adminUser = seedAdminUserIfNotExists();
+
+        // 3. Seed 2 user thường (giữ nguyên data bạn đã có)
+        List<User> normalUsers = seedUsers();
+        User user1 = normalUsers.get(0);
+        User user2 = normalUsers.get(1);
+
+        // 4. Các seed khác
         Map<String, Category> categories = seedCategories();
         List<Color> colors = initColor();
         Map<String, Size> sizes = seedSizes10();            // 10 size
@@ -41,24 +55,97 @@ public class DatabaseSeeder implements CommandLineRunner {
         Map<String, Product> sampleProducts = seedSampleProducts(categories);
         seedSampleProductVariants(sampleProducts, colors, sizes, materials, seasons, samplePrices);
         seedDummyProductsAndVariants(sizes);                // dùng list size 10
-        createSampleOrders(users.get(0), users.get(1));
+
+        // 5. Tạo orders mẫu dùng 2 user thường (nếu muốn thêm admin thì truyền adminUser vào)
+        createSampleOrders(user1, user2);
     }
 
-    // ================== SEED METHODS ==================
+    // ================== SEED USERS & ROLES ==================
 
     private List<User> seedUsers() {
         User user1 = new User();
         user1.setUsername("john.doe");
         user1.setPassword("password");
+        user1.setFullName("John Doe");
+        user1.setBirthDay(LocalDate.of(2000,6,2));
+        user1.setStatus("active");
         user1.setEmail("john.doe@example.com");
 
         User user2 = new User();
         user2.setUsername("jane.doe");
         user2.setPassword("password");
+        user2.setFullName("Jane Doe");
+        user2.setBirthDay(LocalDate.of(2003,2,20));
+        user2.setStatus("active");
         user2.setEmail("jane.doe@example.com");
 
         return userRepository.saveAll(List.of(user1, user2));
     }
+
+    // Tạo ROLE_ADMIN và ROLE_USER nếu chưa có
+    private void seedRolesIfNotExists() {
+        if (roleRepository.count() == 0) {
+            Role adminRole = new Role();
+            adminRole.setName("ROLE_ADMIN");
+            adminRole.setStatus("active");
+
+            Role userRole = new Role();
+            userRole.setName("ROLE_USER");
+            userRole.setStatus("active");
+
+            roleRepository.saveAll(List.of(adminRole, userRole));
+        }
+    }
+
+    // Tạo user admin + gán role nếu chưa có
+    private User seedAdminUserIfNotExists() {
+        // tìm user theo username
+        Optional<User> existingAdminOpt = userRepository.findByUsername("admin");
+        if (existingAdminOpt.isPresent()) {
+            return existingAdminOpt.get();
+        }
+
+        // Nếu bạn có PasswordEncoder, hãy thay bằng passwordEncoder.encode("admin123")
+        User admin = new User();
+        admin.setUsername("admin");
+        admin.setPassword("admin123");
+        admin.setEmail("admin@example.com");
+        admin.setFullName("System Administrator");
+        admin.setBirthDay(LocalDate.of(1999,12,10));
+        admin.setStatus("active");
+        admin = userRepository.save(admin);
+
+        // lấy roles
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                .orElseThrow(() -> new RuntimeException("ROLE_ADMIN not found. Did you run seedRolesIfNotExists()?"));
+
+        // Nếu muốn admin vừa là ADMIN vừa là USER thì lấy thêm ROLE_USER
+        Role userRole = roleRepository.findByName("ROLE_USER").orElse(null);
+
+        // tạo UserRole cho admin với ROLE_ADMIN
+        UserRole urAdmin = new UserRole();
+        urAdmin.setUser(admin);
+        urAdmin.setRole(adminRole);
+        urAdmin.setStatus("active");
+
+        userRoleRepository.save(urAdmin);
+        admin.getUserRoles().add(urAdmin);
+
+        // Gán thêm ROLE_USER cho admin (tuỳ ý – hiện tại mình có gán)
+        if (userRole != null) {
+            UserRole urAdminUser = new UserRole();
+            urAdminUser.setUser(admin);
+            urAdminUser.setRole(userRole);
+            urAdminUser.setStatus("active");
+            userRoleRepository.save(urAdminUser);
+            admin.getUserRoles().add(urAdminUser);
+        }
+
+        // cập nhật lại admin với list userRoles mới
+        return userRepository.save(admin);
+    }
+
+    // ================== CATEGORIES / SIZES / MATERIALS / SEASONS / PRICES ==================
 
     private Map<String, Category> seedCategories() {
         Category category1 = new Category();
