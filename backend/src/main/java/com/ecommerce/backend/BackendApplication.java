@@ -7,9 +7,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 @SpringBootApplication
 @EntityListeners(AuditingEntityListener.class)
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 @EnableJpaAuditing
 @EnableJpaRepositories
 @EntityScan
@@ -17,7 +21,6 @@ public class BackendApplication {
 
 	public static void main(String[] args) {
         System.setProperty("user.timezone", "Asia/Ho_Chi_Minh");
-
         SpringApplication.run(BackendApplication.class, args);
 	}
 

@@ -7,6 +7,7 @@ import 'package:frontend_client_mobile/services/api/filter_api_service.dart';
 import 'package:frontend_client_mobile/services/api/order_api_service.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
+import 'package:frontend_client_mobile/services/api/user_api_service.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(
@@ -23,6 +24,8 @@ class ApiClient {
   static FilterApiService? _filterService;
   static OrderApiService? _orderApiService;
   static DashboardApiService? _dashboardApiService;
+  static UserApiService? _userApiService;
+  static Dio get dio => _dio;
 
   static ProductApiService getProductApiService() {
     _productApiService ??= ProductApiService(_dio);
@@ -57,5 +60,10 @@ class ApiClient {
   static DashboardApiService getDashboardApiService() {
     _dashboardApiService ??= DashboardApiService(_dio);
     return _dashboardApiService!;
+  }
+
+  static UserApiService getUserApiService() {
+    _userApiService ??= UserApiService(_dio);
+    return _userApiService!;
   }
 }

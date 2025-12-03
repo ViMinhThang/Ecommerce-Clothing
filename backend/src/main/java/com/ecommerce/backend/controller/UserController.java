@@ -1,8 +1,10 @@
 package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.UserDTO;
-import com.ecommerce.backend.dto.view.UserView;
-import com.ecommerce.backend.model.User;
+import com.ecommerce.backend.dto.UserUpdateDTO;
+import com.ecommerce.backend.dto.view.UserSearch;
+import com.ecommerce.backend.dto.view.UserDetailView;
+import com.ecommerce.backend.dto.view.UserItemView;
 import com.ecommerce.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,39 +15,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.management.BadAttributeValueExpException;
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/Users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<Page<User>> getAllUsers(Pageable pageable) {
+    public ResponseEntity<Page<UserItemView>> getAllUsers(Pageable pageable) {
         return ResponseEntity.ok(userService.getAllUsers(pageable));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User User = userService.getUserById(id);
-        return ResponseEntity.ok(User);
-    }
-
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody @Valid UserDTO UserDTO, BindingResult bindingResult) { // Changed parameter to UserDTO
+    public ResponseEntity<Void> createUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) throws BadAttributeValueExpException { // Changed parameter to UserDTO
         if(bindingResult.hasErrors()){
             throw new RuntimeException(bindingResult.getAllErrors().get(0).getDefaultMessage());
         }
-        User createdUser = userService.createUser(UserDTO);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        userService.createUser(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody @Valid UserDTO UserDTO, BindingResult bindingResult) { // Changed parameter to UserDTO
+    public ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO, BindingResult bindingResult) throws BadAttributeValueExpException { // Changed parameter to UserDTO
         if(bindingResult.hasErrors()){
             throw new RuntimeException(bindingResult.getAllErrors().get(0).getDefaultMessage());
         }
-        User updatedUser = userService.updateUser(id, UserDTO);
-        return ResponseEntity.ok(updatedUser);
+        var user = userService.updateUser(id,userUpdateDTO);
+        if(user == null)
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping("/{id}")
@@ -54,8 +55,17 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/detail/{id}")
-    public ResponseEntity<UserView> getDetail(@PathVariable("id") long id){
-        return ResponseEntity.ok(null);
+    public ResponseEntity<UserDetailView> getDetail(@PathVariable("id") long id){
+        return ResponseEntity.ok(userService.searchById(id));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<UserSearch>> searchUserByName(@RequestParam(value = "name") String name){
+        return ResponseEntity.ok(userService.searchByName(name));
+    }
+    @GetMapping("/update/{id}")
+    public ResponseEntity<UserUpdateDTO> getUpdateInfo(@PathVariable("id") long id){
+        var res = userService.searchById(id);
+        return ResponseEntity.ok(new UserUpdateDTO(res.getName(),res.getEmail(),res.getBirthDay()));
+    }
 }

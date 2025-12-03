@@ -1,12 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/user_item_view.dart';
+import 'package:frontend_client_mobile/models/user_search_result.dart';
+import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+
 import '../../../config/theme_config.dart';
 import '../../../widgets/shared/admin_list_item.dart';
-import '../../../widgets/shared/status_badge.dart';
+import '../../../widgets/shared/admin_search_bar.dart';
 import '../../../widgets/shared/confirmation_dialog.dart';
+import '../../../widgets/shared/status_badge.dart';
 import '../base/base_manage_screen.dart';
+import 'create_user_screen.dart';
 import 'edit_user_screen.dart';
+import 'user_detail_screen.dart';
 
-class ManageUsersScreen extends BaseManageScreen<Map<String, dynamic>> {
+class ManageUsersScreen extends BaseManageScreen<UserItemView> {
   const ManageUsersScreen({super.key});
 
   @override
@@ -14,8 +24,26 @@ class ManageUsersScreen extends BaseManageScreen<Map<String, dynamic>> {
 }
 
 class _ManageUsersScreenState
-    extends BaseManageScreenState<Map<String, dynamic>, ManageUsersScreen> {
-  List<Map<String, dynamic>> _users = [];
+    extends BaseManageScreenState<UserItemView, ManageUsersScreen> {
+  String _searchQuery = '';
+  bool _showSuggestions = false;
+  late FocusNode _searchFocusNode;
+  Timer? _searchDebounce;
+
+  @override
+  void initState() {
+    _searchFocusNode = FocusNode();
+    _searchFocusNode.addListener(_handleFocusChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchFocusNode.removeListener(_handleFocusChange);
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   String getScreenTitle() => 'User Management';
@@ -34,112 +62,112 @@ class _ManageUsersScreenState
 
   @override
   void fetchData() {
-    _loadMockData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<UserProvider>().initialize();
+    });
   }
 
   @override
   void refreshData() {
-    setState(() => _loadMockData());
-  }
-
-  void _loadMockData() {
-    _users = [
-      {
-        'id': 1,
-        'name': 'Nguyễn Văn A',
-        'email': 'vana@example.com',
-        'role': 'Admin',
-        'status': 'active',
-      },
-      {
-        'id': 2,
-        'name': 'Trần Thị B',
-        'email': 'thib@example.com',
-        'role': 'User',
-        'status': 'inactive',
-      },
-    ];
+    context.read<UserProvider>().refreshUsers();
   }
 
   @override
-  List<Map<String, dynamic>> getItems() => _users;
+  List<UserItemView> getItems() {
+    final users = context.watch<UserProvider>().users;
+    if (_searchQuery.trim().isEmpty) return users;
+    final keyword = _searchQuery.toLowerCase();
+    return users
+        .where(
+          (user) =>
+              user.name.toLowerCase().contains(keyword) ||
+              (user.email ?? '').toLowerCase().contains(keyword),
+        )
+        .toList();
+  }
 
   @override
-  bool isLoading() => false;
+  bool isLoading() => context.watch<UserProvider>().isLoading;
 
   @override
   Future<void> navigateToAdd() async {
     final newUser = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const EditUserScreen()),
+      MaterialPageRoute(builder: (_) => const CreateUserScreen()),
     );
     if (newUser != null && mounted) {
-      setState(() => _users.add(newUser));
+      context.read<UserProvider>().refreshUsers();
     }
   }
 
   @override
-  Future<void> navigateToEdit(Map<String, dynamic> item) async {
+  Future<void> navigateToEdit(UserItemView item) async {
+    final payload = {
+      'id': item.id,
+      'name': item.name,
+      'email': item.email,
+      'role': item.roles.join(', '),
+      'status': item.status,
+    };
     final updated = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EditUserScreen(entity: item)),
+      MaterialPageRoute(builder: (_) => EditUserScreen(entity: payload)),
     );
 
     if (updated != null && mounted) {
-      setState(() {
-        final index = _users.indexWhere((u) => u['id'] == updated['id']);
-        if (index != -1) _users[index] = updated;
-      });
+      context.read<UserProvider>().refreshUsers();
     }
   }
 
   @override
-  Future<void> handleDelete(Map<String, dynamic> item) async {
+  Future<void> handleDelete(UserItemView item) async {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Delete Confirm',
-      message: 'Are you sure you want to delete user "${item['name']}"?',
+      message: 'Are you sure you want to delete user "${item.name}"?',
     );
 
     if (confirmed && mounted) {
-      setState(() {
-        _users.removeWhere((u) => u['id'] == item['id']);
-      });
-
+      await context.read<UserProvider>().deleteUser(item.id);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Deleted "${item['name']}"')));
+      ).showSnackBar(SnackBar(content: Text('Deleted "${item.name}"')));
     }
   }
 
-  Widget _buildLeadingWidget(Map<String, dynamic> item) {
+  Widget _buildLeadingWidget(UserItemView item) {
     return CircleAvatar(
       backgroundColor: AppTheme.offWhite,
       radius: 24,
       child: Text(
-        item['name'].toString().substring(0, 1).toUpperCase(),
+        item.name.substring(0, 1).toUpperCase(),
         style: AppTheme.h4.copyWith(fontSize: 18),
       ),
     );
   }
 
-  String _getItemTitle(Map<String, dynamic> item) => item['name'];
+  String _getItemTitle(UserItemView item) => item.name;
 
-  Widget? _buildSubtitle(Map<String, dynamic> item) {
+  Widget? _buildSubtitle(UserItemView item) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          item['email'],
+          item.email ?? '—',
           style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
         ),
         const SizedBox(height: 4),
         Row(
           children: [
-            StatusBadge(label: item['role'], type: StatusBadgeType.userRole),
+            StatusBadge(
+              label: item.roles.isEmpty ? 'N/A' : item.roles.first,
+              type: StatusBadgeType.userRole,
+            ),
             const SizedBox(width: 8),
             StatusBadge(
-              label: item['status'],
+              label: item.status,
               type: StatusBadgeType.activeInactive,
             ),
           ],
@@ -159,12 +187,147 @@ class _ManageUsersScreenState
           leading: _buildLeadingWidget(item),
           title: _getItemTitle(item),
           subtitle: _buildSubtitle(item),
+          onTap: () => _openUserDetail(item.id, fallbackName: item.name),
           onEdit: () => navigateToEdit(item),
           onDelete: () => handleDelete(item),
           editTooltip: 'Edit User',
           deleteTooltip: 'Delete User',
         );
       },
+    );
+  }
+
+  @override
+  void onSearchChanged(String query) => _handleSearchInput(query);
+
+  @override
+  Widget buildSearchSection() {
+    final provider = context.watch<UserProvider>();
+    final suggestions = provider.searchResults;
+    final showDropdown =
+        _showSuggestions &&
+        (provider.isSearching || suggestions.isNotEmpty) &&
+        _searchFocusNode.hasFocus;
+
+    return Column(
+      children: [
+        AdminSearchBar(
+          hintText: getSearchHint(),
+          controller: searchController,
+          onChanged: onSearchChanged,
+          focusNode: _searchFocusNode,
+        ),
+        if (showDropdown)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: provider.isSearching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : suggestions.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      'No matches',
+                      style: TextStyle(color: AppTheme.mediumGray),
+                    ),
+                  )
+                : ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 220),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: suggestions.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final suggestion = suggestions[index];
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.person_outline, size: 20),
+                          title: Text(suggestion.fullName),
+                          subtitle: suggestion.email != null
+                              ? Text(
+                                  suggestion.email!,
+                                  style: AppTheme.bodySmall.copyWith(
+                                    color: AppTheme.mediumGray,
+                                  ),
+                                )
+                              : null,
+                          onTap: () => _onSuggestionTap(suggestion),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+      ],
+    );
+  }
+
+  void _handleSearchInput(String query) {
+    final trimmed = query.trim();
+    setState(() {
+      _searchQuery = query;
+      _showSuggestions = trimmed.isNotEmpty && _searchFocusNode.hasFocus;
+    });
+
+    _searchDebounce?.cancel();
+    if (trimmed.isEmpty) {
+      context.read<UserProvider>().searchUsers('');
+      return;
+    }
+
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      context.read<UserProvider>().searchUsers(trimmed);
+    });
+  }
+
+  void _handleFocusChange() {
+    if (!_searchFocusNode.hasFocus) {
+      setState(() => _showSuggestions = false);
+    } else if (searchController.text.trim().isNotEmpty) {
+      setState(() => _showSuggestions = true);
+    }
+  }
+
+  void _onSuggestionTap(UserSearchResult suggestion) {
+    _searchDebounce?.cancel();
+    searchController.text = suggestion.fullName;
+    searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: searchController.text.length),
+    );
+    context.read<UserProvider>().searchUsers('');
+    setState(() {
+      _searchQuery = suggestion.fullName;
+      _showSuggestions = false;
+    });
+    FocusScope.of(context).unfocus();
+    _openUserDetail(suggestion.id, fallbackName: suggestion.fullName);
+  }
+
+  void _openUserDetail(int id, {String? fallbackName}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UserDetailScreen(userId: id, initialName: fallbackName),
+      ),
     );
   }
 }
