@@ -35,7 +35,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'E-Commerce Admin',
-      initialRoute: '/dashboard',
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/cart',
       routes: {
         '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
         '/orders': (context) => const ManageOrdersScreen(),
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
-        '/my_cart': (context) => const MyCart(),
+        '/cart': (context) => const MyCart(),
       },
     );
   }
