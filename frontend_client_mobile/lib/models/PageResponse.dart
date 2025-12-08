@@ -29,7 +29,14 @@ class PageResponse<T> {
   factory PageResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) => _$PageResponseFromJson(json, fromJsonT);
+  ) {
+    final flattened = Map<String, dynamic>.from(json);
+    final page = json['page'];
+    if (page is Map<String, dynamic>) {
+      flattened.addAll(page);
+    }
+    return _$PageResponseFromJson(flattened, fromJsonT);
+  }
 
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
       _$PageResponseToJson(this, toJsonT);

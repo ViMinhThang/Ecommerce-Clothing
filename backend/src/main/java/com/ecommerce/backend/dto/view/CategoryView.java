@@ -5,7 +5,6 @@ import lombok.Data;
 
 public interface CategoryView {
     long getId();
-    String name();
+    String getName();
     String getImageUrl();
-
 }

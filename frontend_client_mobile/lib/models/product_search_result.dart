@@ -1,31 +1,20 @@
 class ProductSearchResult {
   final int id;
   final String name;
-  final String? thumbnail;
-  final double? price;
-  final String? categoryName;
+  final String? imageUrl;
 
   const ProductSearchResult({
     required this.id,
     required this.name,
-    this.thumbnail,
-    this.price,
-    this.categoryName,
+    this.imageUrl,
   });
 
   factory ProductSearchResult.fromJson(Map<String, dynamic> json) {
-    final idValue = json['id'];
-    final priceValue = json['price'];
+    final rawId = json['id'];
     return ProductSearchResult(
-      id: idValue is int
-          ? idValue
-          : int.tryParse(idValue?.toString() ?? '') ?? 0,
+      id: rawId is num ? rawId.toInt() : int.tryParse('$rawId') ?? 0,
       name: (json['name'] ?? '').toString(),
-      thumbnail: json['thumbnail'] as String?,
-      price: priceValue is num
-          ? priceValue.toDouble()
-          : double.tryParse(priceValue?.toString() ?? ''),
-      categoryName: json['categoryName']?.toString(),
+      imageUrl: json['imageUrl'] as String? ?? json['image_url'] as String?,
     );
   }
 }

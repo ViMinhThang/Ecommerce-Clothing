@@ -48,6 +48,7 @@ class _MainScreenState extends State<MainScreen> {
 
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+
         // --- Styling to match e-commerce app common practices ---
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,

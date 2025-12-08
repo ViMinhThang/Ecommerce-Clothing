@@ -15,8 +15,8 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-        @Query(value = """
-            SELECT id,name,image_url FROM category WHERE search_vector @@ to_tsquery('simple', unaccent(:keyword) || ':*') LIMIT 5
+    @Query(value = """
+            SELECT id, name, image_url FROM category WHERE search_vector @@ to_tsquery('simple', unaccent(:keyword) || ':*') LIMIT 5
             """, nativeQuery = true)
-        List<CategoryView> searchByNameFTS(@Param("keyword") String keyword);
+    List<CategoryView> searchByNameFTS(@Param("keyword") String keyword);
 }

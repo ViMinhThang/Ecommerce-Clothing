@@ -12,14 +12,12 @@ class SearchProvider with ChangeNotifier {
   bool _isSearching = false;
   List<ProductSearchResult> _productResults = const [];
   List<CategorySearchResult> _categoryResults = const [];
-  String _lastQuery = '';
   String _lastSignature = '';
   int _activeSearchToken = 0;
 
   bool get isSearching => _isSearching;
   List<ProductSearchResult> get productResults => _productResults;
   List<CategorySearchResult> get categoryResults => _categoryResults;
-  String get lastQuery => _lastQuery;
 
   Future<void> search(
     String keyword, {
@@ -30,17 +28,13 @@ class SearchProvider with ChangeNotifier {
     final trimmed = keyword.trim();
     final signature =
         '$trimmed|cat:$categoryId|c:$includeCategories|p:$includeProducts';
-    if (signature == _lastSignature) {
-      return; // avoid duplicate calls for same input
-    }
-    _lastQuery = trimmed;
-    _lastSignature = signature;
-
+    if (signature == _lastSignature) return;
     if (trimmed.isEmpty) {
       clear();
       return;
     }
 
+    _lastSignature = signature;
     final currentToken = ++_activeSearchToken;
     _isSearching = true;
     notifyListeners();
@@ -69,10 +63,9 @@ class SearchProvider with ChangeNotifier {
       }
 
       if (currentToken != _activeSearchToken) return;
-
       _productResults = products;
       _categoryResults = categoryId == null ? categories : const [];
-    } catch (e) {
+    } catch (_) {
       if (currentToken != _activeSearchToken) return;
       _productResults = const [];
       _categoryResults = const [];
@@ -88,7 +81,6 @@ class SearchProvider with ChangeNotifier {
     _productResults = const [];
     _categoryResults = const [];
     _isSearching = false;
-    _lastQuery = '';
     _lastSignature = '';
     notifyListeners();
   }

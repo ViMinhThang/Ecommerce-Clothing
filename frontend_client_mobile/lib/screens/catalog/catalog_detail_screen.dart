@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/widgets/product_card.dart';
+import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
@@ -31,8 +32,9 @@ class CatalogDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
+        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -40,11 +42,27 @@ class CatalogDetailScreen extends StatelessWidget {
           categoryName,
           style: const TextStyle(
             fontWeight: FontWeight.normal,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  opaque: false,
+                  barrierDismissible: true,
+                  barrierColor: Colors.transparent,
+                  pageBuilder: (_, __, ___) =>
+                      SearchScreen.products(categoryId: categoryId),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.search_rounded, color: Colors.black),
+          ),
         ],
       ),
       body: Builder(

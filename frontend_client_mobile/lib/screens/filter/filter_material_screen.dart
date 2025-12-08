@@ -25,7 +25,7 @@ class MaterialFilterPage extends StatelessWidget {
             backgroundColor: Colors.white,
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.chevron_left_rounded, color: Colors.black),
+              icon: const Icon(Icons.chevron_left_rounded),
             ),
             centerTitle: true,
             title: const Text(

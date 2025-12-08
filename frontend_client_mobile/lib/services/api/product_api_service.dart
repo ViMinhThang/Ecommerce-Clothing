@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:frontend_client_mobile/models/product.dart';
-import 'package:frontend_client_mobile/models/product_search_result.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -53,14 +52,4 @@ abstract class ProductApiService {
   );
   // @GET("api/products//filter/{categoryId}")
   // Future filterProduct(int categoryId) async {}
-  @GET("api/products/searchByName")
-  Future<List<ProductSearchResult>> searchProductsByName(
-    @Query("name") String name,
-  );
-
-  @GET("api/products/searchByNameAndCategory")
-  Future<List<ProductSearchResult>> searchProductsByNameAndCategory(
-    @Query("name") String name,
-    @Query("categoryId") int categoryId,
-  );
 }

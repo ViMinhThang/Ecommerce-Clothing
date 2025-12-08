@@ -47,12 +47,12 @@ class _FiltersPageState extends State<FiltersPage> {
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.chevron_left_rounded, color: Colors.black),
+          icon: const Icon(Icons.chevron_left_rounded),
         ),
         centerTitle: true,
         title: const Text(
           'Filters',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         actions: [
           Consumer<FilterProvider>(

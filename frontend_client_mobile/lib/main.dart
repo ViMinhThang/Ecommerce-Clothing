@@ -11,6 +11,7 @@ import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
+
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'E-Commerce Admin',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/dashboard',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),

@@ -1,22 +1,21 @@
 class CategorySearchResult {
   final int id;
   final String name;
-  final String? image;
+  final String? imageUrl;
 
   const CategorySearchResult({
     required this.id,
     required this.name,
-    this.image,
+    this.imageUrl,
   });
 
   factory CategorySearchResult.fromJson(Map<String, dynamic> json) {
-    final idValue = json['id'];
+    final rawId = json['id'];
+    final rawName = json['name'] ?? json['categoryName'];
     return CategorySearchResult(
-      id: idValue is int
-          ? idValue
-          : int.tryParse(idValue?.toString() ?? '') ?? 0,
-      name: (json['name'] ?? '').toString(),
-      image: json['image'] as String?,
+      id: rawId is num ? rawId.toInt() : int.tryParse('$rawId') ?? 0,
+      name: (rawName ?? '').toString(),
+      imageUrl: json['imageUrl'] as String? ?? json['image_url'] as String?,
     );
   }
 }

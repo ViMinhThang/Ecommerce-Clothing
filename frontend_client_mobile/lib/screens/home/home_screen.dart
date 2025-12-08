@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/product_layout.dart';
 import 'package:frontend_client_mobile/widgets/category_chip.dart';
+import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
@@ -78,31 +79,34 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
         return Scaffold(
-          backgroundColor:
-              Colors.white, // Clean white background like the image
           appBar: AppBar(
+            leadingWidth: 56,
             backgroundColor: Colors.white,
-            elevation: 0,
             centerTitle: true,
             title: Text(
-              'Eleven',
-              style: GoogleFonts.lora(
+              "Eleven",
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
                 color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
               ),
             ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.search, color: Colors.black),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: Colors.black,
-                ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    PageRouteBuilder(
+                      opaque: false,
+                      barrierDismissible: true,
+                      barrierColor: Colors.transparent,
+                      pageBuilder: (_, __, ___) =>
+                          const SearchScreen.products(),
+                      transitionsBuilder: (_, animation, __, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                    ),
+                  );
+                },
               ),
             ],
           ),
