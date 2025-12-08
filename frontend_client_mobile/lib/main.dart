@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/cart/my_cart.dart';
+import 'package:frontend_client_mobile/checkout/status_checkout.dart';
+import 'package:frontend_client_mobile/product/product.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
@@ -36,7 +38,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'E-Commerce Admin',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/cart',
+      initialRoute: '/product',
       routes: {
         '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
@@ -46,6 +48,7 @@ class MyApp extends StatelessWidget {
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
         '/cart': (context) => const MyCart(),
+        '/product': (context) => const ProductDetailScreen(),
       },
     );
   }
