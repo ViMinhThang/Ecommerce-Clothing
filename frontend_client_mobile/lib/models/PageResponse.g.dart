@@ -11,10 +11,10 @@ PageResponse<T> _$PageResponseFromJson<T>(
   T Function(Object? json) fromJsonT,
 ) => PageResponse<T>(
   content: (json['content'] as List<dynamic>).map(fromJsonT).toList(),
-  totalElements: (json['totalElements'] as num?)?.toInt() ?? 0,
-  totalPages: (json['totalPages'] as num?)?.toInt() ?? 0,
-  size: (json['size'] as num?)?.toInt() ?? 0,
-  number: (json['number'] as num?)?.toInt() ?? 0,
+  totalElements: (json['totalElements'] as num).toInt(),
+  totalPages: (json['totalPages'] as num).toInt(),
+  size: (json['size'] as num).toInt(),
+  number: (json['number'] as num).toInt(),
 );
 
 Map<String, dynamic> _$PageResponseToJson<T>(

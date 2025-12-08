@@ -22,6 +22,7 @@ class MaterialFilterPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             leadingWidth: 56,
+            backgroundColor: Colors.white,
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.chevron_left_rounded),

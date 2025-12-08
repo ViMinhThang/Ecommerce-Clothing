@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
+import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:frontend_client_mobile/widgets/catalog_card.dart';
 import 'package:provider/provider.dart';
 
@@ -24,13 +25,29 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           'Catalog',
-          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  opaque: false,
+                  barrierDismissible: true,
+                  barrierColor: Colors.transparent,
+                  pageBuilder: (_, __, ___) => const SearchScreen.categories(),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.search_rounded, color: Colors.black),
+          ),
         ],
       ),
       body: Consumer<CategoryProvider>(

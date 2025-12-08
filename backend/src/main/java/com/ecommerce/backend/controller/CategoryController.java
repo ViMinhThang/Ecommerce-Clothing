@@ -1,6 +1,7 @@
 package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.CategoryDTO;
+import com.ecommerce.backend.dto.view.CategoryView;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +61,9 @@ public class CategoryController {
     public ResponseEntity<String> uploadCategoryImage(@RequestParam("image") MultipartFile imageFile) {
         String imageUrl = categoryService.uploadCategoryImage(imageFile);
         return ResponseEntity.ok(imageUrl);
+    }
+    @GetMapping("/searchByName")
+    public ResponseEntity<List<CategoryView>> searchByName(@RequestParam("name") String name){
+        return ResponseEntity.ok(categoryService.searchByName(name));
     }
 }

@@ -11,3 +11,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      separator: ;; # Báo cho Spring biết chỉ cắt lệnh khi gặp 2 dấu chấm phẩy

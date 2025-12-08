@@ -1,9 +1,6 @@
 package com.ecommerce.backend.dto.view;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-public interface CategoryView {
+public interface ProductSearchView {
     long getId();
     String getName();
     String getImageUrl();
