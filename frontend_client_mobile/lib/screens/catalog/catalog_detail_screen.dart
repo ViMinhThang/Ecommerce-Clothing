@@ -23,8 +23,7 @@ class CatalogDetailScreen extends StatelessWidget {
       final fp = context.read<FilterProvider>();
       if (fp.categoryId == 0 || fp.categoryId != categoryId) {
         fp.initialize(categoryId);
-      }
-      else if (fp.productViews.isEmpty && !fp.isFiltering) {
+      } else if (fp.productViews.isEmpty && !fp.isFiltering) {
         fp.refreshProducts();
       }
     });

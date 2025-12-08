@@ -19,8 +19,23 @@ class ProductVariant {
     required this.color,
   });
 
-  factory ProductVariant.fromJson(Map<String, dynamic> json) =>
-      _$ProductVariantFromJson(json);
+  factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    final priceJson = json['price'];
+    final sizeJson = json['size'];
+    final colorJson = json['color'];
+    return ProductVariant(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      price: priceJson is Map<String, dynamic>
+          ? Price.fromJson(priceJson)
+          : Price(id: 0, basePrice: 0, salePrice: 0),
+      size: sizeJson is Map<String, dynamic>
+          ? Size.fromJson(sizeJson)
+          : Size(id: 0, sizeName: '', status: ''),
+      color: colorJson is Map<String, dynamic>
+          ? Color.fromJson(colorJson)
+          : Color(id: 0, colorName: '', status: '', colorCode: ''),
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {

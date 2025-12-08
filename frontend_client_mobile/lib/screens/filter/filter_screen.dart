@@ -44,14 +44,15 @@ class _FiltersPageState extends State<FiltersPage> {
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 56,
+        backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.chevron_left_rounded),
+          icon: const Icon(Icons.chevron_left_rounded, color: Colors.black),
         ),
         centerTitle: true,
         title: const Text(
           'Filters',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
           Consumer<FilterProvider>(

@@ -1,6 +1,8 @@
 package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.ProductRequest;
+import com.ecommerce.backend.dto.view.CategoryView;
+import com.ecommerce.backend.dto.view.ProductSearchView;
 import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.model.Product;
 import com.ecommerce.backend.service.ProductService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -69,6 +72,14 @@ public class ProductController {
         Pageable pageable =  PageRequest.of(pageIndex,pageSize);
         Page<ProductView> res = productService.getProductsByCategory(categoryId,"active", pageable);
         return response(res);
+    }
+    @GetMapping("/searchByName")
+    public ResponseEntity<List<ProductSearchView>> searchByName(@RequestParam("name") String name){
+        return ResponseEntity.ok(productService.searchByName(name));
+    }
+    @GetMapping("/searchByNameAndCategory")
+    public ResponseEntity<List<ProductSearchView>> searchByNameAndCategory(@RequestParam("name") String name, @RequestParam("categoryId") long categoryId){
+        return ResponseEntity.ok(productService.searchByNameAndCategory(name,categoryId));
     }
 
     private ResponseEntity<Page<ProductView>> response(Page<ProductView> res){

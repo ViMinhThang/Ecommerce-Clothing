@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/category.dart';
+import 'package:frontend_client_mobile/models/category_search_result.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'category_api_service.g.dart';
@@ -27,5 +28,10 @@ abstract class CategoryApiService {
   @POST("api/categories/upload/category-image")
   Future<String> uploadCategoryImage(
     @Part(name: "image") MultipartFile imageFile,
+  );
+
+  @GET("api/categories/searchByName")
+  Future<List<CategorySearchResult>> searchCategoriesByName(
+    @Query("name") String name,
   );
 }

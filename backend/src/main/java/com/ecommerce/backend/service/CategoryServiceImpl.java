@@ -1,6 +1,7 @@
 package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.CategoryDTO;
+import com.ecommerce.backend.dto.view.CategoryView;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -74,6 +75,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Page<Category> searchCategories(String name, Pageable pageable) {
         return categoryRepository.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+    @Override
+    public List<CategoryView> searchByName(String name) {
+        return categoryRepository.searchByNameFTS(name);
     }
 
     // ==================== Private Helper Methods ====================

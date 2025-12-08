@@ -3,6 +3,7 @@ package com.ecommerce.backend.service;
 import com.ecommerce.backend.dto.PriceRequest;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.ProductVariantRequest;
+import com.ecommerce.backend.dto.view.ProductSearchView;
 import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.model.*;
 import com.ecommerce.backend.repository.*;
@@ -97,6 +98,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public FilterView getFilterAttributes(long categoryId) {
         return productVariantRepository.findFilterAttributesByCategory(categoryId);
+    }
+
+    @Override
+    public List<ProductSearchView> searchByName(String name) {
+        return productRepository.searchByName(name);
+    }
+
+    @Override
+    public List<ProductSearchView> searchByNameAndCategory(String name, long categoryId) {
+        return productRepository.searchByNameAndCategory(name,categoryId);
     }
 
     // ==================== Private Helper Methods ====================

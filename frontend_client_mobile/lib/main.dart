@@ -5,12 +5,12 @@ import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/providers/order_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
-
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
@@ -33,6 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => OrderProvider()),
         ChangeNotifierProvider(create: (context) => DashboardProvider()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => SearchProvider()),
       ],
       child: const MyApp(),
     ),
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'E-Commerce Admin',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/dashboard',
+      initialRoute: '/home',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
