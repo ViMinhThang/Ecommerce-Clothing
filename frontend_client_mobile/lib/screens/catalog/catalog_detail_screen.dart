@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/widgets/product_card.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -34,7 +35,10 @@ class CatalogDetailScreen extends StatelessWidget {
         leadingWidth: 56,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -68,13 +72,28 @@ class CatalogDetailScreen extends StatelessWidget {
       body: Builder(
         builder: (context) {
           if (filterProvider.isLoading && filterProvider.productViews.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(8),
+                  sliver: SliverGrid.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    children: List.generate(
+                      6,
+                      (index) => const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: ProductCardSkeleton(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
           }
-
           if (filterProvider.productViews.isEmpty) {
             return const Center(child: Text('No products found'));
           }
-
           return CustomScrollView(
             slivers: [
               // Thanh filter/sort dạng chips

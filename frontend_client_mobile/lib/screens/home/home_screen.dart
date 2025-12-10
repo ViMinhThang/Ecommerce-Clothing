@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/widgets/product_card.dart';
+import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
+import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,24 +55,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onCategorySelected(int index, int categoryId) {
-    if (_selectedCategoryIndex == index)
-      return; // Bấm lại cái đang chọn thì bỏ qua
+    if (_selectedCategoryIndex == index) return;
 
     setState(() {
-      _selectedCategoryIndex = index; // Cập nhật UI (dấu chấm đen)
-      _selectedCategoryId = categoryId; // Lưu lại ID để dùng cho load more
+      _selectedCategoryIndex = index;
+      _selectedCategoryId = categoryId;
     });
 
-    // Gọi Provider reset list và load mới
-    context.read<ProductProvider>().fetchProductsByCategory(
-      categoryId,
-      isRefresh: true,
-    );
+    final p = context.read<ProductProvider>();
 
-    // (Tuỳ chọn) Cuộn lên đầu trang khi đổi category
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(0);
-    }
+    // Clear và bật loading ngay để kích hoạt skeleton
+    p.prepareForCategory(categoryId); // phương thức mới, xem dưới
+    p.fetchProductsByCategory(categoryId, isRefresh: true);
+
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
   }
 
   @override
@@ -164,9 +162,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Consumer<CategoryProvider>(
                           builder: (context, categoryProvider, child) {
-                            // 1. Check trạng thái Loading
                             if (categoryProvider.isLoading) {
-                              return Center(child: CircularProgressIndicator());
+                              // Hiển thị shimmer skeleton list
+                              return SizedBox(
+                                height: 40, // Đúng chiều cao card category thật
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: 6, // số skeleton bạn muốn
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: 8),
+                                  itemBuilder: (_, __) =>
+                                      const CategorySkeleton(),
+                                ),
+                              );
                             }
                             return Row(
                               children: [
@@ -182,7 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       });
                                       context
                                           .read<ProductProvider>()
-                                          .initialize();
+                                          .prepareForCategory(0);
+                                      context
+                                          .read<ProductProvider>()
+                                          .fetchProducts(refresh: true);
                                     },
                                   ),
                                 ),
@@ -214,11 +225,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // 3. Product Grid
                 if (productProvider.isLoading &&
                     productProvider.products.isEmpty)
-                  const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
+                  SliverGrid.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    children: List.generate(
+                      6,
+                      (index) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const ProductCardSkeleton(),
+                      ),
+                    ),
                   ),
                 if (_selectedCategoryIndex == 0)
                   SliverPadding(
@@ -281,7 +299,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                // 4. Loading indicator at bottom for infinite scroll
                 if (productProvider.isMoreLoading)
                   const SliverToBoxAdapter(
                     child: Padding(

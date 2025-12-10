@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:frontend_client_mobile/widgets/catalog_card.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key});
@@ -53,7 +54,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
       body: Consumer<CategoryProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return SliverGrid.count(
+              crossAxisCount: 2,
+              childAspectRatio: 0.7,
+              children: List.generate(
+                6,
+                (index) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const CategorySkeleton(),
+                ),
+              ),
+            );
           }
           if (provider.categories.isEmpty) {
             return const Center(

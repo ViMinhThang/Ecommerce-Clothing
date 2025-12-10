@@ -7,8 +7,8 @@ import '../services/product_service.dart';
 
 class ProductProvider with ChangeNotifier {
   final ProductService _productService = ProductService();
-  List<Product> _products = []; 
-  List<ProductView> _productViews = []; 
+  List<Product> _products = [];
+  List<ProductView> _productViews = [];
 
   bool _isLoading = false; // Loading to (giữa màn hình)
   bool _isMoreLoading = false; // Loading nhỏ (dưới đáy)
@@ -31,8 +31,11 @@ class ProductProvider with ChangeNotifier {
   bool get hasMore => _hasMore;
   Future<void> initialize() async {
     if (_isLoading) return;
-    await fetchProducts();
     _isLoading = true;
+    notifyListeners();
+    await fetchProducts(
+      refresh: true,
+    ); // hoặc fetchProducts(), nhưng để refresh=true cho sạch
   }
 
   Future<void> fetchProducts({bool refresh = false}) async {
@@ -41,11 +44,24 @@ class ProductProvider with ChangeNotifier {
       _products = [];
       _totalPages = 0;
       _isLoading = true;
+      _isMoreLoading = false;
+      _hasMore = true;
       notifyListeners();
     } else {
-      if (_isMoreLoading || !hasMore && _products.isNotEmpty) return;
-      _isMoreLoading = true;
-      notifyListeners();
+      // Nếu đang load-more hoặc hết hàng -> nghỉ
+      if (_isMoreLoading || (!_hasMore && _products.isNotEmpty)) return;
+
+      if (_products.isEmpty) {
+        // Lần load đầu (initial) nhưng không refresh
+        _isLoading = true;
+        _isMoreLoading = false;
+        notifyListeners();
+      } else {
+        // Load-more thật sự
+        _isMoreLoading = true;
+        _isLoading = false;
+        notifyListeners();
+      }
     }
 
     try {
@@ -55,7 +71,7 @@ class ProductProvider with ChangeNotifier {
         size: _pageSize,
       );
 
-      if (refresh) {
+      if (refresh || _products.isEmpty) {
         _products = response.content;
       } else {
         _products.addAll(response.content);
@@ -64,13 +80,12 @@ class ProductProvider with ChangeNotifier {
       _totalPages = response.totalPages;
       _currentPage++;
 
-      print(
-        'Fetched products: ${_products.length}, Page: $_currentPage/$_totalPages',
-      );
+      if (response.content.length < _pageSize) {
+        _hasMore = false;
+      }
     } catch (e, stack) {
       print(e);
       print(stack);
-      // Handle error
     } finally {
       _isLoading = false;
       _isMoreLoading = false;
@@ -198,5 +213,16 @@ class ProductProvider with ChangeNotifier {
 
   void loadMoreByCategory(int selectedCategoryId) {
     fetchProductsByCategory(selectedCategoryId, isRefresh: false);
+  }
+
+  void prepareForCategory(int categoryId) {
+    _currentCategoryId = categoryId;
+    _products = [];
+    _productViews = [];
+    _currentPage = 0;
+    _hasMore = true;
+    _isLoading = true; // bật loading lớn
+    _isMoreLoading = false; // tắt loading nhỏ
+    notifyListeners();
   }
 }
