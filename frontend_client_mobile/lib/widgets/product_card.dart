@@ -55,14 +55,12 @@ class ProductCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-
-          // 2. Price and Wishlist Heart Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 product
-                    .priceDisplayText, // Uses the getter from your Product model
+                    .priceDisplayText,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -71,7 +69,6 @@ class ProductCard extends StatelessWidget {
               ),
               InkWell(
                 onTap: () {
-                  // Handle wishlist toggle here
                 },
                 child: const Icon(
                   Icons.favorite_border, // Outline heart like the image
