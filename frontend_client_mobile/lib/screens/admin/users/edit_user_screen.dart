@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:provider/provider.dart';
 
 import '../../../config/theme_config.dart';
@@ -115,7 +117,10 @@ class _EditUserScreenState
       });
       showSuccessMessage();
     } catch (e) {
-      if (mounted) showErrorMessage(e.toString());
+      final msg = e is DioException && e.error is AppHttpException
+          ? e.error.toString()
+          : 'Có lỗi xảy ra';
+      if (mounted) showErrorMessage(msg);
     } finally {
       if (mounted) setState(() => isSaving = false);
     }
