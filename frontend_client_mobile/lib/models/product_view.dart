@@ -1,5 +1,6 @@
-
 import 'package:json_annotation/json_annotation.dart';
+
+part 'product_view.g.dart';
 
 @JsonSerializable()
 class ProductView {

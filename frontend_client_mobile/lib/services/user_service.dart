@@ -42,19 +42,19 @@ class UserService {
       _api.updateUser(id, request);
 
   Future<void> deleteUser(int id) => _api.deleteUser(id);
-}
-  final UserApiService _apiService = ApiClient.getUserApiService();
+
+  // Merged methods from conflict section (Using _api instead of _apiService)
 
   Future<User> getUser(int id) async {
-    return await _apiService.getUser(id);
+    return await _api.getUser(id);
   }
 
-  Future<User> updateUser(int id, User user) async {
-    return await _apiService.updateUser(id, user);
+  Future<User> updateUserAvatar(int id, User user) async {
+    // Renamed to avoid conflict
+    return await _api.updateUser(id, user);
   }
 
   Future<User> uploadAvatar(int id, File avatar) async {
-    return await _apiService.uploadAvatar(id, avatar);
+    return await _api.uploadAvatar(id, avatar);
   }
 }
-
