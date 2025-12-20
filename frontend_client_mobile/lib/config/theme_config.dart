@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 /// Elegant black and white theme configuration with Glassmorphism support
 class AppTheme {
@@ -39,21 +38,21 @@ class AppTheme {
   );
 
   // State Colors
-  static Color hoverOverlay = primaryBlack.withOpacity(0.05);
-  static Color pressedOverlay = primaryBlack.withOpacity(0.1);
+  static Color hoverOverlay = primaryBlack.withValues(alpha: 0.05);
+  static Color pressedOverlay = primaryBlack.withValues(alpha: 0.1);
   static Color disabledBackground = veryLightGray;
   static Color disabledText = lightGray;
 
   // Glassmorphism
   static const double glassBlurStrength = 16.0;
   static const double glassOpacity = 0.7;
-  static Color glassTint = primaryWhite.withOpacity(glassOpacity);
-  static Color glassBorder = primaryWhite.withOpacity(0.5);
+  static Color glassTint = primaryWhite.withValues(alpha: glassOpacity);
+  static Color glassBorder = primaryWhite.withValues(alpha: 0.5);
 
   static BoxDecoration glassDecoration = BoxDecoration(
-    color: primaryWhite.withOpacity(0.7),
+    color: primaryWhite.withValues(alpha: 0.7),
     borderRadius: BorderRadius.circular(radiusLG),
-    border: Border.all(color: primaryWhite.withOpacity(0.5), width: 1.5),
+    border: Border.all(color: primaryWhite.withValues(alpha: 0.5), width: 1.5),
     boxShadow: shadowGlass,
   );
 
@@ -82,7 +81,7 @@ class AppTheme {
   // Shadows
   static List<BoxShadow> shadowSM = [
     BoxShadow(
-      color: primaryBlack.withOpacity(0.05),
+      color: primaryBlack.withValues(alpha: 0.05),
       blurRadius: 4,
       offset: const Offset(0, 2),
     ),
@@ -90,7 +89,7 @@ class AppTheme {
 
   static List<BoxShadow> shadowMD = [
     BoxShadow(
-      color: primaryBlack.withOpacity(0.08),
+      color: primaryBlack.withValues(alpha: 0.08),
       blurRadius: 12,
       offset: const Offset(0, 6),
     ),
@@ -98,7 +97,7 @@ class AppTheme {
 
   static List<BoxShadow> shadowLG = [
     BoxShadow(
-      color: primaryBlack.withOpacity(0.12),
+      color: primaryBlack.withValues(alpha: 0.12),
       blurRadius: 24,
       offset: const Offset(0, 12),
     ),
@@ -106,7 +105,7 @@ class AppTheme {
 
   static List<BoxShadow> shadowGlass = [
     BoxShadow(
-      color: primaryBlack.withOpacity(0.05),
+      color: primaryBlack.withValues(alpha: 0.05),
       blurRadius: 16,
       offset: const Offset(0, 8),
       spreadRadius: -4,

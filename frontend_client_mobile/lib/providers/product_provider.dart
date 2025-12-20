@@ -10,10 +10,9 @@ class ProductProvider with ChangeNotifier {
   List<Product> _products = [];
   List<ProductView> _productViews = [];
 
-  bool _isLoading = false; // Loading to (giữa màn hình)
-  bool _isMoreLoading = false; // Loading nhỏ (dưới đáy)
+  bool _isLoading = false;
+  bool _isMoreLoading = false;
   int _currentPage = 0;
-  int _totalPages = 0;
   final int _pageSize = 10;
   String _searchQuery = '';
 
@@ -21,43 +20,35 @@ class ProductProvider with ChangeNotifier {
 
   int _currentCategoryId = 0;
 
-  // --- GETTERS ---
   List<Product> get products => _products;
   List<ProductView> get productViews => _productViews;
   bool get isLoading => _isLoading;
   bool get isMoreLoading => _isMoreLoading;
 
-  // SỬA GETTER NÀY: Trả về biến _hasMore thay vì tính toán
   bool get hasMore => _hasMore;
   Future<void> initialize() async {
     if (_isLoading) return;
     _isLoading = true;
     notifyListeners();
-    await fetchProducts(
-      refresh: true,
-    ); // hoặc fetchProducts(), nhưng để refresh=true cho sạch
+    await fetchProducts(refresh: true);
   }
 
   Future<void> fetchProducts({bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
       _products = [];
-      _totalPages = 0;
       _isLoading = true;
       _isMoreLoading = false;
       _hasMore = true;
       notifyListeners();
     } else {
-      // Nếu đang load-more hoặc hết hàng -> nghỉ
       if (_isMoreLoading || (!_hasMore && _products.isNotEmpty)) return;
 
       if (_products.isEmpty) {
-        // Lần load đầu (initial) nhưng không refresh
         _isLoading = true;
         _isMoreLoading = false;
         notifyListeners();
       } else {
-        // Load-more thật sự
         _isMoreLoading = true;
         _isLoading = false;
         notifyListeners();
@@ -77,15 +68,14 @@ class ProductProvider with ChangeNotifier {
         _products.addAll(response.content);
       }
 
-      _totalPages = response.totalPages;
       _currentPage++;
 
       if (response.content.length < _pageSize) {
         _hasMore = false;
       }
     } catch (e, stack) {
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
     } finally {
       _isLoading = false;
       _isMoreLoading = false;
@@ -113,8 +103,8 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     } catch (e, stack) {
       // Handle error
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
     }
   }
 
@@ -131,8 +121,8 @@ class ProductProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e, stack) {
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
     }
   }
 
@@ -150,32 +140,25 @@ class ProductProvider with ChangeNotifier {
     int categoryId, {
     bool isRefresh = false,
   }) async {
-    // --- GIAI ĐOẠN 1: THIẾT LẬP TRẠNG THÁI (SETUP) ---
-
-    // TRƯỜNG HỢP 1: Reset / Đổi Category / Refresh
     if (isRefresh || categoryId != _currentCategoryId) {
       _currentPage = 0;
-      _productViews = []; // Xóa list cũ ngay
+      _productViews = [];
       _currentCategoryId = categoryId;
-      _hasMore = true; // QUAN TRỌNG: Phải reset cái này về true
+      _hasMore = true;
 
-      _isLoading = true; // Bật loading to
-      _isMoreLoading = false; // Tắt loading nhỏ
+      _isLoading = true;
+      _isMoreLoading = false;
       notifyListeners();
-    }
-    // TRƯỜNG HỢP 2: Load more (Kéo xuống đáy)
-    else {
-      // Chốt chặn (Guard Clause): Nếu đang load hoặc hết hàng thì nghỉ
+    } else {
       if (_isMoreLoading || !hasMore) {
         return;
       }
 
-      _isLoading = false; // Đảm bảo loading to đang tắt
-      _isMoreLoading = true; // Bật loading nhỏ
+      _isLoading = false;
+      _isMoreLoading = true;
       notifyListeners();
     }
 
-    // --- GIAI ĐOẠN 2: GỌI API (CHUNG CHO CẢ 2 TRƯỜNG HỢP) ---
     try {
       var res = await _productService.getProductsByCategory(
         categoryId,
@@ -183,28 +166,20 @@ class ProductProvider with ChangeNotifier {
         _pageSize,
       );
 
-      // Xử lý dữ liệu trả về
       if (res.content.isNotEmpty) {
-        // Logic nối list:
-        // Vì ở TRƯỜNG HỢP 1 ta đã gán _productViews = [] rồi,
-        // nên dùng addAll ở đây là an toàn cho cả 2 trường hợp.
         _productViews.addAll(res.content);
 
-        _currentPage++; // Tăng page
-        _totalPages = res.totalPages;
+        _currentPage++;
 
-        // Cập nhật hasMore
         if (res.content.length < _pageSize) {
           _hasMore = false;
         }
       } else {
-        // Nếu content rỗng -> hết dữ liệu
         _hasMore = false;
       }
     } catch (e) {
-      print("Lỗi load product: $e");
+      debugPrint("Lỗi load product: $e");
     } finally {
-      // --- GIAI ĐOẠN 3: DỌN DẸP ---
       _isLoading = false;
       _isMoreLoading = false;
       notifyListeners();
@@ -221,8 +196,8 @@ class ProductProvider with ChangeNotifier {
     _productViews = [];
     _currentPage = 0;
     _hasMore = true;
-    _isLoading = true; // bật loading lớn
-    _isMoreLoading = false; // tắt loading nhỏ
+    _isLoading = true;
+    _isMoreLoading = false;
     notifyListeners();
   }
 }

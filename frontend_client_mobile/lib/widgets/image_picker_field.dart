@@ -17,13 +17,6 @@ class ImagePickerField extends StatelessWidget {
     required this.onPickImage,
     this.label = 'IMAGE',
   });
-  String _fixImageUrl(String url) {
-    if (kIsWeb && url.contains("10.0.2.2")) {
-      return url.replaceAll("10.0.2.2", "localhost");
-    }
-    print('Fixed image URL: $url');
-    return url;
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
@@ -29,14 +28,12 @@ class EditProductViewModel extends ChangeNotifier {
 
   bool get isEditing => existingProduct != null;
 
-  // Controllers
   late final TextEditingController nameController = TextEditingController(
     text: existingProduct?.name ?? '',
   );
   late final TextEditingController descriptionController =
       TextEditingController(text: existingProduct?.description ?? '');
 
-  // State
   Category? _selectedCategory;
   XFile? _selectedImage;
   List<ProductVariant> _variants = [];
@@ -57,7 +54,6 @@ class EditProductViewModel extends ChangeNotifier {
   List<product_color.Color> get colors => colorProvider.colors;
   List<Size> get sizes => sizeProvider.sizes;
 
-  // Setters with change notification
   set selectedCategory(Category? value) {
     if (_selectedCategory != value) {
       _selectedCategory = value;
@@ -72,7 +68,6 @@ class EditProductViewModel extends ChangeNotifier {
     }
   }
 
-  // Constants
   static const double defaultPrice = 0.0;
 
   Future<void> initialize() async {

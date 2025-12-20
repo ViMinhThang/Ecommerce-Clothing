@@ -67,7 +67,6 @@ class _EditCategoryScreenState
     );
     String? imageUrlToSave = _currentImageUrl;
 
-    // Upload image if a new one is selected
     if (_selectedImage != null) {
       imageUrlToSave = await categoryProvider.uploadCategoryImage(
         _selectedImage!,

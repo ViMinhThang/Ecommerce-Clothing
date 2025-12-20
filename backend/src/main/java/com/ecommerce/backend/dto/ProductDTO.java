@@ -1,6 +1,5 @@
 package com.ecommerce.backend.dto;
 
-import com.ecommerce.backend.model.Category;
 import lombok.*;
 
 @Data

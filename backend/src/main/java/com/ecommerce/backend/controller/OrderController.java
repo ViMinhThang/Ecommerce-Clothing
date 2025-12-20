@@ -22,26 +22,30 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
-    private static final Set<String> ALLOWED_SORT_FIELDS =
-            Set.of("createdDate", "totalPrice", "status");
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdDate", "totalPrice", "status");
+
     @GetMapping
     public ResponseEntity<Page<OrderView>> getOrders(
             Pageable pageable,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "createdDate") String sortBy,
-            @RequestParam(defaultValue = "DESC") String direction
-    ) {
-        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
-            sortBy = "createdDate";
+            @RequestParam(defaultValue = "DESC") String direction) {
+        String sortField = (sortBy != null && ALLOWED_SORT_FIELDS.contains(sortBy)) ? sortBy : "createdDate";
+        Sort.Direction sortDirection = Sort.Direction.DESC;
+        if (direction != null) {
+            try {
+                sortDirection = Sort.Direction.fromString(direction);
+            } catch (IllegalArgumentException e) {
+                // Keep default DESC if invalid direction provided
+            }
         }
 
-        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Sort sort = Sort.by(sortDirection, sortField);
         Pageable pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        Page<OrderView> result =
-                (status == null || status.isBlank())
-                        ? orderService.getAllOrders(pageRequest)
-                        : orderService.getAllOrdersByStatus(status, pageRequest);
+        Page<OrderView> result = (status == null || status.isBlank())
+                ? orderService.getAllOrders(pageRequest)
+                : orderService.getAllOrdersByStatus(status, pageRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -57,7 +61,9 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody OrderDTO OrderDTO) { // Changed parameter to OrderDTO
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody OrderDTO OrderDTO) { // Changed
+                                                                                                      // parameter to
+                                                                                                      // OrderDTO
         Order updatedOrder = orderService.updateOrder(id, OrderDTO);
         return ResponseEntity.ok(updatedOrder);
     }
@@ -67,8 +73,9 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/statistics")
-    public ResponseEntity<OrderStatistics> statistics(){
+    public ResponseEntity<OrderStatistics> statistics() {
         return ResponseEntity.ok(orderService.orderStatistics());
     }
 
