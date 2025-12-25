@@ -69,6 +69,6 @@ class ProductService {
   }
 
   Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
-    return null!;
+    return null;
   }
 }

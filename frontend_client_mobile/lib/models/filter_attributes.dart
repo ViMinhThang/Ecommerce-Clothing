@@ -16,7 +16,7 @@ class FilterResponse {
   });
 
   factory FilterResponse.fromJson(Map<String, dynamic> json) {
-    List<String> _safeStringList(dynamic v) {
+    List<String> safeStringList(dynamic v) {
       if (v == null) return const [];
       if (v is List) {
         return v.where((e) => e != null).map((e) => e.toString()).toList();
@@ -34,10 +34,10 @@ class FilterResponse {
 
     return FilterResponse(
       // dùng *List thay vì field string gộp
-      sizes: _safeStringList(json['sizeList']),
-      materials: _safeStringList(json['materialList']),
-      colors: _safeStringList(json['colorList']),
-      seasons: _safeStringList(json['seasonList']),
+      sizes: safeStringList(json['sizeList']),
+      materials: safeStringList(json['materialList']),
+      colors: safeStringList(json['colorList']),
+      seasons: safeStringList(json['seasonList']),
       minPrice: (json['minPrice'] as num?)?.toDouble() ?? 0.0,
       maxPrice: (json['maxPrice'] as num?)?.toDouble() ?? 0.0,
     );

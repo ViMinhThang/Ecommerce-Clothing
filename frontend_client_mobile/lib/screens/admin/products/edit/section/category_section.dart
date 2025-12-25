@@ -50,7 +50,7 @@ class CategorySection extends StatelessWidget {
                 );
               }
               return DropdownButtonFormField<Category>(
-                value: viewModel.selectedCategory,
+                initialValue: viewModel.selectedCategory,
                 onChanged: (value) => viewModel.selectedCategory = value,
                 items: provider.categories
                     .map<DropdownMenuItem<Category>>(

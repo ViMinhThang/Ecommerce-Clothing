@@ -108,7 +108,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
               ),
               const SizedBox(height: AppTheme.spaceMD),
               DropdownButtonFormField<String>(
-                value: _status,
+                initialValue: _status,
                 decoration: _inputDecoration('Status'),
                 items: const [
                   DropdownMenuItem(value: 'pending', child: Text('Pending')),

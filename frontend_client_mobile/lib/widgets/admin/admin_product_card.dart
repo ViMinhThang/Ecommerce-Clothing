@@ -101,7 +101,7 @@ class _AdminProductCardState extends State<AdminProductCard> {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: AppTheme.spaceXS),
-        if (widget.product.category != null) _buildCategoryChip(),
+        _buildCategoryChip(),
         const SizedBox(height: AppTheme.spaceSM),
         Text(
           widget.product.priceDisplayText,
@@ -128,7 +128,7 @@ class _AdminProductCardState extends State<AdminProductCard> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        widget.product.category!.name,
+        widget.product.category.name,
         style: AppTheme.caption.copyWith(
           color: AppTheme.mediumGray,
           fontSize: 11,
@@ -153,7 +153,7 @@ class _AdminProductCardState extends State<AdminProductCard> {
         Text('•', style: TextStyle(color: AppTheme.lightGray)),
         const SizedBox(width: AppTheme.spaceSM),
         Text(
-          '${widget.product.variants?.length ?? 0} variants',
+          '${widget.product.variants.length ?? 0} variants',
           style: AppTheme.caption.copyWith(
             fontSize: 11,
             color: AppTheme.mediumGray,

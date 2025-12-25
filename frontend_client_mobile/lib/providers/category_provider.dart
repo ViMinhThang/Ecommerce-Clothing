@@ -52,7 +52,6 @@ class CategoryProvider with ChangeNotifier {
 
       _hasMore = newCategories.length == _pageSize;
       if (_hasMore) _currentPage++;
-    } catch (e) {
     } finally {
       _isLoading = false;
       _isFetchingMore = false;

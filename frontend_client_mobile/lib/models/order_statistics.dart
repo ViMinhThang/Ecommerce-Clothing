@@ -16,25 +16,25 @@ class OrderStatistics {
   final double totalPriceByMonth;
 
   factory OrderStatistics.fromJson(Map<String, dynamic> json) {
-    double _toDouble(dynamic value) {
+    double toDouble(dynamic value) {
       if (value == null) return 0;
       if (value is num) return value.toDouble();
       return double.tryParse(value.toString()) ?? 0;
     }
 
-    int _toInt(dynamic value) {
+    int toInt(dynamic value) {
       if (value == null) return 0;
       if (value is num) return value.toInt();
       return int.tryParse(value.toString()) ?? 0;
     }
 
     return OrderStatistics(
-      totalOrderByDay: _toInt(json['totalOrderByDay']),
-      totalPriceByDay: _toDouble(json['totalPriceByDay']),
-      totalOrderByWeek: _toInt(json['totalOrderByWeek']),
-      totalPriceByWeek: _toDouble(json['totalPriceByWeek']),
-      totalOrderByMonth: _toInt(json['totalOrderByMonth']),
-      totalPriceByMonth: _toDouble(json['totalPriceByMonth']),
+      totalOrderByDay: toInt(json['totalOrderByDay']),
+      totalPriceByDay: toDouble(json['totalPriceByDay']),
+      totalOrderByWeek: toInt(json['totalOrderByWeek']),
+      totalPriceByWeek: toDouble(json['totalPriceByWeek']),
+      totalOrderByMonth: toInt(json['totalOrderByMonth']),
+      totalPriceByMonth: toDouble(json['totalPriceByMonth']),
     );
   }
 

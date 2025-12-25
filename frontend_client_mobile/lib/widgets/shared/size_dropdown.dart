@@ -20,7 +20,7 @@ class SizeDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<models.Size>(
-      value: value,
+      initialValue: value,
       items: items.map(_buildDropdownItem).toList(),
       onChanged: onChanged,
       decoration: _buildInputDecoration(),

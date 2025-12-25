@@ -73,8 +73,6 @@ class MyApp extends StatelessWidget {
           onPrimary: AppTheme.primaryWhite,
           secondary: AppTheme.primaryBlack,
           onSecondary: AppTheme.primaryWhite,
-          background: AppTheme.background,
-          onBackground: AppTheme.primaryBlack,
           surface: AppTheme.primaryWhite,
           onSurface: AppTheme.primaryBlack,
           error: Colors.red,
