@@ -13,7 +13,7 @@ class RoleService {
     final data = response.data;
     if (data is List) {
       return data
-          .where((item) => item is Map)
+          .whereType<Map>()
           .map(
             (item) => RoleView.fromJson(Map<String, dynamic>.from(item as Map)),
           )

@@ -69,7 +69,6 @@ class ProductService {
   }
 
   Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
-    // final response = await _apiService.filterProduct(categoryId);
-    return null!;
+    return null;
   }
 }

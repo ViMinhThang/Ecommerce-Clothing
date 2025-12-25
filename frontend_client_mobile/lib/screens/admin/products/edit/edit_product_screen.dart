@@ -39,10 +39,7 @@ class _EditProductScreenState
   IconData getSectionIcon() => Icons.inventory_2_outlined;
 
   @override
-  void initializeForm() {
-    // ViewModel initialization is deferred to didChangeDependencies
-    // because it needs access to providers
-  }
+  void initializeForm() {}
 
   @override
   void didChangeDependencies() {
@@ -74,11 +71,9 @@ class _EditProductScreenState
     await _viewModel.saveProduct();
   }
 
-  // Override build to add WillPopScope and ViewModel provider
   @override
   Widget build(BuildContext context) {
     if (!_viewModelInitialized) {
-      // Return placeholder until viewModel is initialized
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -124,7 +119,6 @@ class _EditProductScreenState
     );
   }
 
-  // Override buildFormBody to add loading overlay
   @override
   Widget buildFormBody() {
     return Stack(
@@ -135,7 +129,6 @@ class _EditProductScreenState
     );
   }
 
-  // Override buildFormFields to use the ProductForm sections
   @override
   Widget buildFormFields() {
     return Consumer<EditProductViewModel>(
@@ -144,17 +137,13 @@ class _EditProductScreenState
     );
   }
 
-  // Override buildActionButtons - ProductForm has its own action buttons
   @override
   Widget buildActionButtons() {
-    // Return empty container since ProductForm includes ActionButtonsSection
     return const SizedBox.shrink();
   }
 
-  // Override to customize section header
   @override
   Widget buildSectionHeader() {
-    // Return empty since ProductForm manages its own sections
     return const SizedBox.shrink();
   }
 }

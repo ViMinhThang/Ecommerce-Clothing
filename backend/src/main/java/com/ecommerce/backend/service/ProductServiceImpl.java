@@ -25,10 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Service implementation for Product operations.
- * Handles CRUD operations, filtering, and image upload for products.
- */
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -112,17 +109,11 @@ public class ProductServiceImpl implements ProductService {
 
     // ==================== Private Helper Methods ====================
 
-    /**
-     * Finds a product by ID or throws EntityNotFoundException
-     */
     private Product findProductOrThrow(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
-    /**
-     * Builds a Product entity from the request, handling all related entities
-     */
     private Product buildProductFromRequest(Product product, ProductRequest request, MultipartFile image)
             throws IOException {
         updateBasicFields(product, request);
@@ -132,17 +123,12 @@ public class ProductServiceImpl implements ProductService {
         return product;
     }
 
-    /**
-     * Updates product's basic fields (name, description)
-     */
     private void updateBasicFields(Product product, ProductRequest request) {
         product.setName(request.getName());
         product.setDescription(request.getDescription());
     }
 
-    /**
-     * Handles image upload and updates product's imageUrl
-     */
+
     private void handleImageUpload(Product product, MultipartFile image) throws IOException {
         if (isValidImage(image)) {
             String imageUrl = saveImage(image);
@@ -150,16 +136,12 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Checks if the provided image is valid for upload
-     */
+
     private boolean isValidImage(MultipartFile image) {
         return image != null && !image.isEmpty();
     }
 
-    /**
-     * Assigns a category to the product if categoryId is provided
-     */
+
     private void assignCategory(Product product, Long categoryId) {
         if (categoryId != null) {
             Category category = findCategoryOrThrow(categoryId);
@@ -167,17 +149,13 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Finds a category by ID or throws EntityNotFoundException
-     */
+
     private Category findCategoryOrThrow(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
     }
 
-    /**
-     * Creates and adds variants to the product
-     */
+
     private void createVariants(Product product, List<ProductVariantRequest> variantRequests) {
         if (variantRequests == null || variantRequests.isEmpty()) {
             return;
@@ -189,9 +167,7 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Builds a single ProductVariant from the request
-     */
+
     private ProductVariants buildVariantFromRequest(Product product, ProductVariantRequest request) {
         ProductVariants variant = new ProductVariants();
         variant.setProduct(product);
@@ -201,9 +177,6 @@ public class ProductServiceImpl implements ProductService {
         return variant;
     }
 
-    /**
-     * Assigns a color to the variant if colorId is provided
-     */
     private void assignColor(ProductVariants variant, Long colorId) {
         if (colorId != null) {
             Color color = findColorOrThrow(colorId);
@@ -211,17 +184,11 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Finds a color by ID or throws EntityNotFoundException
-     */
     private Color findColorOrThrow(Long colorId) {
         return colorRepository.findById(colorId)
                 .orElseThrow(() -> new EntityNotFoundException("Color not found with id: " + colorId));
     }
 
-    /**
-     * Assigns a size to the variant if sizeId is provided
-     */
     private void assignSize(ProductVariants variant, Long sizeId) {
         if (sizeId != null) {
             Size size = findSizeOrThrow(sizeId);
@@ -229,17 +196,13 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Finds a size by ID or throws EntityNotFoundException
-     */
+
     private Size findSizeOrThrow(Long sizeId) {
         return sizeRepository.findById(sizeId)
                 .orElseThrow(() -> new EntityNotFoundException("Size not found with id: " + sizeId));
     }
 
-    /**
-     * Creates and assigns a price to the variant
-     */
+
     private void assignPrice(ProductVariants variant, PriceRequest priceRequest) {
         if (priceRequest == null) {
             return;
@@ -250,9 +213,7 @@ public class ProductServiceImpl implements ProductService {
         variant.setPrice(savedPrice);
     }
 
-    /**
-     * Builds a Price entity from the request
-     */
+
     private Price buildPriceFromRequest(PriceRequest request) {
         Price price = new Price();
         price.setBasePrice(request.getBasePrice());
@@ -260,25 +221,19 @@ public class ProductServiceImpl implements ProductService {
         return price;
     }
 
-    /**
-     * Calculates sale price, defaulting to base price if not provided
-     */
+
     private Double calculateSalePrice(PriceRequest request) {
         return request.getSalePrice() != null
                 ? request.getSalePrice()
                 : request.getBasePrice();
     }
 
-    /**
-     * Clears existing variants before update
-     */
+
     private void clearExistingVariants(Product product) {
         product.getVariants().clear();
     }
 
-    /**
-     * Maps a Product entity to ProductView DTO
-     */
+
     private ProductView mapToProductView(Product product) {
         Optional<ProductVariants> firstVariant = product.getVariants().stream().findFirst();
         double basePrice = extractBasePrice(firstVariant);
@@ -293,9 +248,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getDescription());
     }
 
-    /**
-     * Extracts base price from variant, defaults to 0.0
-     */
+
     private double extractBasePrice(Optional<ProductVariants> variant) {
         return variant
                 .map(ProductVariants::getPrice)
@@ -303,9 +256,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElse(0.0);
     }
 
-    /**
-     * Extracts sale price from variant, defaults to 0.0
-     */
     private double extractSalePrice(Optional<ProductVariants> variant) {
         return variant
                 .map(ProductVariants::getPrice)
@@ -313,9 +263,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElse(0.0);
     }
 
-    /**
-     * Saves an image file and returns the URL
-     */
     private String saveImage(MultipartFile image) throws IOException {
         String newFilename = generateUniqueFilename(image);
         Path filePath = Paths.get(UPLOAD_DIR + newFilename);
@@ -323,18 +270,13 @@ public class ProductServiceImpl implements ProductService {
         return IMAGE_BASE_URL + newFilename;
     }
 
-    /**
-     * Generates a unique filename for uploaded images
-     */
+
     private String generateUniqueFilename(MultipartFile image) {
         String originalFilename = image.getOriginalFilename();
         String fileExtension = extractFileExtension(originalFilename);
         return UUID.randomUUID().toString() + fileExtension;
     }
 
-    /**
-     * Extracts file extension from filename
-     */
     private String extractFileExtension(String filename) {
         return filename.substring(filename.lastIndexOf("."));
     }

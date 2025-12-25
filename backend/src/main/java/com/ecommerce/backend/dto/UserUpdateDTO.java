@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,10 +18,11 @@ public class UserUpdateDTO {
     @Email(message = "email không hợp lệ")
     private String email;
     private LocalDate birthDay;
-    public User updateUser(User user){
+
+    public User updateUser(User user) {
         user.setFullName(fullName);
         user.setEmail(email);
-        if(birthDay != null){
+        if (birthDay != null) {
             user.setBirthDay(birthDay);
         }
         return user;

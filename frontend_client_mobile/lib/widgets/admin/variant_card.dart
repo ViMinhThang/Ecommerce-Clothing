@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/color.dart' as models;
-import 'package:frontend_client_mobile/models/size.dart' as models;
-import 'package:frontend_client_mobile/utils/color_utils.dart';
-import '../../../models/product_variant.dart';
+import '../../models/color.dart' as models;
+import '../../models/size.dart' as models;
+import '../../models/product_variant.dart';
+import '../shared/color_dropdown.dart';
+import '../shared/size_dropdown.dart';
+import '../shared/price_input_field.dart';
+import '../shared/removable_card.dart';
 
 class VariantCard extends StatelessWidget {
   final int index;
@@ -30,175 +33,81 @@ class VariantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFB0B0B0), // Visible mid-gray
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Stack(
+    return RemovableCard(
+      onRemove: () => onRemove(index),
+      removeTooltip: 'Remove variant',
+      child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              12,
-              24,
-              12,
-              12,
-            ), // Top padding for delete button
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<models.Color>(
-                        value: variant.color,
-                        items: colors
-                            .map(
-                              (color) => DropdownMenuItem<models.Color>(
-                                value: color,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        color: ColorUtils.getColorByName(
-                                          color.colorName,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        color.colorName,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => onColorChanged(index, value!),
-                        decoration: _inputDecoration('Color'),
-                        isExpanded: true,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<models.Size>(
-                        value: variant.size,
-                        items: sizes
-                            .map(
-                              (size) => DropdownMenuItem<models.Size>(
-                                value: size,
-                                child: Text(size.sizeName),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => onSizeChanged(index, value!),
-                        decoration: _inputDecoration('Size'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: variant.price.basePrice.toString(),
-                        decoration: _inputDecoration('Base Price'),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (value) => onBasePriceChanged(index, value),
-                        validator: (value) =>
-                            double.tryParse(value ?? '') == null
-                            ? 'Invalid'
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: variant.price.salePrice.toString(),
-                        decoration: _inputDecoration('Sale Price'),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (value) => onSalePriceChanged(index, value),
-                        validator: (value) =>
-                            double.tryParse(value ?? '') == null
-                            ? 'Invalid'
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: IconButton(
-              icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
-              splashRadius: 16,
-              tooltip: 'Remove variant',
-              onPressed: () => onRemove(index),
-            ),
-          ),
+          _buildSelectionRow(),
+          const SizedBox(height: 12),
+          _buildPriceRow(),
         ],
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: Color(0xFF6B6B6B),
-        fontWeight: FontWeight.w500,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFFB0B0B0), // Visible mid-gray
-          width: 1,
+  Widget _buildSelectionRow() {
+    final selectedColor = _findSelectedColor();
+    final selectedSize = _findSelectedSize();
+
+    return Row(
+      children: [
+        Expanded(
+          child: ColorDropdown(
+            value: selectedColor,
+            items: colors,
+            onChanged: (value) {
+              if (value != null) onColorChanged(index, value);
+            },
+          ),
         ),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFB0B0B0), width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF6B6B6B), width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 12,
-      ), // Reduced padding
-      filled: true,
-      fillColor: Colors.white,
+        const SizedBox(width: 12),
+        Expanded(
+          child: SizeDropdown(
+            value: selectedSize,
+            items: sizes,
+            onChanged: (value) {
+              if (value != null) onSizeChanged(index, value);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: PriceInputField(
+            initialValue: variant.price.basePrice.toString(),
+            label: 'Base Price',
+            onChanged: (value) => onBasePriceChanged(index, value),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: PriceInputField(
+            initialValue: variant.price.salePrice.toString(),
+            label: 'Sale Price',
+            onChanged: (value) => onSalePriceChanged(index, value),
+          ),
+        ),
+      ],
+    );
+  }
+
+  models.Color _findSelectedColor() {
+    return colors.firstWhere(
+      (c) => c.id == variant.color.id,
+      orElse: () => colors.isNotEmpty ? colors.first : variant.color,
+    );
+  }
+
+  models.Size _findSelectedSize() {
+    return sizes.firstWhere(
+      (s) => s.id == variant.size.id,
+      orElse: () => sizes.isNotEmpty ? sizes.first : variant.size,
     );
   }
 }

@@ -59,8 +59,7 @@ class ProductCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                product
-                    .priceDisplayText,
+                product.priceDisplayText,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -68,8 +67,7 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {
-                },
+                onTap: () {},
                 child: const Icon(
                   Icons.favorite_border, // Outline heart like the image
                   size: 20,
@@ -120,9 +118,9 @@ class ProductViewCard extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                child: product.imageUrl.isNotEmpty
                     ? Image.network(
-                        FileUtils.fixImgUrl(product.imageUrl!),
+                        FileUtils.fixImgUrl(product.imageUrl),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             const Center(

@@ -5,7 +5,7 @@ import 'package:frontend_client_mobile/utils/file_utils.dart';
 class CatalogCard extends StatelessWidget {
   final Category category;
   final VoidCallback? onTap;
-  const CatalogCard({required this.category, this.onTap});
+  const CatalogCard({super.key, required this.category, this.onTap});
 
   @override
   Widget build(BuildContext context) {
