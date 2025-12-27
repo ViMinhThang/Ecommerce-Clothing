@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../models/color.dart' as models;
-import '../../models/size.dart' as models;
+import 'package:frontend_client_mobile/models/color.dart' as models;
+import 'package:frontend_client_mobile/models/size.dart' as models;
+import 'package:frontend_client_mobile/utils/color_utils.dart';
+import '../../config/theme_config.dart';
 import '../../models/product_variant.dart';
-import '../shared/color_dropdown.dart';
-import '../shared/size_dropdown.dart';
-import '../shared/price_input_field.dart';
-import '../shared/removable_card.dart';
+import '../../utils/form_decorations.dart';
+import '../shared/color_dropdown_item.dart';
 
 class VariantCard extends StatelessWidget {
   final int index;
@@ -33,45 +33,77 @@ class VariantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RemovableCard(
-      onRemove: () => onRemove(index),
-      removeTooltip: 'Remove variant',
-      child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: AppTheme.borderThin,
+        boxShadow: AppTheme.shadowSM,
+      ),
+      child: Stack(
         children: [
-          _buildSelectionRow(),
-          const SizedBox(height: 12),
-          _buildPriceRow(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
+            child: Column(
+              children: [
+                _buildDropdownRow(),
+                const SizedBox(height: 12),
+                _buildPriceRow(),
+              ],
+            ),
+          ),
+          _buildRemoveButton(),
         ],
       ),
     );
   }
 
-  Widget _buildSelectionRow() {
-    final selectedColor = _findSelectedColor();
-    final selectedSize = _findSelectedSize();
-
+  Widget _buildDropdownRow() {
     return Row(
       children: [
-        Expanded(
-          child: ColorDropdown(
-            value: selectedColor,
-            items: colors,
-            onChanged: (value) {
-              if (value != null) onColorChanged(index, value);
-            },
-          ),
-        ),
+        Expanded(child: _buildColorDropdown()),
         const SizedBox(width: 12),
-        Expanded(
-          child: SizeDropdown(
-            value: selectedSize,
-            items: sizes,
-            onChanged: (value) {
-              if (value != null) onSizeChanged(index, value);
-            },
-          ),
-        ),
+        Expanded(child: _buildSizeDropdown()),
       ],
+    );
+  }
+
+  Widget _buildColorDropdown() {
+    final hasColor = colors.contains(variant.color);
+    return DropdownButtonFormField<models.Color>(
+      value: hasColor ? variant.color : null,
+      items: colors
+          .map(
+            (color) => DropdownMenuItem<models.Color>(
+              value: color,
+              child: ColorDropdownItem(
+                colorName: color.colorName,
+                color: ColorUtils.getColorByName(color.colorName),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => onColorChanged(index, value!),
+      decoration: FormDecorations.standard('Color'),
+      isExpanded: true,
+    );
+  }
+
+  Widget _buildSizeDropdown() {
+    final hasSize = sizes.contains(variant.size);
+    return DropdownButtonFormField<models.Size>(
+      value: hasSize ? variant.size : null,
+      items: sizes
+          .map(
+            (size) => DropdownMenuItem<models.Size>(
+              value: size,
+              child: Text(size.sizeName),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => onSizeChanged(index, value!),
+      decoration: FormDecorations.standard('Size'),
     );
   }
 
@@ -79,35 +111,40 @@ class VariantCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: PriceInputField(
+          child: TextFormField(
             initialValue: variant.price.basePrice.toString(),
-            label: 'Base Price',
+            decoration: FormDecorations.standard('Base Price'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (value) => onBasePriceChanged(index, value),
+            validator: (value) =>
+                double.tryParse(value ?? '') == null ? 'Invalid' : null,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: PriceInputField(
+          child: TextFormField(
             initialValue: variant.price.salePrice.toString(),
-            label: 'Sale Price',
+            decoration: FormDecorations.standard('Sale Price'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (value) => onSalePriceChanged(index, value),
+            validator: (value) =>
+                double.tryParse(value ?? '') == null ? 'Invalid' : null,
           ),
         ),
       ],
     );
   }
 
-  models.Color _findSelectedColor() {
-    return colors.firstWhere(
-      (c) => c.id == variant.color.id,
-      orElse: () => colors.isNotEmpty ? colors.first : variant.color,
-    );
-  }
-
-  models.Size _findSelectedSize() {
-    return sizes.firstWhere(
-      (s) => s.id == variant.size.id,
-      orElse: () => sizes.isNotEmpty ? sizes.first : variant.size,
+  Widget _buildRemoveButton() {
+    return Positioned(
+      top: 0,
+      right: 0,
+      child: IconButton(
+        icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
+        splashRadius: 16,
+        tooltip: 'Remove variant',
+        onPressed: () => onRemove(index),
+      ),
     );
   }
 }

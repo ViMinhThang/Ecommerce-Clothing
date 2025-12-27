@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/theme_config.dart';
 
-/// Generic list item widget for admin management screens
-/// Provides consistent styling and layout for list items across all admin modules
 class AdminListItem extends StatelessWidget {
   final Widget leading;
   final String title;

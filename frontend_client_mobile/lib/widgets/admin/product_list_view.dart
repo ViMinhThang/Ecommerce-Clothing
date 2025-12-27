@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/product.dart';
 import '../../config/theme_config.dart';
-import '../../models/product.dart';
 import '../shared/empty_state_widget.dart';
-import '../shared/list_footer_indicator.dart';
-import 'admin_product_card.dart';
+import 'product_card.dart';
 
-/// A sliver list view for displaying products with lazy loading support
 class ProductListView extends StatelessWidget {
   final List<Product> products;
   final bool isLoading;
   final bool isMoreLoading;
-  final bool hasMore;
   final Function(Product) onEdit;
   final Function(Product) onDelete;
   final ScrollController? scrollController;
@@ -22,55 +19,48 @@ class ProductListView extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.isMoreLoading = false,
-    this.hasMore = true,
     this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
     if (isLoading && products.isEmpty) {
-      return _buildLoadingState();
+      return const SliverFillRemaining(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.primaryBlack,
+            strokeWidth: 2,
+          ),
+        ),
+      );
     }
 
     if (products.isEmpty) {
-      return _buildEmptyState();
+      return const SliverFillRemaining(
+        child: EmptyStateWidget(
+          icon: Icons.inventory_2_outlined,
+          message: 'No products yet',
+          subtitle: 'Create your first product to get started',
+        ),
+      );
     }
 
-    return _buildProductList();
-  }
-
-  Widget _buildLoadingState() {
-    return const SliverFillRemaining(
-      child: Center(
-        child: CircularProgressIndicator(
-          color: AppTheme.primaryBlack,
-          strokeWidth: 2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const SliverFillRemaining(
-      child: EmptyStateWidget(
-        message: 'No products yet\nCreate your first product to get started',
-        icon: Icons.inventory_2_outlined,
-      ),
-    );
-  }
-
-  Widget _buildProductList() {
-    final hasFooter = isMoreLoading || (!hasMore && products.isNotEmpty);
-
     return SliverList.builder(
-      itemCount: products.length + (hasFooter ? 1 : 0),
+      itemCount: products.length + (isMoreLoading ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == products.length) {
-          return ListFooterIndicator(isLoading: isMoreLoading);
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryBlack,
+                strokeWidth: 2,
+              ),
+            ),
+          );
         }
-
         final product = products[index];
-        return AdminProductCard(
+        return ProductCard(
           product: product,
           onEdit: () => onEdit(product),
           onDelete: () => onDelete(product),

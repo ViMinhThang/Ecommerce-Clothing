@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/auth/blank_form.dart';
-import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart';
-import 'package:frontend_client_mobile/widgets/mxh_fields_widget.dart';
+import 'package:frontend_client_mobile/widgets/common/logo_and_text_widget.dart';
+import 'package:frontend_client_mobile/widgets/common/mxh_fields_widget.dart';
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen()));

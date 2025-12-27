@@ -107,7 +107,6 @@ class _EditCategoryScreenState
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Image Layer
         if (hasImage)
           _selectedImage != null
               ? Image.file(File(_selectedImage!.path), fit: BoxFit.cover)
@@ -143,7 +142,6 @@ class _EditCategoryScreenState
             ),
           ),
 
-        // Overlay Layer
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
