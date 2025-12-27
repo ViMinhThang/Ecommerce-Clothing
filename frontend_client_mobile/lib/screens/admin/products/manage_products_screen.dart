@@ -38,6 +38,9 @@ class _ManageProductsScreenState
     super.dispose();
   }
 
+  @override
+  ScrollController? getScrollController() => _scrollController;
+
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
@@ -124,7 +127,6 @@ class _ManageProductsScreenState
   Widget buildList() {
     final provider = context.watch<ProductProvider>();
     return ProductListView(
-      scrollController: _scrollController,
       products: provider.products,
       isLoading: provider.isLoading,
       isMoreLoading: provider.isMoreLoading,
@@ -138,9 +140,7 @@ class _ManageProductsScreenState
       height: 120,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 4,
-        ), // Reduced padding as parent has padding
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         children: [
           SizedBox(
             width: 140,

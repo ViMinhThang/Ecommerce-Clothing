@@ -20,7 +20,6 @@ class ImageSection extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Image Layer
         if (hasImage)
           selectedImage != null
               ? Image.file(File(selectedImage.path), fit: BoxFit.cover)
@@ -33,7 +32,6 @@ class ImageSection extends StatelessWidget {
         else
           _buildPlaceholder(),
 
-        // Overlay Layer
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -72,7 +70,6 @@ class ImageSection extends StatelessWidget {
           ),
         ),
 
-        // Label Layer
         Positioned(
           bottom: 16,
           left: 16,

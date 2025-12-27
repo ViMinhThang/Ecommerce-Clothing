@@ -30,7 +30,6 @@ class ProductForm extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Basic Information Section
                 _buildSectionHeader('BASIC INFORMATION', Icons.info_outline),
                 const SizedBox(height: 16),
                 BasicInfoSection(),
@@ -39,7 +38,6 @@ class ProductForm extends StatelessWidget {
                 Divider(color: Colors.grey[300], thickness: 1),
                 const SizedBox(height: 32),
 
-                // Category Section
                 _buildSectionHeader('CATEGORY', Icons.category_outlined),
                 const SizedBox(height: 16),
                 CategorySection(),
@@ -48,7 +46,6 @@ class ProductForm extends StatelessWidget {
                 Divider(color: Colors.grey[300], thickness: 1),
                 const SizedBox(height: 32),
 
-                // Variants Section
                 _buildSectionHeader('PRODUCT VARIANTS', Icons.palette_outlined),
                 const SizedBox(height: 16),
                 VariantsSection(),

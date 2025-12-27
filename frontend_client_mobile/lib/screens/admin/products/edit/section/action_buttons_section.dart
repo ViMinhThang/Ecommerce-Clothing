@@ -82,7 +82,6 @@ class ActionButtonsSection extends StatelessWidget {
   Future<void> _handleSave(BuildContext context) async {
     final viewModel = Provider.of<EditProductViewModel>(context, listen: false);
     try {
-      // Get form key from ancestor
       final formKey = Form.of(context).widget.key as GlobalKey<FormState>;
       if (!viewModel.validateForm(formKey)) return;
 

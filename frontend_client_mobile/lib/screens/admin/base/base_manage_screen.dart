@@ -4,12 +4,6 @@ import '../../../widgets/admin/admin_drawer.dart';
 import '../../../widgets/shared/admin_search_bar.dart';
 import '../../../widgets/shared/empty_state_widget.dart';
 
-/// Abstract base class for all management screens following Template Method pattern
-///
-/// This class provides the common structure and behavior for list-based management
-/// screens (Color, Size, Category, Order, User management).
-///
-/// Subclasses must implement abstract methods to provide entity-specific behavior.
 abstract class BaseManageScreen<T> extends StatefulWidget {
   const BaseManageScreen({super.key});
 }
@@ -30,66 +24,49 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
     super.dispose();
   }
 
-  // Abstract methods to be implemented by subclasses
-
-  /// Return the screen title (e.g., "Color Management")
   String getScreenTitle();
 
-  /// Return the selected index for navigation drawer
   int getSelectedIndex();
 
-  /// Return the entity name for messages (e.g., "color", "size")
   String getEntityName();
 
-  /// Return the icon to display in empty state
   IconData getEmptyStateIcon();
 
-  /// Return the search hint text (e.g., "Search Color...")
   String getSearchHint();
 
-  /// Fetch data from provider/service
   void fetchData();
 
-  /// Refresh data
   void refreshData();
 
-  /// Get the list of items to display
   List<T> getItems();
 
-  /// Check if data is currently loading
   bool isLoading();
 
-  /// Navigate to add screen
   Future<void> navigateToAdd();
 
-  /// Navigate to edit screen
   Future<void> navigateToEdit(T item);
 
-  /// Handle delete action
   Future<void> handleDelete(T item);
 
-  /// Build optional header widgets to display before the list (e.g., stats)
   List<Widget> buildHeaderWidgets() => [];
 
-  /// Build the search section widget.
-  /// Defaults to the standard AdminSearchBar but can be overridden for
-  /// advanced behaviors like autocomplete.
   Widget buildSearchSection() => AdminSearchBar(
     hintText: getSearchHint(),
     controller: searchController,
     onChanged: onSearchChanged,
   );
 
-  /// Build the list widget (must return a Sliver, e.g., SliverList)
   Widget buildList();
 
-  // Template method - defines the structure
+  ScrollController? getScrollController() => null;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       drawer: AdminDrawer(selectedIndex: getSelectedIndex()),
       body: CustomScrollView(
+        controller: getScrollController(),
         slivers: [
           SliverAppBar.large(
             title: Text(
@@ -164,8 +141,5 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
     return buildList();
   }
 
-  /// Hook for search functionality
-  void onSearchChanged(String query) {
-    // Default: do nothing, subclasses can override
-  }
+  void onSearchChanged(String query) {}
 }

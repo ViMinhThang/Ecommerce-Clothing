@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../config/theme_config.dart';
 import '../../../widgets/shared/form_action_buttons.dart';
 
-/// Abstract base class for all edit/create screens
-///
-/// This class provides common structure for form-based screens that handle
-/// creating and editing entities (Color, Size, Category, etc.).
-///
-/// Subclasses must implement abstract methods to provide entity-specific behavior.
 abstract class BaseEditScreen<T> extends StatefulWidget {
   final T? entity;
 
@@ -30,43 +24,28 @@ abstract class BaseEditScreenState<T, S extends BaseEditScreen<T>>
     super.dispose();
   }
 
-  // Abstract methods to be implemented by subclasses
-
-  /// Return the screen title (e.g., "Edit Color", "Add Color")
   String getScreenTitle();
 
-  /// Return the selected index for navigation drawer
   int getSelectedIndex();
 
-  /// Return the entity name (e.g., "Color", "Size")
   String getEntityName();
 
-  /// Return the icon for the section header
   IconData getSectionIcon();
 
-  /// Initialize form controllers and state
   void initializeForm();
 
-  /// Dispose form controllers
   void disposeControllers();
 
-  /// Build the form fields
   Widget buildFormFields();
 
-  /// Validate the form
   bool validateForm();
 
-  /// Save the entity (create or update)
   Future<void> saveEntity();
 
-  /// Check if currently in editing mode
   bool get isEditing => widget.entity != null;
 
-  /// Build the header image widget (optional)
-  /// If provided, this will be displayed in the FlexibleSpaceBar of the SliverAppBar
   Widget? buildHeaderImage() => null;
 
-  // Template method - defines the structure
   @override
   Widget build(BuildContext context) {
     final headerImage = buildHeaderImage();
@@ -118,13 +97,10 @@ abstract class BaseEditScreenState<T, S extends BaseEditScreen<T>>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (buildHeaderImage() != null) ...[
-            // If we have a header image, we might want to show the title here or just the form
-            // For now, let's show the section header
             buildSectionHeader(),
             const SizedBox(height: AppTheme.spaceMD),
           ],
           buildFormFields(),
-          // Add some bottom padding to avoid content being hidden by the sticky bar
           const SizedBox(height: 80),
         ],
       ),

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/color.dart' as models;
 import 'package:frontend_client_mobile/models/size.dart' as models;
 import 'package:frontend_client_mobile/utils/color_utils.dart';
-import '../../../models/product_variant.dart';
+import '../../config/theme_config.dart';
+import '../../models/product_variant.dart';
+import '../../utils/form_decorations.dart';
+import '../shared/color_dropdown_item.dart';
 
 class VariantCard extends StatelessWidget {
   final int index;
@@ -33,172 +36,115 @@ class VariantCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFB0B0B0), // Visible mid-gray
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: AppTheme.borderThin,
+        boxShadow: AppTheme.shadowSM,
       ),
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              12,
-              24,
-              12,
-              12,
-            ), // Top padding for delete button
+            padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<models.Color>(
-                        value: variant.color,
-                        items: colors
-                            .map(
-                              (color) => DropdownMenuItem<models.Color>(
-                                value: color,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        color: ColorUtils.getColorByName(
-                                          color.colorName,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        color.colorName,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => onColorChanged(index, value!),
-                        decoration: _inputDecoration('Color'),
-                        isExpanded: true,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<models.Size>(
-                        value: variant.size,
-                        items: sizes
-                            .map(
-                              (size) => DropdownMenuItem<models.Size>(
-                                value: size,
-                                child: Text(size.sizeName),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => onSizeChanged(index, value!),
-                        decoration: _inputDecoration('Size'),
-                      ),
-                    ),
-                  ],
-                ),
+                _buildDropdownRow(),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: variant.price.basePrice.toString(),
-                        decoration: _inputDecoration('Base Price'),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (value) => onBasePriceChanged(index, value),
-                        validator: (value) =>
-                            double.tryParse(value ?? '') == null
-                            ? 'Invalid'
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: variant.price.salePrice.toString(),
-                        decoration: _inputDecoration('Sale Price'),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (value) => onSalePriceChanged(index, value),
-                        validator: (value) =>
-                            double.tryParse(value ?? '') == null
-                            ? 'Invalid'
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
+                _buildPriceRow(),
               ],
             ),
           ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: IconButton(
-              icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
-              splashRadius: 16,
-              tooltip: 'Remove variant',
-              onPressed: () => onRemove(index),
-            ),
-          ),
+          _buildRemoveButton(),
         ],
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: Color(0xFF6B6B6B),
-        fontWeight: FontWeight.w500,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFFB0B0B0), // Visible mid-gray
-          width: 1,
+  Widget _buildDropdownRow() {
+    return Row(
+      children: [
+        Expanded(child: _buildColorDropdown()),
+        const SizedBox(width: 12),
+        Expanded(child: _buildSizeDropdown()),
+      ],
+    );
+  }
+
+  Widget _buildColorDropdown() {
+    final hasColor = colors.contains(variant.color);
+    return DropdownButtonFormField<models.Color>(
+      value: hasColor ? variant.color : null,
+      items: colors
+          .map(
+            (color) => DropdownMenuItem<models.Color>(
+              value: color,
+              child: ColorDropdownItem(
+                colorName: color.colorName,
+                color: ColorUtils.getColorByName(color.colorName),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => onColorChanged(index, value!),
+      decoration: FormDecorations.standard('Color'),
+      isExpanded: true,
+    );
+  }
+
+  Widget _buildSizeDropdown() {
+    final hasSize = sizes.contains(variant.size);
+    return DropdownButtonFormField<models.Size>(
+      value: hasSize ? variant.size : null,
+      items: sizes
+          .map(
+            (size) => DropdownMenuItem<models.Size>(
+              value: size,
+              child: Text(size.sizeName),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => onSizeChanged(index, value!),
+      decoration: FormDecorations.standard('Size'),
+    );
+  }
+
+  Widget _buildPriceRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            initialValue: variant.price.basePrice.toString(),
+            decoration: FormDecorations.standard('Base Price'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (value) => onBasePriceChanged(index, value),
+            validator: (value) =>
+                double.tryParse(value ?? '') == null ? 'Invalid' : null,
+          ),
         ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: TextFormField(
+            initialValue: variant.price.salePrice.toString(),
+            decoration: FormDecorations.standard('Sale Price'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (value) => onSalePriceChanged(index, value),
+            validator: (value) =>
+                double.tryParse(value ?? '') == null ? 'Invalid' : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemoveButton() {
+    return Positioned(
+      top: 0,
+      right: 0,
+      child: IconButton(
+        icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
+        splashRadius: 16,
+        tooltip: 'Remove variant',
+        onPressed: () => onRemove(index),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFB0B0B0), width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF6B6B6B), width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 12,
-      ), // Reduced padding
-      filled: true,
-      fillColor: Colors.white,
     );
   }
 }

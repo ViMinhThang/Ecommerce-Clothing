@@ -31,6 +31,29 @@ class ProductVariant {
     };
   }
 
+  ProductVariant copyWith({int? id, Price? price, Size? size, Color? color}) {
+    return ProductVariant(
+      id: id ?? this.id,
+      price: price ?? this.price,
+      size: size ?? this.size,
+      color: color ?? this.color,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProductVariant &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          price == other.price &&
+          size == other.size &&
+          color == other.color;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ price.hashCode ^ size.hashCode ^ color.hashCode;
+
   @override
   String toString() {
     return 'ProductVariant{id: $id, price: $price, size: $size, color: $color}';

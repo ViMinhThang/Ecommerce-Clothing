@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/filter_provider.dart';
-import 'package:frontend_client_mobile/widgets/product_card.dart';
+import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';

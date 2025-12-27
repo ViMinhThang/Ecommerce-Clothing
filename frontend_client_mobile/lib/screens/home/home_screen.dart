@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/product_layout.dart';
-import 'package:frontend_client_mobile/widgets/category_chip.dart';
+import 'package:frontend_client_mobile/widgets/catalog/category_chip.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
-import 'package:frontend_client_mobile/widgets/product_card.dart';
+import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Clear và bật loading ngay để kích hoạt skeleton
     p.prepareForCategory(categoryId); // phương thức mới, xem dưới
-    p.fetchProductsByCategory(categoryId, isRefresh: true);
+    p.fetchProductsByCategory(categoryId, refresh: true);
 
     if (_scrollController.hasClients) _scrollController.jumpTo(0);
   }
