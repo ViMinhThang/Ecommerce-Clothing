@@ -20,20 +20,30 @@ class ManageProductsScreen extends BaseManageScreen<Product> {
 class _ManageProductsScreenState
     extends BaseManageScreenState<Product, ManageProductsScreen> {
   Timer? _debounce;
+  final ScrollController _scrollController = ScrollController();
+
   ProductProvider get _productProvider =>
       Provider.of<ProductProvider>(context, listen: false);
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _debounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
-  void onScrollToBottom() {
-    if (_productProvider.isLoading) return;
+  ScrollController? getScrollController() => _scrollController;
 
-    if (_productProvider.hasMore && !_productProvider.isMoreLoading) {
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       _productProvider.loadMore();
     }
   }
@@ -72,8 +82,7 @@ class _ManageProductsScreenState
 
   @override
   bool isLoading() {
-    final provider = context.watch<ProductProvider>();
-    return provider.isLoading;
+    return context.watch<ProductProvider>().isLoading;
   }
 
   @override
@@ -118,11 +127,9 @@ class _ManageProductsScreenState
   Widget buildList() {
     final provider = context.watch<ProductProvider>();
     return ProductListView(
-      scrollController: scrollController,
       products: provider.products,
       isLoading: provider.isLoading,
       isMoreLoading: provider.isMoreLoading,
-      hasMore: provider.hasMore,
       onEdit: navigateToEdit,
       onDelete: handleDelete,
     );

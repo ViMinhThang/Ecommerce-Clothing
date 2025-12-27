@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../config/theme_config.dart';
+import '../../config/theme_config.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? currentImage;
@@ -95,10 +95,10 @@ class ImagePickerField extends StatelessWidget {
 
     return Container(
       width: 120,
-      height: 160, // Reduced height
+      height: 160,
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(8), // Rounded corners
+        borderRadius: BorderRadius.circular(8),
       ),
       child: hasImage
           ? ClipRRect(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
-import 'package:frontend_client_mobile/widgets/catalog_card.dart';
+import 'package:frontend_client_mobile/widgets/catalog/catalog_card.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 

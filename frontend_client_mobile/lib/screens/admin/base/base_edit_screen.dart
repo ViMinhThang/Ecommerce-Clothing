@@ -27,6 +27,7 @@ abstract class BaseEditScreenState<T, S extends BaseEditScreen<T>>
   String getScreenTitle();
 
   int getSelectedIndex();
+
   String getEntityName();
 
   IconData getSectionIcon();
@@ -96,13 +97,10 @@ abstract class BaseEditScreenState<T, S extends BaseEditScreen<T>>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (buildHeaderImage() != null) ...[
-            // If we have a header image, we might want to show the title here or just the form
-            // For now, let's show the section header
             buildSectionHeader(),
             const SizedBox(height: AppTheme.spaceMD),
           ],
           buildFormFields(),
-          // Add some bottom padding to avoid content being hidden by the sticky bar
           const SizedBox(height: 80),
         ],
       ),
