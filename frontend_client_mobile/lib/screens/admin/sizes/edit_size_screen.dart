@@ -7,7 +7,7 @@ import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditSizeScreen extends BaseEditScreen<model.Size> {
-  const EditSizeScreen({super.key, model.Size? entity}) : super(entity: entity);
+  const EditSizeScreen({super.key, super.entity});
 
   @override
   State<EditSizeScreen> createState() => _EditSizeScreenState();
@@ -76,7 +76,7 @@ class _EditSizeScreenState
         ),
         const SizedBox(height: AppTheme.spaceMD),
         DropdownButtonFormField<String>(
-          value: _status,
+          initialValue: _status,
           decoration: FormDecorations.standard('Status'),
           items: const [
             DropdownMenuItem(value: 'active', child: Text('Active')),

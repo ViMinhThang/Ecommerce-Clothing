@@ -223,7 +223,7 @@ class _EditCategoryScreenState
         ),
         const SizedBox(height: AppTheme.spaceMD),
         DropdownButtonFormField<String>(
-          value: _status,
+          initialValue: _status,
           decoration: FormDecorations.standard('Status'),
           items: const [
             DropdownMenuItem(value: 'active', child: Text('Active')),

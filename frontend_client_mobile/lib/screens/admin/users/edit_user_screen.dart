@@ -10,8 +10,7 @@ import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditUserScreen extends BaseEditScreen<Map<String, dynamic>> {
-  const EditUserScreen({super.key, Map<String, dynamic>? entity})
-    : super(entity: entity);
+  const EditUserScreen({super.key, super.entity});
 
   @override
   State<EditUserScreen> createState() => _EditUserScreenState();

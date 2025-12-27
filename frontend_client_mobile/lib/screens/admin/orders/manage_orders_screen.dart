@@ -324,7 +324,7 @@ class _ManageOrdersScreenState
 
   Widget _buildStatusDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedStatus,
+      initialValue: _selectedStatus,
       decoration: _dropdownDecoration('Status'),
       items: _StatusOption.defaults
           .map(
@@ -350,7 +350,7 @@ class _ManageOrdersScreenState
 
   Widget _buildSortDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSort,
+      initialValue: _selectedSort,
       decoration: _dropdownDecoration('Sort'),
       items: _SortOption.defaults
           .map(
@@ -441,7 +441,7 @@ class _ManageOrdersScreenState
   static String _formatDate(String value) {
     final parsed = DateTime.tryParse(value);
     if (parsed == null) return value;
-    final two = (int v) => v.toString().padLeft(2, '0');
+    String two(int v) => v.toString().padLeft(2, '0');
     return '${parsed.year}-${two(parsed.month)}-${two(parsed.day)}';
   }
 }

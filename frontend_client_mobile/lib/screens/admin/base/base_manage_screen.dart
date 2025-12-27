@@ -11,16 +11,26 @@ abstract class BaseManageScreen<T> extends StatefulWidget {
 abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
     extends State<S> {
   final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    scrollController.addListener(_onScroll);
     fetchData();
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      onScrollToBottom();
+    }
   }
 
   @override
   void dispose() {
     searchController.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -42,6 +52,8 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
 
   bool isLoading();
 
+  void onScrollToBottom() {}
+
   Future<void> navigateToAdd();
 
   Future<void> navigateToEdit(T item);
@@ -58,15 +70,13 @@ abstract class BaseManageScreenState<T, S extends BaseManageScreen<T>>
 
   Widget buildList();
 
-  ScrollController? getScrollController() => null;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       drawer: AdminDrawer(selectedIndex: getSelectedIndex()),
       body: CustomScrollView(
-        controller: getScrollController(),
+        controller: scrollController,
         slivers: [
           SliverAppBar.large(
             title: Text(

@@ -46,7 +46,6 @@ class ImageSection extends StatelessWidget {
           ),
         ),
 
-        // Edit Button Layer
         Center(
           child: Material(
             color: Colors.transparent,

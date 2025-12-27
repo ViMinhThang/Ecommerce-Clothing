@@ -29,14 +29,12 @@ class EditProductViewModel extends ChangeNotifier {
 
   bool get isEditing => existingProduct != null;
 
-  // Controllers
   late final TextEditingController nameController = TextEditingController(
     text: existingProduct?.name ?? '',
   );
   late final TextEditingController descriptionController =
       TextEditingController(text: existingProduct?.description ?? '');
 
-  // State
   Category? _selectedCategory;
   XFile? _selectedImage;
   List<ProductVariant> _variants = [];
