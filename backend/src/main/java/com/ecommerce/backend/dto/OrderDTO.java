@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class OrderDTO {
     private List<Long> cartItemIds;
 
     @AssertTrue(message = "Danh sách cart item cần mua không được rỗng")
-    public boolean checkEmpty(){
-        return cartItemIds.isEmpty();
+    public boolean isCartItemIdsNotEmpty() {
+        return cartItemIds != null && !cartItemIds.isEmpty();
     }
 }
