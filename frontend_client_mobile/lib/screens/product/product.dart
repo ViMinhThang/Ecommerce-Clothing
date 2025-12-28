@@ -3,10 +3,10 @@ import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_variant.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
@@ -37,7 +37,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     _variantApiService = ProductVariantApiService(
-      Dio()..options.baseUrl = 'http://10.0.2.2:8080/',
+      ApiClient.dio,
     );
     _fetchProductAndVariants();
   }
@@ -114,36 +114,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   ProductVariant? get selectedVariant {
-    return variants.firstWhere(
-      (v) => v.id == selectedVariantId,
-      orElse: () => variants.isNotEmpty ? variants.first : throw Exception('No variants'),
-    );
+    if (variants.isEmpty) return null;
+    try {
+      return variants.firstWhere(
+        (v) => v.id == selectedVariantId,
+        orElse: () => variants.first,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
-  // Helper to get price display from selected variant
   String get basePriceDisplay {
-    if (selectedVariant == null) return '';
-    return '${selectedVariant!.price.basePrice.toStringAsFixed(2)}\$';
+    final variant = selectedVariant;
+    if (variant == null) return '';
+    return '${variant.price.basePrice.toStringAsFixed(2)}\$';
   }
 
   String get salePriceDisplay {
-    if (selectedVariant == null) return '';
-    return '${selectedVariant!.price.salePrice.toStringAsFixed(2)}\$';
+    final variant = selectedVariant;
+    if (variant == null) return '';
+    return '${variant.price.salePrice.toStringAsFixed(2)}\$';
   }
 
   bool get hasDiscount {
-    if (selectedVariant == null) return false;
-    return selectedVariant!.price.basePrice > selectedVariant!.price.salePrice;
+    final variant = selectedVariant;
+    if (variant == null) return false;
+    return variant.price.basePrice > variant.price.salePrice;
   }
 
-  // Get product image URL with fallback
   String get productImageUrl {
     if (product?.imageUrl != null && product!.imageUrl!.isNotEmpty) {
-      // If image URL is relative, prepend base URL
       if (product!.imageUrl!.startsWith('http')) {
         return product!.imageUrl!;
       } else {
-        return 'http://10.0.2.2:8080/${product!.imageUrl}';
+        return '${ApiConfig.baseUrl}${product!.imageUrl}';
       }
     }
     return 'https://via.placeholder.com/450x450?text=No+Image';

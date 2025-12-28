@@ -14,13 +14,14 @@ import 'package:frontend_client_mobile/providers/dashboard_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/providers/order_provider.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:frontend_client_mobile/screens/cart/my_cart.dart';
 import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
 import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
 
 void main() {
   runApp(
@@ -33,7 +34,8 @@ void main() {
         ChangeNotifierProvider(create: (context) => DashboardProvider()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => OrderProvider()),
-        ChangeNotifierProvider(create: (context) => CartProvider(Dio())),
+        ChangeNotifierProvider(create: (context) => CartProvider(ApiClient.dio)),
+        ChangeNotifierProvider(create: (context) => FilterProvider()),
       ],
       child: const MyApp(),
     ),

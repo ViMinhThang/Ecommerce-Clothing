@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
+import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:provider/provider.dart';
 
 class MyCart extends StatefulWidget {
@@ -33,7 +34,7 @@ class _MyCartState extends State<MyCart> {
     if (imageUrl.startsWith('http')) {
       return imageUrl;
     }
-    return 'http://10.0.2.2:8080/$imageUrl';
+    return '${ApiConfig.baseUrl}$imageUrl';
   }
 
   @override
@@ -107,16 +108,14 @@ class _MyCartState extends State<MyCart> {
                 ),
               ),
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _loadCart,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return _buildCartItem(item, cartProvider);
-                    },
-                  ),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return _buildCartItem(item, cartProvider);
+                  },
                 ),
               ),
               _buildPriceSummary(cart!, cartProvider),
