@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/widgets/app_bar_widget.dart';
+import 'package:frontend_client_mobile/widgets/common/app_bar_widget.dart';
 
 class MyCart extends StatefulWidget {
 	const MyCart({super.key});
