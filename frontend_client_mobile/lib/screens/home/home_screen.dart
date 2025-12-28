@@ -154,8 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                      Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
@@ -163,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Consumer<CategoryProvider>(
                           builder: (context, categoryProvider, child) {
                             if (categoryProvider.isLoading) {
-                              // Hiển thị shimmer skeleton list
                               return SizedBox(
-                                height: 40, // Đúng chiều cao card category thật
+                                height: 40,
                                 child: ListView.separated(
+                                  shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: 6, // số skeleton bạn muốn
+                                  itemCount: 6,
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(width: 8),
                                   itemBuilder: (_, __) =>
@@ -176,47 +175,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             }
-                            return Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: CategoryChip(
-                                    label: "All",
-                                    isSelected: _selectedCategoryIndex == 0,
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedCategoryId = 0;
-                                        _selectedCategoryIndex = 0;
-                                      });
-                                      context
-                                          .read<ProductProvider>()
-                                          .prepareForCategory(0);
-                                      context
-                                          .read<ProductProvider>()
-                                          .fetchProducts(refresh: true);
-                                    },
-                                  ),
-                                ),
-                                ...categoryProvider.categories.map((category) {
-                                  final index =
-                                      categoryProvider.categories.indexOf(
-                                        category,
-                                      ) +
-                                      1;
-                                  return Padding(
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  Padding(
                                     padding: const EdgeInsets.only(right: 12.0),
                                     child: CategoryChip(
-                                      label: category.name,
-                                      isSelected:
-                                          _selectedCategoryIndex == index,
-                                      onTap: () => _onCategorySelected(
-                                        index,
-                                        category.id!,
-                                      ),
+                                      label: "All",
+                                      isSelected: _selectedCategoryIndex == 0,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedCategoryId = 0;
+                                          _selectedCategoryIndex = 0;
+                                        });
+                                        context
+                                            .read<ProductProvider>()
+                                            .prepareForCategory(0);
+                                        context
+                                            .read<ProductProvider>()
+                                            .fetchProducts(refresh: true);
+                                      },
                                     ),
-                                  );
-                                }),
-                              ],
+                                  ),
+                                  ...categoryProvider.categories.map((category) {
+                                    final index =
+                                        categoryProvider.categories.indexOf(
+                                          category,
+                                        ) +
+                                        1;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 12.0),
+                                      child: CategoryChip(
+                                        label: category.name,
+                                        isSelected:
+                                            _selectedCategoryIndex == index,
+                                        onTap: () => _onCategorySelected(
+                                          index,
+                                          category.id!,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -227,14 +229,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (productProvider.isLoading &&
                     productProvider.products.isEmpty)
-                  SliverGrid.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    children: List.generate(
-                      6,
-                      (index) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const ProductCardSkeleton(),
+                  SliverPadding(
+                    padding: const EdgeInsets.all(8.0),
+                    sliver: SliverGrid.count(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      children: List.generate(
+                        6,
+                        (index) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const ProductCardSkeleton(),
+                        ),
                       ),
                     ),
                   ),

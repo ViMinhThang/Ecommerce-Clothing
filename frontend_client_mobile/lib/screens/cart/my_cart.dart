@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/widgets/common/app_bar_widget.dart';
 
 class MyCart extends StatefulWidget {
 	const MyCart({super.key});
@@ -53,9 +52,11 @@ class _MyCartState extends State<MyCart> {
 	Widget build(BuildContext context) {
 		return Scaffold(
 			backgroundColor: Colors.white,
-			appBar: const CustomAppBar(
-				title: "Cart",
-				icons: Icons.search,
+			appBar: AppBar(
+				title: const Text('Cart'),
+				backgroundColor: Colors.white,
+				foregroundColor: Colors.black,
+				elevation: 0,
 			),
 			body: Column(
 				children: [

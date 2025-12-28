@@ -1,20 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/models/product_variant.dart';
+import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  const ProductDetailScreen({Key? key}) : super(key: key);
+  final int productId;
+  const ProductDetailScreen({Key? key, required this.productId}) : super(key: key);
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  String selectedColor = 'brown';
-  String selectedSize = 'S';
+  int? selectedVariantId;
+  String? selectedColorName;
+  String? selectedSizeName;
   int quantity = 1;
   bool isFavorite = false;
 
-  final List<String> colors = ['brown', 'white', 'yellow'];
-  final List<String> sizes = ['XS', 'S', 'M', 'L', 'XL', 'More...'];
+  List<ProductVariant> variants = [];
+  bool isLoadingVariants = true;
+  String? errorMessage;
+  
+  late ProductVariantApiService _variantApiService;
+
+  @override
+  void initState() {
+    super.initState();
+    _variantApiService = ProductVariantApiService(
+      Dio()..options.baseUrl = 'http://10.0.2.2:8080/',
+    );
+    _fetchVariants();
+  }
+
+  Future<void> _fetchVariants() async {
+    try {
+      setState(() {
+        isLoadingVariants = true;
+        errorMessage = null;
+      });
+      
+      final fetchedVariants = await _variantApiService.getProductVariants(widget.productId);
+      
+      setState(() {
+        variants = fetchedVariants;
+        isLoadingVariants = false;
+        
+        // Auto-select first variant
+        if (variants.isNotEmpty) {
+          selectedVariantId = variants.first.id;
+          selectedColorName = variants.first.color?.colorName;
+          selectedSizeName = variants.first.size?.sizeName;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingVariants = false;
+        errorMessage = 'Failed to load variants: $e';
+      });
+    }
+  }
+
+  List<String> get availableColors {
+    return variants
+        .where((v) => v.color != null)
+        .map((v) => v.color!.colorName)
+        .toSet()
+        .toList();
+  }
+
+  List<String> get availableSizes {
+    return variants
+        .where((v) => v.size != null)
+        .map((v) => v.size!.sizeName)
+        .toSet()
+        .toList();
+  }
+
+  ProductVariant? get selectedVariant {
+    return variants.firstWhere(
+      (v) => v.id == selectedVariantId,
+      orElse: () => variants.isNotEmpty ? variants.first : throw Exception('No variants'),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +120,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       backgroundColor: Colors.white,
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.black),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          // Try to pop first, if can't pop then navigate to Catalog
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MainScreen(initialTab: 1),
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ),
                   ),
@@ -149,46 +232,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: colors.map((color) {
-                        Color colorValue;
-                        if (color == 'brown') {
-                          colorValue = const Color(0xFF3E2723);
-                        } else if (color == 'white') {
-                          colorValue = Colors.white;
-                        } else {
-                          colorValue = const Color(0xFFFFD700);
-                        }
+                    isLoadingVariants
+                        ? const CircularProgressIndicator()
+                        : Row(
+                            children: availableColors.map((colorName) {
+                              // Find variant with this color to get hex code
+                              final variantWithColor = variants.firstWhere(
+                                (v) => v.color?.colorName == colorName,
+                              );
+                              final hexCode = variantWithColor.color?.colorCode ?? '#000000';
+                              final colorValue = Color(
+                                int.parse(hexCode.replaceFirst('#', '0xFF')),
+                              );
 
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedColor = color;
-                            });
-                          },
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: colorValue,
-                              border: Border.all(
-                                color: color == 'white' ? Colors.grey[300]! : colorValue,
-                                width: 2,
-                              ),
-                            ),
-                            child: selectedColor == color
-                                ? Icon(
-                              Icons.check,
-                              color: color == 'white' ? Colors.black : Colors.white,
-                              size: 24,
-                            )
-                                : null,
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedColorName = colorName;
+                                    // Find matching variant
+                                    final matchingVariant = variants.firstWhere(
+                                      (v) => v.color?.colorName == colorName && v.size?.sizeName == selectedSizeName,
+                                      orElse: () => variants.firstWhere((v) => v.color?.colorName == colorName),
+                                    );
+                                    selectedVariantId = matchingVariant.id;
+                                    selectedSizeName = matchingVariant.size?.sizeName;
+                                  });
+                                },
+                                child: Container(
+                                  width: 50,
+                                  height: 50,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: colorValue,
+                                    border: Border.all(
+                                      color: selectedColorName == colorName
+                                          ? Colors.black
+                                          : Colors.grey[300]!,
+                                      width: selectedColorName == colorName ? 3 : 2,
+                                    ),
+                                  ),
+                                  child: selectedColorName == colorName
+                                      ? Icon(
+                                          Icons.check,
+                                          color: colorValue.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white,
+                                          size: 24,
+                                        )
+                                      : null,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
 
                     const SizedBox(height: 24),
 
@@ -201,40 +297,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: sizes.map((size) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedSize = size;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: selectedSize == size
-                                  ? Colors.black
-                                  : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              size,
-                              style: TextStyle(
-                                color: selectedSize == size
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                    isLoadingVariants
+                        ? const CircularProgressIndicator()
+                        : Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: availableSizes.map((sizeName) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedSizeName = sizeName;
+                                    // Find matching variant
+                                    final matchingVariant = variants.firstWhere(
+                                      (v) => v.size?.sizeName == sizeName && v.color?.colorName == selectedColorName,
+                                      orElse: () => variants.firstWhere((v) => v.size?.sizeName == sizeName),
+                                    );
+                                    selectedVariantId = matchingVariant.id;
+                                    selectedColorName = matchingVariant.color?.colorName;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: selectedSizeName == sizeName
+                                        ? Colors.black
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    sizeName,
+                                    style: TextStyle(
+                                      color: selectedSizeName == sizeName
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
 
                     const SizedBox(height: 8),
 
@@ -293,7 +398,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: isLoadingVariants || selectedVariantId == null
+                                ? null
+                                : () async {
+                                    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+                                    final success = await cartProvider.addToCart(
+                                      userId: 1, // TODO: Get from auth
+                                      variantId: selectedVariantId!,
+                                      quantity: quantity,
+                                    );
+                                    
+                                    if (success && mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Added to cart successfully!'),
+                                          backgroundColor: Colors.green,
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    } else if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(cartProvider.error ?? 'Failed to add to cart'),
+                                          backgroundColor: Colors.red,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  },
                             icon: const Icon(Icons.shopping_cart),
                             label: const Text('Add to cart'),
                             style: ElevatedButton.styleFrom(
@@ -447,6 +579,53 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Wishlist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag_outlined),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: 1,
+        onTap: (index) {
+          // If tapping Catalog (index 1), just go back
+          if (index == 1) {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MainScreen(initialTab: 1),
+                ),
+              );
+            }
+          } else {
+            // Navigate to MainScreen with the selected tab
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MainScreen(initialTab: index),
+              ),
+            );
+          }
+        },
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
