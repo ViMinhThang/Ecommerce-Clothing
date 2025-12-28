@@ -1,27 +1,24 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 
 class ProductService {
   final ProductApiService _apiService = ApiClient.getProductApiService();
 
-  Future<List<Product>> getProducts({
+  Future<PageResponse<Product>> getProducts({
     String? name,
     int page = 0,
     int size = 10,
   }) async {
     final response = await _apiService.getProducts(name, page, size);
-    return response.data.content;
+    return response.data;
   }
 
-  Future<List<Product>> searchProducts(String name) async {
-    final response = await _apiService.getProducts(name, 0, 10);
-    return response.data.content;
-  }
-
-  Future<Product> createProduct(Product product, {File? image}) async {
+  Future<Product> createProduct(Product product, {MultipartFile? image}) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
@@ -34,7 +31,11 @@ class ProductService {
     );
   }
 
-  Future<Product> updateProduct(int id, Product product, {File? image}) async {
+  Future<Product> updateProduct(
+    int id,
+    Product product, {
+    MultipartFile? image,
+  }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
@@ -52,5 +53,22 @@ class ProductService {
 
   Future<void> deleteProduct(int id) async {
     await _apiService.deleteProduct(id);
+  }
+
+  Future<PageResponse<ProductView>> getProductsByCategory(
+    int categoryId,
+    int page,
+    int size,
+  ) async {
+    final response = await _apiService.getProductsByCategory(
+      categoryId,
+      page,
+      size,
+    );
+    return response.data;
+  }
+
+  Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
+    return null;
   }
 }

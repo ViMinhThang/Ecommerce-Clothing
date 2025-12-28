@@ -6,6 +6,7 @@ class ColorProvider with ChangeNotifier {
   final ColorService _colorService = ColorService();
   List<Color> _colors = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
   List<Color> get colors => _colors;
   bool get isLoading => _isLoading;
@@ -18,12 +19,20 @@ class ColorProvider with ChangeNotifier {
 
   Future<void> fetchColors() async {
     try {
-      _colors = await _colorService.getColors();
+      _colors = await _colorService.getColors(
+        name: _searchQuery.isEmpty ? null : _searchQuery,
+      );
     } catch (e) {
       // Handle error
       print('Error fetching colors: $e');
     }
     notifyListeners();
+  }
+
+  Future<void> searchColors(String name) async {
+    if (_searchQuery == name) return;
+    _searchQuery = name;
+    await fetchColors();
   }
 
   Future<void> addColor(Color color) async {

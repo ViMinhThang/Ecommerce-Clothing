@@ -1,7 +1,6 @@
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/utils/file_utils.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/category.dart';
 import '../services/category_service.dart';
 
@@ -9,9 +8,16 @@ class CategoryProvider with ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   bool _isLoading = false;
+  bool _isFetchingMore = false;
+  int _currentPage = 0;
+  final int _pageSize = 10;
+  bool _hasMore = true;
+  String _searchQuery = '';
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get isFetchingMore => _isFetchingMore;
+  bool get hasMore => _hasMore;
 
   Future<void> initialize() async {
     if (_isLoading) return;
@@ -19,13 +25,48 @@ class CategoryProvider with ChangeNotifier {
     _isLoading = true;
   }
 
-  Future<void> fetchCategories() async {
-    try {
-      _categories = await _categoryService.getCategories();
-    } catch (e) {
-      print('Error fetching categories: $e');
+  Future<void> fetchCategories({bool isRefresh = true}) async {
+    if (isRefresh) {
+      _isLoading = true;
+      _currentPage = 0;
+      _hasMore = true;
+      notifyListeners();
+    } else {
+      if (!_hasMore || _isFetchingMore) return;
+      _isFetchingMore = true;
+      notifyListeners();
     }
-    notifyListeners();
+
+    try {
+      final newCategories = await _categoryService.getCategories(
+        name: _searchQuery.isEmpty ? null : _searchQuery,
+        page: _currentPage,
+        size: _pageSize,
+      );
+
+      if (isRefresh) {
+        _categories = newCategories;
+      } else {
+        _categories.addAll(newCategories);
+      }
+
+      _hasMore = newCategories.length == _pageSize;
+      if (_hasMore) _currentPage++;
+    } finally {
+      _isLoading = false;
+      _isFetchingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchMoreCategories() async {
+    await fetchCategories(isRefresh: false);
+  }
+
+  Future<void> searchCategories(String name) async {
+    if (_searchQuery == name) return;
+    _searchQuery = name;
+    await fetchCategories();
   }
 
   Future<Category> addCategory(Category category) async {
@@ -53,7 +94,6 @@ class CategoryProvider with ChangeNotifier {
       }
       return updatedCategory;
     } catch (e) {
-      print('Error updating category: $e');
       rethrow;
     }
   }
@@ -64,17 +104,18 @@ class CategoryProvider with ChangeNotifier {
       _categories.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting category: $e');
       rethrow;
     }
   }
 
-  Future<String> uploadCategoryImage(File imageFile) async {
+  Future<String> uploadCategoryImage(XFile imageFile) async {
     try {
-      final imageUrl = await _categoryService.uploadCategoryImage(imageFile);
+      final multipartFile = await FileUtils.convertXFileToMultipart(imageFile);
+      final imageUrl = await _categoryService.uploadCategoryImage(
+        multipartFile!,
+      );
       return imageUrl;
     } catch (e) {
-      print('Error uploading category image: $e');
       rethrow;
     }
   }

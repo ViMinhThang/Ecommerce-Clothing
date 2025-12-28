@@ -5,8 +5,8 @@ import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 class SizeService {
   final SizeApiService _apiService = ApiClient.getSizeApiService();
 
-  Future<List<Size>> getSizes() async {
-    return await _apiService.getSizes();
+  Future<List<Size>> getSizes({String? name}) async {
+    return await _apiService.getSizes(name);
   }
 
   Future<Size> createSize(Size size) async {

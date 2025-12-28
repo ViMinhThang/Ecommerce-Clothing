@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/category.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/category_api_service.dart';
@@ -6,8 +6,12 @@ import 'package:frontend_client_mobile/services/api/category_api_service.dart';
 class CategoryService {
   final CategoryApiService _apiService = ApiClient.getCategoryApiService();
 
-  Future<List<Category>> getCategories() async {
-    return await _apiService.getCategories();
+  Future<List<Category>> getCategories({
+    String? name,
+    int page = 0,
+    int size = 10,
+  }) async {
+    return await _apiService.getCategories(name, page, size);
   }
 
   Future<Category> createCategory(Category category) async {
@@ -22,7 +26,7 @@ class CategoryService {
     return await _apiService.deleteCategory(id);
   }
 
-  Future<String> uploadCategoryImage(File imageFile) async {
+  Future<String> uploadCategoryImage(MultipartFile imageFile) async {
     return await _apiService.uploadCategoryImage(imageFile);
   }
 }

@@ -1,6 +1,5 @@
 package com.ecommerce.backend.dto;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -25,7 +24,8 @@ public class ProductRequest {
         }
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(variants, new TypeReference<List<ProductVariantRequest>>() {});
+            return mapper.readValue(variants, new TypeReference<List<ProductVariantRequest>>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse variants JSON: " + e.getMessage(), e);
         }

@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/cart/my_cart.dart';
-import 'package:frontend_client_mobile/checkout/payment_method.dart';
-import 'package:frontend_client_mobile/checkout/status_checkout.dart';
-import 'package:frontend_client_mobile/product/product.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
@@ -10,6 +6,7 @@ import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
+
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
@@ -38,8 +35,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'E-Commerce Admin',
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/payment',
+      initialRoute: '/dashboard',
       routes: {
         '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
@@ -48,8 +44,6 @@ class MyApp extends StatelessWidget {
         '/orders': (context) => const ManageOrdersScreen(),
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
-        '/cart': (context) => const MyCart(),
-        '/payment': (context) => const PaymentMethodScreen(),
       },
     );
   }

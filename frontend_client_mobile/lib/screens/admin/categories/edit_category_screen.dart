@@ -1,48 +1,90 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/category.dart' as model;
-import 'package:frontend_client_mobile/widgets/image_picker_field.dart';
-import 'package:frontend_client_mobile/widgets/status_dropdown.dart';
-import 'package:frontend_client_mobile/widgets/text_field_input.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../layouts/admin_layout.dart';
 import '../../../providers/category_provider.dart';
+import '../../../config/theme_config.dart';
+import '../../../utils/form_decorations.dart';
+import '../../../utils/image_helper.dart';
+import '../base/base_edit_screen.dart';
 
-class EditCategoryScreen extends StatefulWidget {
-  final model.Category? category;
-
-  const EditCategoryScreen({super.key, this.category});
+class EditCategoryScreen extends BaseEditScreen<model.Category> {
+  const EditCategoryScreen({super.key, super.entity});
 
   @override
   State<EditCategoryScreen> createState() => _EditCategoryScreenState();
 }
 
-class _EditCategoryScreenState extends State<EditCategoryScreen> {
+class _EditCategoryScreenState
+    extends BaseEditScreenState<model.Category, EditCategoryScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
   String _status = 'active';
-  File? _selectedImage;
+  XFile? _selectedImage;
   String? _currentImageUrl;
-  bool _isSaving = false;
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.category?.name ?? '');
+  String getScreenTitle() => isEditing ? 'Edit Category' : 'Add Category';
+
+  @override
+  int getSelectedIndex() => 4;
+
+  @override
+  String getEntityName() => 'Category';
+
+  @override
+  IconData getSectionIcon() => Icons.category_outlined;
+
+  @override
+  void initializeForm() {
+    _nameController = TextEditingController(text: widget.entity?.name ?? '');
     _descController = TextEditingController(
-      text: widget.category?.description ?? '',
+      text: widget.entity?.description ?? '',
     );
-    _status = widget.category?.status ?? 'active';
-    _currentImageUrl = widget.category?.imageUrl;
+    _status = widget.entity?.status ?? 'active';
+    _currentImageUrl = widget.entity?.imageUrl;
   }
 
   @override
-  void dispose() {
+  void disposeControllers() {
     _nameController.dispose();
     _descController.dispose();
-    super.dispose();
+  }
+
+  @override
+  bool validateForm() {
+    return _nameController.text.trim().isNotEmpty &&
+        _descController.text.trim().isNotEmpty;
+  }
+
+  @override
+  Future<void> saveEntity() async {
+    final categoryProvider = Provider.of<CategoryProvider>(
+      context,
+      listen: false,
+    );
+    String? imageUrlToSave = _currentImageUrl;
+
+    if (_selectedImage != null) {
+      imageUrlToSave = await categoryProvider.uploadCategoryImage(
+        _selectedImage!,
+      );
+    }
+
+    final category = model.Category(
+      id: widget.entity?.id,
+      name: _nameController.text.trim(),
+      description: _descController.text.trim(),
+      imageUrl: imageUrlToSave ?? '',
+      status: _status,
+    );
+
+    if (isEditing) {
+      await categoryProvider.updateCategory(category);
+    } else {
+      await categoryProvider.addCategory(category);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -51,150 +93,145 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = pickedFile;
       });
     }
   }
 
-  Future<void> _onSave() async {
-    if (_isSaving) return;
-    _isSaving = true;
-    setState(() {});
+  @override
+  Widget? buildHeaderImage() {
+    final hasImage =
+        _selectedImage != null ||
+        (_currentImageUrl != null && _currentImageUrl!.isNotEmpty);
 
-    try {
-      final categoryProvider = Provider.of<CategoryProvider>(
-        context,
-        listen: false,
-      );
-      String? imageUrlToSave = _currentImageUrl;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (hasImage)
+          _selectedImage != null
+              ? Image.file(File(_selectedImage!.path), fit: BoxFit.cover)
+              : Image.network(
+                  ImageHelper.getFullImageUrl(_currentImageUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFFF5F5F5),
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  ),
+                )
+        else
+          Container(
+            color: const Color(0xFFF5F5F5),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image_outlined, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'NO IMAGE SELECTED',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-      if (_selectedImage != null) {
-        // Upload image if a new one is selected
-        if (_selectedImage != null) {
-          imageUrlToSave = await categoryProvider.uploadCategoryImage(
-            _selectedImage!,
-          );
-        }
-      }
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.3),
+                Colors.transparent,
+                Colors.black.withOpacity(0.3),
+              ],
+            ),
+          ),
+        ),
 
-      final newCategory = model.Category(
-        id: widget.category?.id,
-        name: _nameController.text.trim(),
-        description: _descController.text.trim(),
-        imageUrl: imageUrlToSave ?? '', // Use uploaded URL or existing
-        status: _status,
-      );
+        // Edit Button Layer
+        Center(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _pickImage,
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.add_a_photo,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+        ),
 
-      if (widget.category == null) {
-        await categoryProvider.addCategory(newCategory);
-      } else {
-        await categoryProvider.updateCategory(newCategory);
-      }
-
-      if (!mounted) return;
-      Navigator.pop(
-        context,
-      ); // Pop without returning data, provider handles state
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Saved successfully')));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      } else {
-        _isSaving = false;
-      }
-    }
+        // Label Layer
+        const Positioned(
+          bottom: 16,
+          left: 16,
+          child: Text(
+            'CATEGORY IMAGE',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              fontSize: 12,
+              shadows: [
+                Shadow(
+                  offset: Offset(0, 1),
+                  blurRadius: 3.0,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isEditing = widget.category != null;
-
-    return AdminLayout(
-      title: isEditing ? 'Edit Category' : 'Add Category',
-      selectedIndex: 4,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextFieldInput(label: 'Category name', controller: _nameController),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ImagePickerField(
-              currentImage: _currentImageUrl,
-              selectedImage: _selectedImage,
-              onPickImage: _pickImage,
-            ),
-            const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text(
-                            'Save changes',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _isSaving ? null : () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+  Widget buildFormFields() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _nameController,
+          decoration: FormDecorations.standard('Category Name'),
+          style: AppTheme.bodyMedium,
         ),
-      ),
+        const SizedBox(height: AppTheme.spaceMD),
+        TextFormField(
+          controller: _descController,
+          decoration: FormDecorations.standard('Description'),
+          style: AppTheme.bodyMedium,
+          maxLines: 3,
+        ),
+        const SizedBox(height: AppTheme.spaceMD),
+        DropdownButtonFormField<String>(
+          initialValue: _status,
+          decoration: FormDecorations.standard('Status'),
+          items: const [
+            DropdownMenuItem(value: 'active', child: Text('Active')),
+            DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
+          ],
+          onChanged: (val) => setState(() => _status = val!),
+        ),
+      ],
     );
   }
 }

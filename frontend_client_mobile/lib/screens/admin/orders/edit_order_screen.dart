@@ -1,130 +1,109 @@
 import 'package:flutter/material.dart';
-import '../../../layouts/admin_layout.dart';
-import '../../../widgets/status_dropdown.dart';
-import '../../../widgets/text_field_input.dart';
+import '../../../config/theme_config.dart';
+import '../../../models/order_view.dart';
+import '../../../utils/form_decorations.dart';
+import '../base/base_edit_screen.dart';
 
-class EditOrderScreen extends StatefulWidget {
-  final Map<String, dynamic>? order;
-
-  const EditOrderScreen({super.key, this.order});
+class EditOrderScreen extends BaseEditScreen<OrderView> {
+  const EditOrderScreen({super.key, OrderView? entity}) : super(entity: entity);
 
   @override
   State<EditOrderScreen> createState() => _EditOrderScreenState();
 }
 
-class _EditOrderScreenState extends State<EditOrderScreen> {
-  late TextEditingController _customerController;
-  late TextEditingController _totalController;
-  late TextEditingController _dateController;
+class _EditOrderScreenState
+    extends BaseEditScreenState<OrderView, EditOrderScreen> {
+  late final TextEditingController _customerController;
+  late final TextEditingController _totalController;
+  late final TextEditingController _dateController;
   String _status = 'pending';
 
   @override
-  void initState() {
-    super.initState();
+  String getScreenTitle() => isEditing ? 'Edit Order' : 'Add Order';
+
+  @override
+  int getSelectedIndex() => 5;
+
+  @override
+  String getEntityName() => 'Order';
+
+  @override
+  IconData getSectionIcon() => Icons.shopping_bag_outlined;
+
+  @override
+  void initializeForm() {
     _customerController = TextEditingController(
-      text: widget.order?['customer'] ?? '',
+      text: widget.entity?.buyerEmail ?? '',
     );
     _totalController = TextEditingController(
-      text: widget.order?['total'].toString() ?? '',
+      text: widget.entity?.totalPrice.toString() ?? '',
     );
-    _dateController = TextEditingController(text: widget.order?['date'] ?? '');
-    _status = widget.order?['status'] ?? 'pending';
+    _dateController = TextEditingController(
+      text: widget.entity?.createdDate ?? '',
+    );
+    _status = widget.entity?.status ?? 'pending';
   }
 
   @override
-  void dispose() {
+  void disposeControllers() {
     _customerController.dispose();
     _totalController.dispose();
     _dateController.dispose();
-    super.dispose();
-  }
-
-  void _onSave() {
-    final updated = {
-      'id': widget.order?['id'] ?? DateTime.now().millisecondsSinceEpoch,
-      'customer': _customerController.text,
-      'total': double.tryParse(_totalController.text) ?? 0,
-      'date': _dateController.text,
-      'status': _status,
-    };
-
-    Navigator.pop(context, updated);
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Saved')));
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: widget.order == null ? 'Thêm đơn hàng' : 'Chỉnh sửa đơn hàng',
-      selectedIndex: 5,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextFieldInput(
-              label: 'Customer name',
-              controller: _customerController,
-            ),
-            const SizedBox(height: 16),
-            TextFieldInput(
-              label: 'Total amount (₫)',
-              controller: _totalController,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextFieldInput(label: 'Order date', controller: _dateController),
-            const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(
-                  value: 'processing',
-                  child: Text('Processing'),
-                ),
-                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text(
-                      'Save changes',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+  bool validateForm() {
+    return _customerController.text.trim().isNotEmpty;
+  }
+
+  @override
+  Future<void> saveEntity() async {
+    final order = OrderView(
+      id: widget.entity?.id ?? DateTime.now().millisecondsSinceEpoch,
+      buyerEmail: _customerController.text.trim(),
+      totalPrice: double.tryParse(_totalController.text) ?? 0,
+      createdDate: _dateController.text.trim(),
+      status: _status,
+    );
+
+    Navigator.pop(context, order);
+  }
+
+  @override
+  Widget buildFormFields() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _customerController,
+          decoration: FormDecorations.standard('Customer Email'),
+          style: AppTheme.bodyMedium,
         ),
-      ),
+        const SizedBox(height: AppTheme.spaceMD),
+        TextFormField(
+          controller: _totalController,
+          decoration: FormDecorations.standard('Total Amount (₫)'),
+          keyboardType: TextInputType.number,
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppTheme.spaceMD),
+        TextFormField(
+          controller: _dateController,
+          decoration: FormDecorations.standard('Order Date'),
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppTheme.spaceMD),
+        DropdownButtonFormField<String>(
+          value: _status,
+          decoration: FormDecorations.standard('Status'),
+          items: const [
+            DropdownMenuItem(value: 'pending', child: Text('Pending')),
+            DropdownMenuItem(value: 'processing', child: Text('Processing')),
+            DropdownMenuItem(value: 'completed', child: Text('Completed')),
+            DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+          ],
+          onChanged: (val) => setState(() => _status = val!),
+        ),
+      ],
     );
   }
 }

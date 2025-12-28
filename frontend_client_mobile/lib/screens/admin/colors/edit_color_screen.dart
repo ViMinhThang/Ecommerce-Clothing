@@ -1,147 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/color.dart' as model;
-import 'package:frontend_client_mobile/widgets/status_dropdown.dart';
-import 'package:frontend_client_mobile/widgets/text_field_input.dart';
 import 'package:provider/provider.dart';
-import '../../../layouts/admin_layout.dart';
 import '../../../providers/color_provider.dart';
+import '../../../config/theme_config.dart';
+import '../../../utils/form_decorations.dart';
+import '../base/base_edit_screen.dart';
 
-class EditColorScreen extends StatefulWidget {
-  final model.Color? color;
-
-  const EditColorScreen({super.key, this.color});
+class EditColorScreen extends BaseEditScreen<model.Color> {
+  const EditColorScreen({super.key, super.entity});
 
   @override
   State<EditColorScreen> createState() => _EditColorScreenState();
 }
 
-class _EditColorScreenState extends State<EditColorScreen> {
+class _EditColorScreenState
+    extends BaseEditScreenState<model.Color, EditColorScreen> {
   late final TextEditingController _nameController;
   String _status = 'active';
-  bool _isSaving = false;
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.color?.colorName ?? '');
-    _status = widget.color?.status ?? 'active';
+  String getScreenTitle() => isEditing ? 'Edit Color' : 'Add Color';
+
+  @override
+  int getSelectedIndex() => 6;
+
+  @override
+  String getEntityName() => 'Color';
+
+  @override
+  IconData getSectionIcon() => Icons.palette_outlined;
+
+  @override
+  void initializeForm() {
+    _nameController = TextEditingController(
+      text: widget.entity?.colorName ?? '',
+    );
+    _status = widget.entity?.status ?? 'active';
   }
 
   @override
-  void dispose() {
+  void disposeControllers() {
     _nameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onSave() async {
-    // 🔒 Dùng lock thủ công để chặn double tap trong cùng frame
-    if (_isSaving) return;
-    _isSaving = true; // gán trực tiếp, chưa cần setState
-    setState(() {}); // render lại nút disable
-
-    try {
-      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
-
-      final newColor = model.Color(
-        id: widget.color?.id,
-        colorName: _nameController.text.trim(),
-        status: _status,
-      );
-
-      if (widget.color == null) {
-        await colorProvider.addColor(newColor);
-      } else {
-        await colorProvider.updateColor(newColor);
-      }
-
-      if (!mounted) return;
-      Navigator.pop(context, newColor);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Saved successfully')));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      } else {
-        _isSaving = false;
-      }
-    }
-    print('🟢 onSave triggered at ${DateTime.now()} _isSaving=$_isSaving');
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isEditing = widget.color != null;
+  bool validateForm() {
+    return _nameController.text.trim().isNotEmpty;
+  }
 
-    return AdminLayout(
-      title: isEditing ? 'Edit Color' : 'Add Color',
-      selectedIndex: 6, // This will be updated later in admin_drawer.dart
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextFieldInput(label: 'Color name', controller: _nameController),
-            const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text(
-                            'Save changes',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _isSaving ? null : () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+  @override
+  Future<void> saveEntity() async {
+    final colorProvider = Provider.of<ColorProvider>(context, listen: false);
+
+    final color = model.Color(
+      id: widget.entity?.id,
+      colorName: _nameController.text.trim(),
+      status: _status,
+    );
+
+    if (isEditing) {
+      await colorProvider.updateColor(color);
+    } else {
+      await colorProvider.addColor(color);
+    }
+  }
+
+  @override
+  Widget buildFormFields() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _nameController,
+          decoration: FormDecorations.standard('Color Name'),
+          style: AppTheme.bodyMedium,
         ),
-      ),
+        const SizedBox(height: AppTheme.spaceMD),
+        DropdownButtonFormField<String>(
+          initialValue: _status,
+          decoration: FormDecorations.standard('Status'),
+          items: const [
+            DropdownMenuItem(value: 'active', child: Text('Active')),
+            DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
+          ],
+          onChanged: (val) => setState(() => _status = val!),
+        ),
+      ],
     );
   }
 }

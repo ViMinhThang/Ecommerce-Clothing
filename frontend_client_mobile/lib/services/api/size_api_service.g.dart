@@ -11,9 +11,7 @@ part of 'size_api_service.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
 class _SizeApiService implements SizeApiService {
-  _SizeApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'http://10.0.2.2:8080/';
-  }
+  _SizeApiService(this._dio, {this.baseUrl, this.errorLogger});
 
   final Dio _dio;
 
@@ -22,9 +20,10 @@ class _SizeApiService implements SizeApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Size>> getSizes() async {
+  Future<List<Size>> getSizes(String? name) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'name': name};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<List<Size>>(

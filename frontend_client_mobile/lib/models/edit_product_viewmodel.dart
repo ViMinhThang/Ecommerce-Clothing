@@ -1,9 +1,8 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:collection/collection.dart';
 import '../../models/product.dart';
 import '../../models/product_variant.dart';
 import '../../models/price.dart';
@@ -30,35 +29,30 @@ class EditProductViewModel extends ChangeNotifier {
 
   bool get isEditing => existingProduct != null;
 
-  // Controllers
   late final TextEditingController nameController = TextEditingController(
     text: existingProduct?.name ?? '',
   );
   late final TextEditingController descriptionController =
       TextEditingController(text: existingProduct?.description ?? '');
 
-  // State
   Category? _selectedCategory;
-  File? _selectedImage;
+  XFile? _selectedImage;
   List<ProductVariant> _variants = [];
-  bool _isLoadingCategories = false;
-  bool _isLoadingColors = false;
-  bool _isLoadingSizes = false;
+  bool _isInitializing = false;
   bool _isSaving = false;
 
   // Getters
   Category? get selectedCategory => _selectedCategory;
-  File? get selectedImage => _selectedImage;
+  XFile? get selectedImage => _selectedImage;
   List<ProductVariant> get variants => _variants;
-  bool get isLoadingCategories => _isLoadingCategories;
-  bool get isLoadingColors => _isLoadingColors;
-  bool get isLoadingSizes => _isLoadingSizes;
+  bool get isInitializing => _isInitializing;
   bool get isSaving => _isSaving;
+
+  // Mapping from providers
   List<Category> get categories => categoryProvider.categories;
   List<product_color.Color> get colors => colorProvider.colors;
   List<Size> get sizes => sizeProvider.sizes;
 
-  // Setters with change notification
   set selectedCategory(Category? value) {
     if (_selectedCategory != value) {
       _selectedCategory = value;
@@ -66,28 +60,25 @@ class EditProductViewModel extends ChangeNotifier {
     }
   }
 
-  set selectedImage(File? value) {
+  set selectedImage(XFile? value) {
     if (_selectedImage != value) {
       _selectedImage = value;
       notifyListeners();
     }
   }
 
-  // Constants
   static const double defaultPrice = 0.0;
 
   Future<void> initialize() async {
     selectedCategory = existingProduct?.category;
     if (existingProduct != null) {
-      _variants = existingProduct!.variants.map(_copyVariant).toList();
+      _variants = existingProduct!.variants.map((v) => v.copyWith()).toList();
     }
     await loadInitialData();
   }
 
   Future<void> loadInitialData() async {
-    _isLoadingCategories = true;
-    _isLoadingColors = true;
-    _isLoadingSizes = true;
+    _isInitializing = true;
     notifyListeners();
 
     try {
@@ -96,11 +87,25 @@ class EditProductViewModel extends ChangeNotifier {
         colorProvider.initialize(),
         sizeProvider.initialize(),
       ]);
+
+      _syncVariantsWithProviders();
     } finally {
-      _isLoadingCategories = false;
-      _isLoadingColors = false;
-      _isLoadingSizes = false;
+      _isInitializing = false;
       notifyListeners();
+    }
+  }
+
+  void _syncVariantsWithProviders() {
+    if (_variants.isEmpty) return;
+
+    for (int i = 0; i < _variants.length; i++) {
+      final v = _variants[i];
+      final officialColor =
+          colors.firstWhereOrNull((c) => c.id == v.color.id) ?? v.color;
+      final officialSize =
+          sizes.firstWhereOrNull((s) => s.id == v.size.id) ?? v.size;
+
+      _variants[i] = v.copyWith(color: officialColor, size: officialSize);
     }
   }
 
@@ -109,7 +114,7 @@ class EditProductViewModel extends ChangeNotifier {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        selectedImage = File(pickedFile.path);
+        selectedImage = pickedFile;
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -118,6 +123,10 @@ class EditProductViewModel extends ChangeNotifier {
   }
 
   void addVariant() {
+    if (colors.isEmpty || sizes.isEmpty) {
+      debugPrint('Cannot add variant: Colors or Sizes list is empty');
+      return;
+    }
     _variants.add(
       ProductVariant(
         id: 0,
@@ -135,37 +144,29 @@ class EditProductViewModel extends ChangeNotifier {
   }
 
   void updateVariantColor(int index, product_color.Color color) {
-    final variant = _variants[index];
-    _variants[index] = _copyVariantWith(variant, color: color);
+    _variants[index] = _variants[index].copyWith(color: color);
     notifyListeners();
   }
 
   void updateVariantSize(int index, Size size) {
-    final variant = _variants[index];
-    _variants[index] = _copyVariantWith(variant, size: size);
+    _variants[index] = _variants[index].copyWith(size: size);
     notifyListeners();
   }
 
   void updateVariantBasePrice(int index, String value) {
-    final variant = _variants[index];
-    _variants[index] = _copyVariantWith(
-      variant,
-      price: Price(
-        id: variant.price.id,
+    final v = _variants[index];
+    _variants[index] = v.copyWith(
+      price: v.price.copyWith(
         basePrice: double.tryParse(value) ?? defaultPrice,
-        salePrice: variant.price.salePrice,
       ),
     );
     notifyListeners();
   }
 
   void updateVariantSalePrice(int index, String value) {
-    final variant = _variants[index];
-    _variants[index] = _copyVariantWith(
-      variant,
-      price: Price(
-        id: variant.price.id,
-        basePrice: variant.price.basePrice,
+    final v = _variants[index];
+    _variants[index] = v.copyWith(
+      price: v.price.copyWith(
         salePrice: double.tryParse(value) ?? defaultPrice,
       ),
     );
@@ -174,8 +175,8 @@ class EditProductViewModel extends ChangeNotifier {
 
   bool validateForm(GlobalKey<FormState> formKey) {
     if (!formKey.currentState!.validate()) return false;
-    if (selectedCategory == null) throw Exception('Category is required');
-    if (_variants.isEmpty) throw Exception('At least one variant is required');
+    if (selectedCategory == null) return false;
+    if (_variants.isEmpty) return false;
     return true;
   }
 
@@ -205,16 +206,27 @@ class EditProductViewModel extends ChangeNotifier {
   }
 
   bool hasUnsavedChanges() {
-    final originalName = existingProduct?.name ?? '';
-    final originalDesc = existingProduct?.description ?? '';
-    final originalCategory = existingProduct?.category;
-    final originalVariants = existingProduct?.variants ?? [];
+    if (existingProduct == null) {
+      return nameController.text.isNotEmpty ||
+          descriptionController.text.isNotEmpty ||
+          selectedCategory != null ||
+          selectedImage != null ||
+          _variants.isNotEmpty;
+    }
 
-    return nameController.text != originalName ||
-        descriptionController.text != originalDesc ||
-        selectedCategory != originalCategory ||
-        selectedImage != null ||
-        !_variants.equals(originalVariants);
+    final hasBasicInfoChanged =
+        nameController.text != existingProduct!.name ||
+        descriptionController.text != existingProduct!.description ||
+        selectedCategory?.id != existingProduct!.category.id;
+
+    final hasImageChanged = selectedImage != null;
+
+    final hasVariantsChanged = !const ListEquality().equals(
+      _variants,
+      existingProduct!.variants,
+    );
+
+    return hasBasicInfoChanged || hasImageChanged || hasVariantsChanged;
   }
 
   @override
@@ -222,59 +234,5 @@ class EditProductViewModel extends ChangeNotifier {
     nameController.dispose();
     descriptionController.dispose();
     super.dispose();
-  }
-}
-
-// Helper functions
-ProductVariant _copyVariant(ProductVariant variant) {
-  return ProductVariant(
-    id: variant.id,
-    price: Price(
-      id: variant.price.id,
-      basePrice: variant.price.basePrice,
-      salePrice: variant.price.salePrice,
-    ),
-    size: Size(
-      id: variant.size.id,
-      sizeName: variant.size.sizeName,
-      status: variant.size.status,
-    ),
-    color: product_color.Color(
-      id: variant.color.id,
-      colorName: variant.color.colorName,
-      status: variant.color.status,
-    ),
-  );
-}
-
-ProductVariant _copyVariantWith(
-  ProductVariant variant, {
-  Price? price,
-  Size? size,
-  product_color.Color? color,
-}) {
-  return ProductVariant(
-    id: variant.id,
-    price: price ?? variant.price,
-    size: size ?? variant.size,
-    color: color ?? variant.color,
-  );
-}
-
-// Extension for comparing variant lists
-extension ProductVariantListExt on List<ProductVariant> {
-  bool equals(List<ProductVariant> other) {
-    if (length != other.length) return false;
-    for (int i = 0; i < length; i++) {
-      final a = this[i];
-      final b = other[i];
-      if (a.color.colorName != b.color.colorName ||
-          a.size.sizeName != b.size.sizeName ||
-          a.price.basePrice != b.price.basePrice ||
-          a.price.salePrice != b.price.salePrice) {
-        return false;
-      }
-    }
-    return true;
   }
 }

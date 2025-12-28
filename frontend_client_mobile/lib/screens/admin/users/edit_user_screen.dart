@@ -1,114 +1,239 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import '../../../layouts/admin_layout.dart';
-import '../../../widgets/status_dropdown.dart';
-import '../../../widgets/text_field_input.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:provider/provider.dart';
 
-class EditUserScreen extends StatefulWidget {
-  final Map<String, dynamic>? user;
+import '../../../config/theme_config.dart';
+import '../../../models/user_update_request.dart';
+import '../../../providers/user_provider.dart';
+import '../../../utils/form_decorations.dart';
+import '../base/base_edit_screen.dart';
 
-  const EditUserScreen({super.key, this.user});
+class EditUserScreen extends BaseEditScreen<Map<String, dynamic>> {
+  const EditUserScreen({super.key, super.entity});
 
   @override
   State<EditUserScreen> createState() => _EditUserScreenState();
 }
 
-class _EditUserScreenState extends State<EditUserScreen> {
-  late TextEditingController _nameController;
+class _EditUserScreenState
+    extends BaseEditScreenState<Map<String, dynamic>, EditUserScreen> {
+  late TextEditingController _fullNameController;
   late TextEditingController _emailController;
-  late TextEditingController _roleController;
-  String _status = 'active';
+  late TextEditingController _birthDayController;
+  DateTime? _selectedBirthDay;
+  bool _isPrefilling = false;
+  int? _userId;
+
+  final RegExp _emailPattern = RegExp(
+    r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+  );
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.user?['name'] ?? '');
-    _emailController = TextEditingController(text: widget.user?['email'] ?? '');
-    _roleController = TextEditingController(text: widget.user?['role'] ?? '');
-    _status = widget.user?['status'] ?? 'Active';
-  }
+  String getScreenTitle() => 'Chỉnh sửa người dùng';
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _roleController.dispose();
-    super.dispose();
-  }
-
-  void _onSave() {
-    final updated = {
-      'id': widget.user?['id'] ?? DateTime.now().millisecondsSinceEpoch,
-      'name': _nameController.text,
-      'email': _emailController.text,
-      'role': _roleController.text,
-      'status': _status,
-    };
-
-    Navigator.pop(context, updated);
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Saved')));
-  }
+  int getSelectedIndex() => 3;
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: widget.user == null ? 'Thêm người dùng' : 'Chỉnh sửa người dùng',
-      selectedIndex: 3,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextFieldInput(label: 'Full name', controller: _nameController),
-            const SizedBox(height: 16),
-            TextFieldInput(label: 'Email', controller: _emailController),
-            const SizedBox(height: 16),
-            TextFieldInput(label: 'Role', controller: _roleController),
-            const SizedBox(height: 16),
-            StatusDropdown(
-              value: _status,
-              onChanged: (val) => setState(() => _status = val),
-              items: const [
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'Disable', child: Text('Disable')),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _onSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text(
-                      'Save changes',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+  String getEntityName() => 'User';
+
+  @override
+  IconData getSectionIcon() => Icons.person_outline;
+
+  @override
+  void initializeForm() {
+    _fullNameController = TextEditingController(
+      text: widget.entity?['fullName'] ?? widget.entity?['name'] ?? '',
     );
+    _emailController = TextEditingController(
+      text: widget.entity?['email'] ?? '',
+    );
+    _selectedBirthDay = _parseBirthDay(widget.entity?['birthDay']);
+    _birthDayController = TextEditingController(
+      text: _selectedBirthDay != null ? _formatDate(_selectedBirthDay!) : '',
+    );
+
+    _userId = _extractUserId(widget.entity?['id']);
+    if (_userId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadUpdateInfo(_userId!);
+      });
+    }
+  }
+
+  @override
+  void disposeControllers() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _birthDayController.dispose();
+  }
+
+  @override
+  bool validateForm() {
+    final error = _validateFields();
+    if (error != null) {
+      showErrorMessage(error);
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  Future<void> saveEntity() async {
+    final userId = _userId;
+    if (userId == null) {
+      throw Exception('Không tìm thấy ID người dùng');
+    }
+
+    final request = UserUpdateRequest(
+      fullName: _fullNameController.text.trim(),
+      email: _emailController.text.trim().isEmpty
+          ? null
+          : _emailController.text.trim(),
+      birthDay: _selectedBirthDay,
+    );
+
+    await context.read<UserProvider>().updateUser(userId, request);
+  }
+
+  @override
+  Future<void> handleSave() async {
+    if (isSaving) return;
+    if (!validateForm()) return;
+
+    setState(() => isSaving = true);
+    try {
+      await saveEntity();
+      if (!mounted) return;
+      Navigator.pop(context, {
+        'id': _userId,
+        'fullName': _fullNameController.text.trim(),
+        'email': _emailController.text.trim().isEmpty
+            ? null
+            : _emailController.text.trim(),
+        'birthDay': _selectedBirthDay?.toIso8601String(),
+      });
+      showSuccessMessage();
+    } catch (e) {
+      final msg = e is DioException && e.error is AppHttpException
+          ? e.error.toString()
+          : 'Có lỗi xảy ra';
+      if (mounted) showErrorMessage(msg);
+    } finally {
+      if (mounted) setState(() => isSaving = false);
+    }
+  }
+
+  @override
+  Widget buildFormFields() {
+    if (_isPrefilling) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      children: [
+        TextFormField(
+          controller: _fullNameController,
+          decoration: FormDecorations.standard('Full name'),
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppTheme.spaceMD),
+        TextFormField(
+          controller: _emailController,
+          decoration: FormDecorations.standard('Email'),
+          keyboardType: TextInputType.emailAddress,
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppTheme.spaceMD),
+        TextFormField(
+          controller: _birthDayController,
+          readOnly: true,
+          decoration: FormDecorations.standard('Birthday').copyWith(
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_today_outlined),
+              onPressed: _pickBirthDay,
+            ),
+          ),
+          onTap: _pickBirthDay,
+        ),
+      ],
+    );
+  }
+
+  String? _validateFields() {
+    final fullName = _fullNameController.text.trim();
+    if (fullName.length < 6 || fullName.length > 100) {
+      return 'Full name phải từ 6-100 ký tự';
+    }
+
+    final email = _emailController.text.trim();
+    if (email.isNotEmpty && !_emailPattern.hasMatch(email)) {
+      return 'Email không hợp lệ';
+    }
+
+    return null;
+  }
+
+  DateTime? _parseBirthDay(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  Future<void> _pickBirthDay() async {
+    FocusScope.of(context).unfocus();
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthDay ?? DateTime(now.year - 18),
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedBirthDay = picked;
+        _birthDayController.text = _formatDate(picked);
+      });
+    }
+  }
+
+  int? _extractUserId(dynamic id) {
+    if (id is int) return id;
+    if (id is num) return id.toInt();
+    return null;
+  }
+
+  Future<void> _loadUpdateInfo(int userId) async {
+    setState(() => _isPrefilling = true);
+    try {
+      final provider = context.read<UserProvider>();
+      final UserUpdateRequest dto = await provider.fetchUpdateInfo(userId);
+      if (!mounted) return;
+      _fullNameController.text = dto.fullName;
+      _emailController.text = dto.email ?? '';
+      _selectedBirthDay = dto.birthDay;
+      _birthDayController.text = dto.birthDay != null
+          ? _formatDate(dto.birthDay!)
+          : '';
+    } catch (e) {
+      if (mounted) {
+        showErrorMessage('Không thể tải thông tin người dùng');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPrefilling = false);
+      }
+    }
   }
 }

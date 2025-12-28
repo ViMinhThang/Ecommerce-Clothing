@@ -1,9 +1,11 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.CategoryDTO; // Import CategoryDTO
+import com.ecommerce.backend.dto.CategoryDTO;
+import com.ecommerce.backend.dto.view.CategoryView;
 import com.ecommerce.backend.model.Category;
 import com.ecommerce.backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +21,15 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> categories = categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories(
+            @RequestParam(required = false) String name) {
+        List<Category> categories;
+
+        if (name != null && !name.isEmpty()) {
+            categories = categoryService.searchCategories(name, Pageable.unpaged()).getContent();
+        } else {
+            categories = categoryService.getAllCategories();
+        }
         return ResponseEntity.ok(categories);
     }
 
@@ -31,13 +40,13 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(@RequestBody CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
+    public ResponseEntity<Category> createCategory(@RequestBody CategoryDTO categoryDTO) {
         Category createdCategory = categoryService.createCategory(categoryDTO);
         return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) { // Changed parameter to CategoryDTO
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
         Category updatedCategory = categoryService.updateCategory(id, categoryDTO);
         return ResponseEntity.ok(updatedCategory);
     }
@@ -52,5 +61,9 @@ public class CategoryController {
     public ResponseEntity<String> uploadCategoryImage(@RequestParam("image") MultipartFile imageFile) {
         String imageUrl = categoryService.uploadCategoryImage(imageFile);
         return ResponseEntity.ok(imageUrl);
+    }
+    @GetMapping("/searchByName")
+    public ResponseEntity<List<CategoryView>> searchByName(@RequestParam("name") String name){
+        return ResponseEntity.ok(categoryService.searchByName(name));
     }
 }
