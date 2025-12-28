@@ -11,6 +11,8 @@ import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 import 'package:frontend_client_mobile/services/api/search_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
+import 'package:frontend_client_mobile/services/auth_service.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(
@@ -112,12 +114,55 @@ class ApiClient {
     if (_interceptorAdded) return;
     _interceptorAdded = true;
 
+    final TokenStorage _tokenStorage = TokenStorage();
+    final AuthService _authService = AuthService();
+
     dio.interceptors.add(
       InterceptorsWrapper(
-        onError: (DioException e, handler) {
+        onRequest: (options, handler) async {
+          final token = await _tokenStorage.readAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+        onError: (DioException e, handler) async {
+          // Nếu backend trả 401 -> thử refresh
+          final status = e.response?.statusCode ?? 0;
+          if (status == 401) {
+            // tránh vòng lặp: nếu request là refresh thì không gọi lại
+            if (e.requestOptions.path.contains('/api/auth/refresh')) {
+              await _tokenStorage.clear();
+              return handler.next(e);
+            }
+
+            final didRefresh = await _authService.refreshToken();
+            if (didRefresh) {
+              final newToken = await _tokenStorage.readAccessToken();
+              if (newToken != null) {
+                final opts = Options(
+                  method: e.requestOptions.method,
+                  headers: Map.from(e.requestOptions.headers),
+                );
+                opts.headers!['Authorization'] = 'Bearer $newToken';
+
+                try {
+                  final cloneReq = await dio.request(
+                    e.requestOptions.path,
+                    data: e.requestOptions.data,
+                    queryParameters: e.requestOptions.queryParameters,
+                    options: opts,
+                  );
+                  return handler.resolve(cloneReq);
+                } on DioException catch (err) {
+                  return handler.next(err);
+                }
+              }
+            }
+          }
+
           // Chỉ xử lý lỗi có response từ backend (4xx, 5xx)
           if (e.type == DioExceptionType.badResponse && e.response != null) {
-            final status = e.response?.statusCode ?? 0;
             if (status >= 400) {
               final msg = _extractMessage(e.response?.data) ?? 'Có lỗi xảy ra';
               return handler.reject(
@@ -125,12 +170,12 @@ class ApiClient {
                   requestOptions: e.requestOptions,
                   response: e.response,
                   type: e.type,
-                  error: AppHttpException(msg), // gói message sạch
+                  error: AppHttpException(msg),
                 ),
               );
             }
           }
-          // Các lỗi khác (mạng, timeout, hủy, ...) cho đi tiếp
+
           return handler.next(e);
         },
       ),
