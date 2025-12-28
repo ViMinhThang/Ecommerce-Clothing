@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_variant.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +23,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int quantity = 1;
   bool isFavorite = false;
 
+  // Product data from API
+  Product? product;
+  bool isLoadingProduct = true;
+  
   List<ProductVariant> variants = [];
   bool isLoadingVariants = true;
   String? errorMessage;
@@ -33,7 +39,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _variantApiService = ProductVariantApiService(
       Dio()..options.baseUrl = 'http://10.0.2.2:8080/',
     );
-    _fetchVariants();
+    _fetchProductAndVariants();
+  }
+
+  Future<void> _fetchProductAndVariants() async {
+    await Future.wait([
+      _fetchProduct(),
+      _fetchVariants(),
+    ]);
+  }
+
+  Future<void> _fetchProduct() async {
+    try {
+      setState(() {
+        isLoadingProduct = true;
+      });
+      
+      final fetchedProduct = await ApiClient.getProductApiService().getProduct(widget.productId);
+      
+      setState(() {
+        product = fetchedProduct;
+        isLoadingProduct = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingProduct = false;
+        errorMessage = 'Failed to load product: $e';
+      });
+    }
   }
 
   Future<void> _fetchVariants() async {
@@ -87,6 +120,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  // Helper to get price display from selected variant
+  String get basePriceDisplay {
+    if (selectedVariant == null) return '';
+    return '${selectedVariant!.price.basePrice.toStringAsFixed(2)}\$';
+  }
+
+  String get salePriceDisplay {
+    if (selectedVariant == null) return '';
+    return '${selectedVariant!.price.salePrice.toStringAsFixed(2)}\$';
+  }
+
+  bool get hasDiscount {
+    if (selectedVariant == null) return false;
+    return selectedVariant!.price.basePrice > selectedVariant!.price.salePrice;
+  }
+
+  // Get product image URL with fallback
+  String get productImageUrl {
+    if (product?.imageUrl != null && product!.imageUrl!.isNotEmpty) {
+      // If image URL is relative, prepend base URL
+      if (product!.imageUrl!.startsWith('http')) {
+        return product!.imageUrl!;
+      } else {
+        return 'http://10.0.2.2:8080/${product!.imageUrl}';
+      }
+    }
+    return 'https://via.placeholder.com/450x450?text=No+Image';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,15 +165,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     width: double.infinity,
                     height: 450,
                     color: const Color(0xFFF5F5F5),
-                    child: Image.network(
-                      'https://down-vn.img.susercontent.com/file/60e8bdd1fab3ab6c50a42f959a3fa107.webp',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(Icons.image, size: 100, color: Colors.grey),
-                        );
-                      },
-                    ),
+                    child: isLoadingProduct
+                        ? const Center(child: CircularProgressIndicator())
+                        : Image.network(
+                            productImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(Icons.image, size: 100, color: Colors.grey),
+                              );
+                            },
+                          ),
                   ),
                   Positioned(
                     top: 16,
@@ -158,15 +222,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     // Product Title and Favorite
                     Row(
                       children: [
-                        const Expanded(
-                          child: Text(
-                            'Claudette corset shirt dress in white',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
+                        Expanded(
+                          child: isLoadingProduct
+                              ? const Text('Loading...', style: TextStyle(fontSize: 18))
+                              : Text(
+                                  product?.name ?? 'Product Name',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
                         ),
                         IconButton(
                           icon: Icon(
@@ -201,23 +267,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         const Spacer(),
-                        Text(
-                          '79.95\$',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[400],
-                            decoration: TextDecoration.lineThrough,
+                        if (hasDiscount && !isLoadingVariants) ...[
+                          Text(
+                            basePriceDisplay,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[400],
+                              decoration: TextDecoration.lineThrough,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          '65.00\$',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red,
-                          ),
-                        ),
+                          const SizedBox(width: 8),
+                        ],
+                        isLoadingVariants
+                            ? const Text('...')
+                            : Text(
+                                salePriceDisplay,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red,
+                                ),
+                              ),
                       ],
                     ),
 
@@ -456,25 +526,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "A shirt is a profitable investment in the wardrobe. And here's why:",
-                                style: TextStyle(fontSize: 14, height: 1.5),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '- shirts perfectly match with any bottom',
-                                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '- shirts made of natural fabrics are suitable for any time of the year.',
-                                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                              ),
-                            ],
-                          ),
+                          child: isLoadingProduct
+                              ? const Text('Loading description...')
+                              : Text(
+                                  product?.description ?? 'No description available',
+                                  style: const TextStyle(fontSize: 14, height: 1.5),
+                                ),
                         ),
                       ],
                     ),

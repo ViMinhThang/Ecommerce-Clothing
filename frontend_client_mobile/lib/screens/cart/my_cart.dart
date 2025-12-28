@@ -1,406 +1,391 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/cart.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
+import 'package:provider/provider.dart';
 
 class MyCart extends StatefulWidget {
-	const MyCart({super.key});
+  const MyCart({super.key});
 
-	@override
-	State<MyCart> createState() => _MyCartState();
+  @override
+  State<MyCart> createState() => _MyCartState();
 }
 
 class _MyCartState extends State<MyCart> {
-	final List<Map<String, dynamic>> products = [
-		{
-			"name": "Black Jacket",
-			"price": 59.99,
-			"oldPrice": 79.99,
-			"color": Colors.black,
-			"size": "M",
-			"quantity": 1,
-			"image": "https://m.media-amazon.com/images/I/51wbSZDIWlL.jpg"
-		},
-		{
-			"name": "White T-Shirt",
-			"price": 29.99,
-			"oldPrice": 39.99,
-			"color": Colors.grey,
-			"size": "L",
-			"quantity": 1,
-			"image":
-			"https://www.gundam.co.nz/wp-content/uploads/2025/04/Gundam-Universe-RX-78-2-Gundam-Renewal_0.jpg"
-		},
-	];
+  static const int _currentUserId = 1;
 
-	// Calculate totals
-	double get totalPrice {
-		return products.fold(0, (sum, item) => sum + (item['price'] * item['quantity']));
-	}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCart();
+    });
+  }
 
-	double get discount {
-		return products.fold(0, (sum, item) {
-			if (item['oldPrice'] != null) {
-				return sum + ((item['oldPrice'] - item['price']) * item['quantity']);
-			}
-			return sum;
-		});
-	}
+  Future<void> _loadCart() async {
+    await Provider.of<CartProvider>(context, listen: false).fetchCart(_currentUserId);
+  }
 
-	double get finalTotal {
-		return totalPrice;
-	}
+  String _getImageUrl(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return 'https://via.placeholder.com/100x120?text=No+Image';
+    }
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    return 'http://10.0.2.2:8080/$imageUrl';
+  }
 
-	@override
-	Widget build(BuildContext context) {
-		return Scaffold(
-			backgroundColor: Colors.white,
-			appBar: AppBar(
-				title: const Text('Cart'),
-				backgroundColor: Colors.white,
-				foregroundColor: Colors.black,
-				elevation: 0,
-			),
-			body: Column(
-				children: [
-					Padding(
-						padding: const EdgeInsets.all(16.0),
-						child: Center(
-							child: Text(
-								"You have ${products.length} products in your Cart",
-								style: const TextStyle(
-									fontSize: 16,
-									fontWeight: FontWeight.w400,
-									color: Colors.black54,
-								),
-							),
-						),
-					),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Cart'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Consumer<CartProvider>(
+        builder: (context, cartProvider, child) {
+          if (cartProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-					// PRODUCT LIST
-					Expanded(
-						child: ListView.builder(
-							padding: const EdgeInsets.symmetric(horizontal: 16),
-							itemCount: products.length,
-							itemBuilder: (context, index) {
-								final item = products[index];
+          if (cartProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    cartProvider.error!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadCart,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
 
-								return Container(
-									margin: const EdgeInsets.only(bottom: 16),
-									padding: const EdgeInsets.all(12),
-									decoration: BoxDecoration(
-										color: Colors.white60,
-										borderRadius: BorderRadius.circular(12),
-										boxShadow: [
-											BoxShadow(
-												color: Colors.grey.shade300,
-												blurRadius: 6,
-												offset: const Offset(0, 3),
-											)
-										],
-									),
-									child: Row(
-										crossAxisAlignment: CrossAxisAlignment.start,
-										children: [
-											// IMAGE
-											ClipRRect(
-												borderRadius: BorderRadius.circular(8),
-												child: Image.network(
-													item["image"],
-													width: 100,
-													height: 120,
-													fit: BoxFit.cover,
-												),
-											),
+          final cart = cartProvider.cart;
+          final items = cart?.items ?? [];
 
-											const SizedBox(width: 12),
+          if (items.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Your cart is empty',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          }
 
-											// PRODUCT INFO
-											Expanded(
-												child: Column(
-													crossAxisAlignment: CrossAxisAlignment.start,
-													children: [
-														// Product Name
-														Text(
-															item["name"],
-															style: const TextStyle(
-																fontSize: 16,
-																fontWeight: FontWeight.w600,
-															),
-															maxLines: 2,
-															overflow: TextOverflow.ellipsis,
-														),
-														const SizedBox(height: 8),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    "You have ${items.length} products in your Cart",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _loadCart,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return _buildCartItem(item, cartProvider);
+                    },
+                  ),
+                ),
+              ),
+              _buildPriceSummary(cart!, cartProvider),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
-														// Color & Size
-														Row(
-															children: [
-																const Text(
-																	"Color: ",
-																	style: TextStyle(
-																			fontSize: 12, color: Colors.black54),
-																),
-																Container(
-																	width: 20,
-																	height: 20,
-																	decoration: BoxDecoration(
-																		color: item["color"],
-																		shape: BoxShape.circle,
-																		border: Border.all(
-																				color: Colors.grey.shade300,
-																				width: 1),
-																	),
-																),
-																const SizedBox(width: 16),
-																Text(
-																	"Size: ${item["size"]}",
-																	style: const TextStyle(
-																			fontSize: 12, color: Colors.black54),
-																),
-															],
-														),
-														const SizedBox(height: 8),
+  Widget _buildCartItem(CartItemView item, CartProvider cartProvider) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white60,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              _getImageUrl(item.productImage),
+              width: 100,
+              height: 120,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 100,
+                  height: 120,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image, color: Colors.grey),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.productName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      "Color: ${item.colorName}",
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      "Size: ${item.sizeName}",
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "\$${item.price.toStringAsFixed(2)}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildQuantityController(item, cartProvider),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              await cartProvider.removeItem(item.id, _currentUserId);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Item removed from cart'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.close),
+            color: Colors.black54,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
 
-														// Price
-														Row(
-															children: [
-																if (item["oldPrice"] != null)
-																	Text(
-																		"\$${item["oldPrice"]}",
-																		style: const TextStyle(
-																			fontSize: 14,
-																			color: Colors.grey,
-																			decoration: TextDecoration.lineThrough,
-																		),
-																	),
-																const SizedBox(width: 8),
-																Text(
-																	"\$${item["price"]}",
-																	style: const TextStyle(
-																		fontSize: 18,
-																		fontWeight: FontWeight.bold,
-																		color: Colors.redAccent,
-																	),
-																),
-															],
-														),
-														const SizedBox(height: 8),
+  Widget _buildQuantityController(CartItemView item, CartProvider cartProvider) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: item.quantity > 1
+                ? () async {
+                    await cartProvider.updateQuantity(
+                      item.id,
+                      item.quantity - 1,
+                      _currentUserId,
+                    );
+                  }
+                : null,
+            icon: const Icon(Icons.remove, size: 18),
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "${item.quantity}",
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              await cartProvider.updateQuantity(
+                item.id,
+                item.quantity + 1,
+                _currentUserId,
+              );
+            },
+            icon: const Icon(Icons.add, size: 18),
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
 
-														// Quantity Controller
-														Container(
-															decoration: BoxDecoration(
-																border:
-																Border.all(color: Colors.grey.shade300),
-																borderRadius: BorderRadius.circular(8),
-															),
-															child: Row(
-																mainAxisSize: MainAxisSize.min,
-																children: [
-																	IconButton(
-																		onPressed: () {
-																			setState(() {
-																				if (item["quantity"] > 1) {
-																					item["quantity"]--;
-																				}
-																			});
-																		},
-																		icon: const Icon(Icons.remove, size: 18),
-																		padding: const EdgeInsets.all(4),
-																		constraints: const BoxConstraints(),
-																	),
-																	Padding(
-																		padding: const EdgeInsets.symmetric(
-																				horizontal: 12),
-																		child: Text(
-																			"${item["quantity"]}",
-																			style: const TextStyle(
-																				fontSize: 16,
-																				fontWeight: FontWeight.w600,
-																			),
-																		),
-																	),
-																	IconButton(
-																		onPressed: () {
-																			setState(() {
-																				item["quantity"]++;
-																			});
-																		},
-																		icon: const Icon(Icons.add, size: 18),
-																		padding: const EdgeInsets.all(4),
-																		constraints: const BoxConstraints(),
-																	),
-																],
-															),
-														),
-													],
-												),
-											),
+  Widget _buildPriceSummary(CartView cart, CartProvider cartProvider) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border(
+          top: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildPriceRow(
+            "Total Price",
+            "\$${cart.totalPrice.toStringAsFixed(2)}",
+            isGrey: true,
+          ),
+          const SizedBox(height: 8),
+          _buildPriceRow(
+            "Estimated delivery fees",
+            "Free",
+            isGrey: true,
+          ),
+          const SizedBox(height: 16),
+          Divider(color: Colors.grey.shade300, thickness: 1),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Total:",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              Text(
+                "\$${cart.totalPrice.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: cart.items.isEmpty
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentMethodScreen(),
+                        ),
+                      );
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                disabledBackgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopping_cart, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text(
+                    "Checkout",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-											// DELETE BUTTON
-											IconButton(
-												onPressed: () {
-													setState(() {
-														products.removeAt(index);
-													});
-												},
-												icon: const Icon(Icons.close),
-												color: Colors.black54,
-												padding: EdgeInsets.zero,
-												constraints: const BoxConstraints(),
-											),
-										],
-									),
-								);
-							},
-						),
-					),
-
-					// PRICE SUMMARY SECTION
-					Container(
-						padding: const EdgeInsets.all(16),
-						decoration: BoxDecoration(
-							color: Colors.grey.shade50,
-							border: Border(
-								top: BorderSide(color: Colors.grey.shade200, width: 1),
-							),
-						),
-						child: Column(
-							children: [
-								// Total Price
-								_buildPriceRow(
-									"Total Price",
-									"\$${totalPrice.toStringAsFixed(2)}",
-									isGrey: true,
-								),
-								const SizedBox(height: 8),
-
-								// Discount
-								_buildPriceRow(
-									"Discount",
-									"\$${discount.toStringAsFixed(2)}",
-									isGrey: true,
-								),
-								const SizedBox(height: 8),
-
-								// Delivery Fees
-								_buildPriceRow(
-									"Estimated delivery fees",
-									"Free",
-									isGrey: true,
-								),
-
-								const SizedBox(height: 16),
-								Divider(color: Colors.grey.shade300, thickness: 1),
-								const SizedBox(height: 16),
-
-								// TOTAL
-								Row(
-									mainAxisAlignment: MainAxisAlignment.spaceBetween,
-									children: [
-										const Text(
-											"Total:",
-											style: TextStyle(
-												fontSize: 20,
-												fontWeight: FontWeight.bold,
-												color: Colors.black,
-											),
-										),
-										Text(
-											"\$${finalTotal.toStringAsFixed(2)}",
-											style: const TextStyle(
-												fontSize: 22,
-												fontWeight: FontWeight.bold,
-												color: Colors.black,
-											),
-										),
-									],
-								),
-								const SizedBox(height: 8),
-
-								// Saving Applied
-								Row(
-									mainAxisAlignment: MainAxisAlignment.spaceBetween,
-									children: [
-										Text(
-											"Saving Applied",
-											style: TextStyle(
-												fontSize: 14,
-												color: Colors.grey.shade600,
-											),
-										),
-										Text(
-											"\$${discount.toStringAsFixed(2)}",
-											style: TextStyle(
-												fontSize: 14,
-												color: Colors.grey.shade600,
-											),
-										),
-									],
-								),
-								const SizedBox(height: 20),
-
-								// CHECKOUT BUTTON
-								SizedBox(
-									width: double.infinity,
-									height: 56,
-									child: ElevatedButton(
-										onPressed: () {
-											// Handle checkout
-											ScaffoldMessenger.of(context).showSnackBar(
-												const SnackBar(
-													content: Text("Proceeding to checkout..."),
-												),
-											);
-										},
-										style: ElevatedButton.styleFrom(
-											backgroundColor: Colors.black,
-											shape: RoundedRectangleBorder(
-												borderRadius: BorderRadius.circular(12),
-											),
-										),
-										child: const Row(
-											mainAxisAlignment: MainAxisAlignment.center,
-											children: [
-												Icon(Icons.shopping_cart, color: Colors.white),
-												SizedBox(width: 8),
-												Text(
-													"Checkout",
-													style: TextStyle(
-														fontSize: 18,
-														fontWeight: FontWeight.w600,
-														color: Colors.white,
-													),
-												),
-											],
-										),
-									),
-								),
-							],
-						),
-					),
-				],
-			),
-		);
-	}
-
-	// Helper widget for price rows
-	Widget _buildPriceRow(String label, String value, {bool isGrey = false}) {
-		return Row(
-			mainAxisAlignment: MainAxisAlignment.spaceBetween,
-			children: [
-				Text(
-					label,
-					style: TextStyle(
-						fontSize: 15,
-						color: isGrey ? Colors.grey.shade600 : Colors.black,
-					),
-				),
-				Text(
-					value,
-					style: TextStyle(
-						fontSize: 15,
-						color: isGrey ? Colors.grey.shade600 : Colors.black,
-						fontWeight: isGrey ? FontWeight.normal : FontWeight.w600,
-					),
-				),
-			],
-		);
-	}
+  Widget _buildPriceRow(String label, String value, {bool isGrey = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 15,
+            color: isGrey ? Colors.grey.shade600 : Colors.black,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 15,
+            color: isGrey ? Colors.grey.shade600 : Colors.black,
+            fontWeight: isGrey ? FontWeight.normal : FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
 }
