@@ -7,10 +7,13 @@ import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/models/wishlist_item.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
-  const ProductDetailScreen({Key? key, required this.productId}) : super(key: key);
+  const ProductDetailScreen({Key? key, required this.productId})
+    : super(key: key);
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -21,32 +24,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? selectedColorName;
   String? selectedSizeName;
   int quantity = 1;
-  bool isFavorite = false;
 
   // Product data from API
   Product? product;
   bool isLoadingProduct = true;
-  
+
   List<ProductVariant> variants = [];
   bool isLoadingVariants = true;
   String? errorMessage;
-  
+
   late ProductVariantApiService _variantApiService;
 
   @override
   void initState() {
     super.initState();
-    _variantApiService = ProductVariantApiService(
-      ApiClient.dio,
-    );
+    _variantApiService = ProductVariantApiService(ApiClient.dio);
     _fetchProductAndVariants();
   }
 
   Future<void> _fetchProductAndVariants() async {
-    await Future.wait([
-      _fetchProduct(),
-      _fetchVariants(),
-    ]);
+    await Future.wait([_fetchProduct(), _fetchVariants()]);
   }
 
   Future<void> _fetchProduct() async {
@@ -54,9 +51,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       setState(() {
         isLoadingProduct = true;
       });
-      
-      final fetchedProduct = await ApiClient.getProductApiService().getProduct(widget.productId);
-      
+
+      final fetchedProduct = await ApiClient.getProductApiService().getProduct(
+        widget.productId,
+      );
+
       setState(() {
         product = fetchedProduct;
         isLoadingProduct = false;
@@ -75,13 +74,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         isLoadingVariants = true;
         errorMessage = null;
       });
-      
-      final fetchedVariants = await _variantApiService.getProductVariants(widget.productId);
-      
+
+      final fetchedVariants = await _variantApiService.getProductVariants(
+        widget.productId,
+      );
+
       setState(() {
         variants = fetchedVariants;
         isLoadingVariants = false;
-        
+
         // Auto-select first variant
         if (variants.isNotEmpty) {
           selectedVariantId = variants.first.id;
@@ -177,7 +178,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Center(
-                                child: Icon(Icons.image, size: 100, color: Colors.grey),
+                                child: Icon(
+                                  Icons.image,
+                                  size: 100,
+                                  color: Colors.grey,
+                                ),
                               );
                             },
                           ),
@@ -197,7 +202,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const MainScreen(initialTab: 1),
+                                builder: (context) =>
+                                    const MainScreen(initialTab: 1),
                               ),
                             );
                           }
@@ -229,7 +235,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       children: [
                         Expanded(
                           child: isLoadingProduct
-                              ? const Text('Loading...', style: TextStyle(fontSize: 18))
+                              ? const Text(
+                                  'Loading...',
+                                  style: TextStyle(fontSize: 18),
+                                )
                               : Text(
                                   product?.name ?? 'Product Name',
                                   style: const TextStyle(
@@ -239,15 +248,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                 ),
                         ),
-                        IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.black,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isFavorite = !isFavorite;
-                            });
+                        Consumer<WishListProvider>(
+                          builder: (context, wishlist, child) {
+                            final isFav =
+                                product != null &&
+                                wishlist.isFavorite(product!.id);
+                            return IconButton(
+                              icon: Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                color: isFav ? Colors.red : Colors.black,
+                              ),
+                              onPressed: () {
+                                if (product != null) {
+                                  final item = WishListItem(
+                                    productId: product!.id,
+                                    productName: product!.name,
+                                    imageUrl: product!.imageUrl,
+                                    price: variants.isNotEmpty
+                                        ? variants.first.price.salePrice
+                                        : 0,
+                                    product: product!,
+                                  );
+                                  wishlist.toggleFavorite(item);
+                                }
+                              },
+                            );
                           },
                         ),
                       ],
@@ -315,7 +340,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               final variantWithColor = variants.firstWhere(
                                 (v) => v.color?.colorName == colorName,
                               );
-                              final hexCode = variantWithColor.color?.colorCode ?? '#000000';
+                              final hexCode =
+                                  variantWithColor.color?.colorCode ??
+                                  '#000000';
                               final colorValue = Color(
                                 int.parse(hexCode.replaceFirst('#', '0xFF')),
                               );
@@ -326,11 +353,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     selectedColorName = colorName;
                                     // Find matching variant
                                     final matchingVariant = variants.firstWhere(
-                                      (v) => v.color?.colorName == colorName && v.size?.sizeName == selectedSizeName,
-                                      orElse: () => variants.firstWhere((v) => v.color?.colorName == colorName),
+                                      (v) =>
+                                          v.color?.colorName == colorName &&
+                                          v.size?.sizeName == selectedSizeName,
+                                      orElse: () => variants.firstWhere(
+                                        (v) => v.color?.colorName == colorName,
+                                      ),
                                     );
                                     selectedVariantId = matchingVariant.id;
-                                    selectedSizeName = matchingVariant.size?.sizeName;
+                                    selectedSizeName =
+                                        matchingVariant.size?.sizeName;
                                   });
                                 },
                                 child: Container(
@@ -344,13 +376,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       color: selectedColorName == colorName
                                           ? Colors.black
                                           : Colors.grey[300]!,
-                                      width: selectedColorName == colorName ? 3 : 2,
+                                      width: selectedColorName == colorName
+                                          ? 3
+                                          : 2,
                                     ),
                                   ),
                                   child: selectedColorName == colorName
                                       ? Icon(
                                           Icons.check,
-                                          color: colorValue.computeLuminance() > 0.5
+                                          color:
+                                              colorValue.computeLuminance() >
+                                                  0.5
                                               ? Colors.black
                                               : Colors.white,
                                           size: 24,
@@ -384,11 +420,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     selectedSizeName = sizeName;
                                     // Find matching variant
                                     final matchingVariant = variants.firstWhere(
-                                      (v) => v.size?.sizeName == sizeName && v.color?.colorName == selectedColorName,
-                                      orElse: () => variants.firstWhere((v) => v.size?.sizeName == sizeName),
+                                      (v) =>
+                                          v.size?.sizeName == sizeName &&
+                                          v.color?.colorName ==
+                                              selectedColorName,
+                                      orElse: () => variants.firstWhere(
+                                        (v) => v.size?.sizeName == sizeName,
+                                      ),
                                     );
                                     selectedVariantId = matchingVariant.id;
-                                    selectedColorName = matchingVariant.color?.colorName;
+                                    selectedColorName =
+                                        matchingVariant.color?.colorName;
                                   });
                                 },
                                 child: Container(
@@ -473,28 +515,43 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: isLoadingVariants || selectedVariantId == null
+                            onPressed:
+                                isLoadingVariants || selectedVariantId == null
                                 ? null
                                 : () async {
-                                    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-                                    final success = await cartProvider.addToCart(
-                                      userId: 1, // TODO: Get from auth
-                                      variantId: selectedVariantId!,
-                                      quantity: quantity,
-                                    );
-                                    
+                                    final cartProvider =
+                                        Provider.of<CartProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    final success = await cartProvider
+                                        .addToCart(
+                                          userId: 1,
+                                          variantId: selectedVariantId!,
+                                          quantity: quantity,
+                                        );
+
                                     if (success && mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                          content: Text('Added to cart successfully!'),
+                                          content: Text(
+                                            'Added to cart successfully!',
+                                          ),
                                           backgroundColor: Colors.green,
                                           duration: Duration(seconds: 2),
                                         ),
                                       );
                                     } else if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
-                                          content: Text(cartProvider.error ?? 'Failed to add to cart'),
+                                          content: Text(
+                                            cartProvider.error ??
+                                                'Failed to add to cart',
+                                          ),
                                           backgroundColor: Colors.red,
                                           duration: const Duration(seconds: 2),
                                         ),
@@ -518,7 +575,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Description
                     ExpansionTile(
                       title: const Text(
                         'Description',
@@ -534,8 +590,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           child: isLoadingProduct
                               ? const Text('Loading description...')
                               : Text(
-                                  product?.description ?? 'No description available',
-                                  style: const TextStyle(fontSize: 14, height: 1.5),
+                                  product?.description ??
+                                      'No description available',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.5,
+                                  ),
                                 ),
                         ),
                       ],
@@ -692,7 +752,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildProductCard(String imageUrl, String oldPrice, String? newPrice, String title) {
+  Widget _buildProductCard(
+    String imageUrl,
+    String oldPrice,
+    String? newPrice,
+    String title,
+  ) {
     return Container(
       width: 160,
       margin: const EdgeInsets.only(right: 16),
@@ -770,10 +835,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.black),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/models/wishlist_item.dart';
+import 'package:frontend_client_mobile/screens/product/product.dart';
 
 class WishListScreen extends StatelessWidget {
   const WishListScreen({super.key});
@@ -81,10 +82,11 @@ class WishListScreen extends StatelessWidget {
                     onPressed: () => wishlist.removeItem(item.productId),
                   ),
                   onTap: () {
-                    // TODO: Navigate to product detail
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Xem chi tiết: ${item.productName}'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ProductDetailScreen(productId: item.productId),
                       ),
                     );
                   },

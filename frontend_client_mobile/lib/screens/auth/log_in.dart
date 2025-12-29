@@ -24,20 +24,26 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
 
   Future<void> _doLogin() async {
+    debugPrint('Login attempt started: ${_username.text.trim()}');
     setState(() => _loading = true);
     try {
       await _authService.login(
         username: _username.text.trim(),
         password: _password.text,
       );
-      // Đăng nhập thành công -> chuyển đến dashboard
+      debugPrint('Login service call successful');
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      debugPrint('Navigating to /home');
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      final msg = e is Exception ? e.toString() : 'Lỗi đăng nhập';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      debugPrint('Login error: $e');
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _loading = false);
+      debugPrint('Login attempt finished');
     }
   }
 

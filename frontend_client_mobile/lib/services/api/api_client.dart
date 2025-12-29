@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:frontend_client_mobile/services/api/auth_api_service.dart';
+import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
 import 'package:frontend_client_mobile/services/api/category_api_service.dart';
 import 'package:frontend_client_mobile/services/api/color_api_service.dart';
 import 'package:frontend_client_mobile/services/api/dashboard_api_service.dart';
@@ -12,7 +14,6 @@ import 'package:frontend_client_mobile/services/api/search_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
 import 'package:frontend_client_mobile/services/token_storage.dart';
-import 'package:frontend_client_mobile/services/auth_service.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(
@@ -32,6 +33,8 @@ class ApiClient {
   static DashboardApiService? _dashboardApiService;
   static UserApiService? _userApiService;
   static SearchApiService? _searchApiService;
+  static CartApiService? _cartApiService;
+  static AuthApiService? _authApiService;
   static Dio get dio => _dio;
 
   static ProductApiService getProductApiService() {
@@ -88,6 +91,18 @@ class ApiClient {
     return _searchApiService!;
   }
 
+  static CartApiService getCartApiService() {
+    _cartApiService ??= CartApiService(_dio);
+    configInterceptor();
+    return _cartApiService!;
+  }
+
+  static AuthApiService getAuthApiService() {
+    _authApiService ??= AuthApiService(_dio);
+    configInterceptor();
+    return _authApiService!;
+  }
+
   static String? _extractMessage(dynamic data) {
     if (data == null) return null;
 
@@ -115,7 +130,6 @@ class ApiClient {
     _interceptorAdded = true;
 
     final TokenStorage _tokenStorage = TokenStorage();
-    final AuthService _authService = AuthService();
 
     dio.interceptors.add(
       InterceptorsWrapper(
@@ -136,27 +150,54 @@ class ApiClient {
               return handler.next(e);
             }
 
-            final didRefresh = await _authService.refreshToken();
-            if (didRefresh) {
-              final newToken = await _tokenStorage.readAccessToken();
-              if (newToken != null) {
-                final opts = Options(
-                  method: e.requestOptions.method,
-                  headers: Map.from(e.requestOptions.headers),
-                );
-                opts.headers!['Authorization'] = 'Bearer $newToken';
+            // Dùng một Dio instance mới để tránh loop interceptor khi refresh token
+            final refreshDio = Dio(BaseOptions(baseUrl: ApiConfig.baseUrl));
+            final refreshStorage = TokenStorage();
+            final refreshToken = await refreshStorage.readRefreshToken();
 
-                try {
-                  final cloneReq = await dio.request(
-                    e.requestOptions.path,
-                    data: e.requestOptions.data,
-                    queryParameters: e.requestOptions.queryParameters,
-                    options: opts,
-                  );
-                  return handler.resolve(cloneReq);
-                } on DioException catch (err) {
-                  return handler.next(err);
+            if (refreshToken != null) {
+              try {
+                final refreshRes = await refreshDio.post(
+                  '/api/auth/refresh',
+                  data: {'refreshToken': refreshToken},
+                );
+
+                if (refreshRes.statusCode == 200) {
+                  final data = refreshRes.data;
+                  final access =
+                      data['accessToken'] ??
+                      data['access_token'] ??
+                      data['token'];
+                  final newRefresh =
+                      data['refreshToken'] ?? data['refresh_token'];
+
+                  if (access != null) {
+                    await refreshStorage.saveAccessToken(access.toString());
+                    if (newRefresh != null) {
+                      await refreshStorage.saveRefreshToken(
+                        newRefresh.toString(),
+                      );
+                    }
+
+                    // Retry previous request
+                    final opts = Options(
+                      method: e.requestOptions.method,
+                      headers: Map.from(e.requestOptions.headers),
+                    );
+                    opts.headers!['Authorization'] = 'Bearer $access';
+
+                    final cloneReq = await dio.request(
+                      e.requestOptions.path,
+                      data: e.requestOptions.data,
+                      queryParameters: e.requestOptions.queryParameters,
+                      options: opts,
+                    );
+                    return handler.resolve(cloneReq);
+                  }
                 }
+              } catch (err) {
+                // Refresh failed, logout
+                await refreshStorage.clear();
               }
             }
           }
@@ -187,5 +228,5 @@ class AppHttpException implements Exception {
   final String message;
   AppHttpException(this.message);
   @override
-  String toString() => message; // để e.toString() trả về đúng message
+  String toString() => message;
 }

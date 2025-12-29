@@ -5,6 +5,7 @@ import 'package:frontend_client_mobile/utils/file_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/models/wishlist_item.dart';
+import 'package:frontend_client_mobile/models/category.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -198,7 +199,13 @@ class ProductViewCard extends StatelessWidget {
                         name: product.name,
                         description: product.description,
                         imageUrl: product.imageUrl,
-                        category: product.category,
+                        category: Category(
+                          id: 0,
+                          name: 'General',
+                          description: '',
+                          imageUrl: '',
+                          status: 'ACTIVE',
+                        ),
                         variants: [],
                       );
                       final item = WishListItem(

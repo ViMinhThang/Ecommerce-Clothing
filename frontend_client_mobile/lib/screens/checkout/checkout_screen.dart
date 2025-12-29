@@ -15,7 +15,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _submit() async {
     final cart = context.read<CartProvider>();
-    if (cart.items.isEmpty) {
+    if (cart.cart?.items.isEmpty ?? true) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Giỏ hàng trống')));

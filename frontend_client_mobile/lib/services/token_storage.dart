@@ -6,23 +6,37 @@ class TokenStorage {
   static const _keyRefresh = 'REFRESH_TOKEN';
 
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: _keyAccess, value: token);
+    try {
+      await _storage.write(key: _keyAccess, value: token);
+    } catch (_) {}
   }
 
   Future<void> saveRefreshToken(String token) async {
-    await _storage.write(key: _keyRefresh, value: token);
+    try {
+      await _storage.write(key: _keyRefresh, value: token);
+    } catch (_) {}
   }
 
   Future<String?> readAccessToken() async {
-    return await _storage.read(key: _keyAccess);
+    try {
+      return await _storage.read(key: _keyAccess);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String?> readRefreshToken() async {
-    return await _storage.read(key: _keyRefresh);
+    try {
+      return await _storage.read(key: _keyRefresh);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> clear() async {
-    await _storage.delete(key: _keyAccess);
-    await _storage.delete(key: _keyRefresh);
+    try {
+      await _storage.delete(key: _keyAccess);
+      await _storage.delete(key: _keyRefresh);
+    } catch (_) {}
   }
 }

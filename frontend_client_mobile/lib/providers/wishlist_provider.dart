@@ -11,24 +11,27 @@ class WishListProvider extends ChangeNotifier {
     return _items.any((e) => e.productId == productId);
   }
 
+  void toggleFavorite(WishListItem item) {
+    print('WishListProvider: toggling product ${item.productId}');
+    if (isFavorite(item.productId)) {
+      removeItem(item.productId);
+    } else {
+      addItem(item);
+    }
+  }
+
   void addItem(WishListItem item) {
     if (!isFavorite(item.productId)) {
+      print('WishListProvider: adding item ${item.productName}');
       _items.add(item);
       notifyListeners();
     }
   }
 
   void removeItem(int productId) {
+    print('WishListProvider: removing item $productId');
     _items.removeWhere((e) => e.productId == productId);
     notifyListeners();
-  }
-
-  void toggleFavorite(WishListItem item) {
-    if (isFavorite(item.productId)) {
-      removeItem(item.productId);
-    } else {
-      addItem(item);
-    }
   }
 
   void clear() {
