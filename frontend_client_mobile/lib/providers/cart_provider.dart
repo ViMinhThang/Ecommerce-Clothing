@@ -1,39 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/cart_item.dart';
 import 'package:frontend_client_mobile/models/cart.dart';
+import 'package:frontend_client_mobile/models/order_view.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
-import 'package:dio/dio.dart';
+import 'package:frontend_client_mobile/services/order_service.dart';
 
-class CartProvider with ChangeNotifier {
-  final CartApiService _cartApiService;
-  
-  CartView? _cart;
-  bool _isLoading = false;
+class CartProvider extends ChangeNotifier {
+  CartView? _cartView;
+  final OrderService _orderService = OrderService();
+  final CartApiService _cartApiService = ApiClient.getCartApiService();
+
   String? _error;
+  bool _isLoading = false;
 
-  CartView? get cart => _cart;
-  bool get isLoading => _isLoading;
+  CartView? get cart => _cartView;
   String? get error => _error;
-  int get itemCount => _cart?.items.length ?? 0;
-  double get totalPrice => _cart?.totalPrice ?? 0.0;
+  bool get isLoading => _isLoading;
 
-  CartProvider(Dio dio)
-      : _cartApiService = CartApiService(dio, baseUrl: dio.options.baseUrl);
+  double get totalPrice => _cartView?.totalPrice ?? 0.0;
 
-  Future<void> fetchCart(int userId) async {
-    _isLoading = true;
-    _error = null;
+  void clear() {
+    _cartView = null;
     notifyListeners();
-
-    try {
-      _cart = await _cartApiService.getCartByUserId(userId);
-      _error = null;
-    } catch (e) {
-      _error = 'Failed to load cart: $e';
-      _cart = null;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 
   Future<bool> addToCart({
@@ -42,7 +31,6 @@ class CartProvider with ChangeNotifier {
     required int quantity,
   }) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
@@ -51,26 +39,34 @@ class CartProvider with ChangeNotifier {
         variantId: variantId,
         quantity: quantity,
       );
-      
-      _cart = await _cartApiService.addToCart(request);
-      _error = null;
+      await _cartApiService.addToCart(request);
+
+      // Auto-refresh cart if we have a userId context, but here we just return success
+      // The UI should call fetchCart() after this returns true.
+
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Failed to add to cart: $e';
+      _error = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> removeItem(int cartItemId, int userId) async {
+  Future<void> fetchCart(int userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      await _cartApiService.removeFromCart(cartItemId);
-      await fetchCart(userId); // Refresh cart
+      _cartView = await _cartApiService.getCartByUserId(userId);
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      _error = 'Failed to remove item: $e';
+      _error = e.toString();
+      _isLoading = false;
       notifyListeners();
     }
   }
@@ -78,21 +74,33 @@ class CartProvider with ChangeNotifier {
   Future<void> updateQuantity(int cartItemId, int quantity, int userId) async {
     try {
       await _cartApiService.updateQuantity(cartItemId, quantity);
-      await fetchCart(userId); // Refresh cart
+      await fetchCart(userId);
     } catch (e) {
-      _error = 'Failed to update quantity: $e';
+      _error = e.toString();
       notifyListeners();
     }
   }
 
-  Future<void> clearCart(int userId) async {
+  Future<void> removeItem(int cartItemId, int userId) async {
     try {
-      await _cartApiService.clearCart(userId);
-      _cart = null;
-      notifyListeners();
+      await _cartApiService.removeFromCart(cartItemId);
+      await fetchCart(userId);
     } catch (e) {
-      _error = 'Failed to clear cart: $e';
+      _error = e.toString();
       notifyListeners();
     }
+  }
+
+  Future<OrderView> checkout({required String buyerEmail}) async {
+    final order = OrderView(
+      id: 0,
+      buyerEmail: buyerEmail,
+      totalPrice: totalPrice,
+      createdDate: '',
+      status: 'PENDING',
+    );
+    final res = await _orderService.createOrder(order);
+    clear();
+    return res;
   }
 }

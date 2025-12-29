@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
-import 'package:frontend_client_mobile/screens/cart/my_cart.dart';
+import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
-  
+
   const MainScreen({super.key, this.initialTab = 0});
 
   @override
@@ -21,12 +22,12 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialTab;
   }
 
-  static const List<Widget> _screens = <Widget>[
-    HomeScreen(),
-    CatalogNavigator(), // Catalog with menu icon
-    _WishlistPlaceholder(),
-    MyCart(),
-    _ProfilePlaceholder(),
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const CatalogNavigator(),
+    const WishListScreen(),
+    const CartScreen(),
+    const _ProfilePlaceholder(),
   ];
 
   void _onItemTapped(int index) {
@@ -38,7 +39,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack maintains the state of all screens (no rebuild on switch)
       body: IndexedStack(index: _selectedIndex, children: _screens),
 
       bottomNavigationBar: BottomNavigationBar(
@@ -68,41 +68,6 @@ class _MainScreenState extends State<MainScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed, // Essential for 5 items
-      ),
-    );
-  }
-}
-
-// Placeholder for Wishlist screen
-class _WishlistPlaceholder extends StatelessWidget {
-  const _WishlistPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wishlist'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Your Wishlist is Empty',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Add items you love to your wishlist',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -148,7 +113,10 @@ class _ProfilePlaceholder extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
               ),
               child: const Text('Sign In'),
             ),

@@ -5,14 +5,14 @@ import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:provider/provider.dart';
 
-class MyCart extends StatefulWidget {
-  const MyCart({super.key});
+class CartScreen extends StatefulWidget {
+  const CartScreen({super.key});
 
   @override
-  State<MyCart> createState() => _MyCartState();
+  State<CartScreen> createState() => _CartScreenState();
 }
 
-class _MyCartState extends State<MyCart> {
+class _CartScreenState extends State<CartScreen> {
   static const int _currentUserId = 1;
 
   @override
@@ -24,7 +24,10 @@ class _MyCartState extends State<MyCart> {
   }
 
   Future<void> _loadCart() async {
-    await Provider.of<CartProvider>(context, listen: false).fetchCart(_currentUserId);
+    await Provider.of<CartProvider>(
+      context,
+      listen: false,
+    ).fetchCart(_currentUserId);
   }
 
   String _getImageUrl(String? imageUrl) {
@@ -81,7 +84,11 @@ class _MyCartState extends State<MyCart> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Your cart is empty',
@@ -138,7 +145,7 @@ class _MyCartState extends State<MyCart> {
             color: Colors.grey.shade300,
             blurRadius: 6,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -180,12 +187,18 @@ class _MyCartState extends State<MyCart> {
                   children: [
                     Text(
                       "Color: ${item.colorName}",
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Text(
                       "Size: ${item.sizeName}",
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
                     ),
                   ],
                 ),
@@ -225,7 +238,10 @@ class _MyCartState extends State<MyCart> {
     );
   }
 
-  Widget _buildQuantityController(CartItemView item, CartProvider cartProvider) {
+  Widget _buildQuantityController(
+    CartItemView item,
+    CartProvider cartProvider,
+  ) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -252,10 +268,7 @@ class _MyCartState extends State<MyCart> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
               "${item.quantity}",
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
           IconButton(
@@ -280,9 +293,7 @@ class _MyCartState extends State<MyCart> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey.shade200, width: 1)),
       ),
       child: Column(
         children: [
@@ -292,11 +303,7 @@ class _MyCartState extends State<MyCart> {
             isGrey: true,
           ),
           const SizedBox(height: 8),
-          _buildPriceRow(
-            "Estimated delivery fees",
-            "Free",
-            isGrey: true,
-          ),
+          _buildPriceRow("Estimated delivery fees", "Free", isGrey: true),
           const SizedBox(height: 16),
           Divider(color: Colors.grey.shade300, thickness: 1),
           const SizedBox(height: 16),

@@ -68,7 +68,7 @@ class ProductService {
     return response.data;
   }
 
-  Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
-    throw UnimplementedError('filterProduct is not yet implemented');
+  Future<Null> filterProduct(int categoryId) async {
+    return null;
   }
 }

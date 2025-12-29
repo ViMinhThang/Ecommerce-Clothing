@@ -25,8 +25,8 @@ class CategoryProvider with ChangeNotifier {
     _isLoading = true;
   }
 
-  Future<void> fetchCategories({bool isRefresh = true}) async {
-    if (isRefresh) {
+  Future<void> fetchCategories({bool refresh = true}) async {
+    if (refresh) {
       _isLoading = true;
       _currentPage = 0;
       _hasMore = true;
@@ -44,7 +44,7 @@ class CategoryProvider with ChangeNotifier {
         size: _pageSize,
       );
 
-      if (isRefresh) {
+      if (refresh) {
         _categories = newCategories;
       } else {
         _categories.addAll(newCategories);
@@ -60,7 +60,7 @@ class CategoryProvider with ChangeNotifier {
   }
 
   Future<void> fetchMoreCategories() async {
-    await fetchCategories(isRefresh: false);
+    await fetchCategories(refresh: false);
   }
 
   Future<void> searchCategories(String name) async {
