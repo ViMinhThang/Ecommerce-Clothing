@@ -1,57 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/cart_item.dart';
-import 'package:frontend_client_mobile/models/order_view.dart';
-import 'package:frontend_client_mobile/services/order_service.dart';
+import 'package:frontend_client_mobile/models/cart.dart';
+import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
+import 'package:dio/dio.dart';
 
-class CartProvider extends ChangeNotifier {
-  final List<CartItem> _items = [];
-  final OrderService _orderService = OrderService();
+class CartProvider with ChangeNotifier {
+  final CartApiService _cartApiService;
 
-  List<CartItem> get items => List.unmodifiable(_items);
+  CartView? _cart;
+  bool _isLoading = false;
+  String? _error;
 
-  void addItem(CartItem item) {
-    final idx = _items.indexWhere((e) => e.variant.id == item.variant.id);
-    if (idx >= 0) {
-      _items[idx].quantity += item.quantity;
-    } else {
-      _items.add(item);
-    }
+  CartView? get cart => _cart;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  int get itemCount => _cart?.items.length ?? 0;
+  double get totalPrice => _cart?.totalPrice ?? 0.0;
+
+  CartProvider(Dio dio)
+    : _cartApiService = CartApiService(dio, baseUrl: dio.options.baseUrl);
+
+  Future<void> fetchCart(int userId) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
-  }
 
-  void removeItem(CartItem item) {
-    _items.removeWhere((e) => e.variant.id == item.variant.id);
-    notifyListeners();
-  }
-
-  void updateQuantity(CartItem item, int qty) {
-    final idx = _items.indexWhere((e) => e.variant.id == item.variant.id);
-    if (idx >= 0) {
-      _items[idx].quantity = qty;
-      if (_items[idx].quantity <= 0) _items.removeAt(idx);
+    try {
+      _cart = await _cartApiService.getCartByUserId(userId);
+      _error = null;
+    } catch (e) {
+      _error = 'Failed to load cart: $e';
+      _cart = null;
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  double get totalPrice {
-    return _items.fold(0.0, (p, e) => p + e.lineTotal);
-  }
-
-  void clear() {
-    _items.clear();
+  Future<bool> addToCart({
+    required int userId,
+    required int variantId,
+    required int quantity,
+  }) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      final request = AddToCartRequest(
+        userId: userId,
+        variantId: variantId,
+        quantity: quantity,
+      );
+
+      _cart = await _cartApiService.addToCart(request);
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to add to cart: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
-  Future<OrderView> checkout({required String buyerEmail}) async {
-    final order = OrderView(
-      id: 0,
-      buyerEmail: buyerEmail,
-      totalPrice: totalPrice,
-      createdDate: '',
-      status: 'PENDING',
-    );
-    final res = await _orderService.createOrder(order);
-    clear();
-    return res;
+  Future<void> removeItem(int cartItemId, int userId) async {
+    try {
+      await _cartApiService.removeFromCart(cartItemId);
+      await fetchCart(userId); // Refresh cart
+    } catch (e) {
+      _error = 'Failed to remove item: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateQuantity(int cartItemId, int quantity, int userId) async {
+    try {
+      await _cartApiService.updateQuantity(cartItemId, quantity);
+      await fetchCart(userId); // Refresh cart
+    } catch (e) {
+      _error = 'Failed to update quantity: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearCart(int userId) async {
+    try {
+      await _cartApiService.clearCart(userId);
+      _cart = null;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to clear cart: $e';
+      notifyListeners();
+    }
   }
 }

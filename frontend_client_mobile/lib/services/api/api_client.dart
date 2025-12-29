@@ -18,8 +18,8 @@ class ApiClient {
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ApiConfig.baseUrl,
-      connectTimeout: Duration(milliseconds: 3000),
-      receiveTimeout: Duration(milliseconds: 3000),
+      connectTimeout: Duration(milliseconds: 30000),
+      receiveTimeout: Duration(milliseconds: 30000),
     ),
   );
   static bool _interceptorAdded = false;

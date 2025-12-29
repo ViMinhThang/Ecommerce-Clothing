@@ -54,15 +54,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
       body: Consumer<CategoryProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return SliverGrid.count(
+            return GridView.count(
+              padding: const EdgeInsets.all(16),
               crossAxisCount: 2,
-              childAspectRatio: 0.7,
+              childAspectRatio: 0.8,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
               children: List.generate(
                 6,
-                (index) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: const CategorySkeleton(),
-                ),
+                (index) => const CategorySkeleton(),
               ),
             );
           }
