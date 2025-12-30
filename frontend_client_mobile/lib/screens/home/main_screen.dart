@@ -3,14 +3,22 @@ import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialTab;
+
+  const MainScreen({super.key, this.initialTab = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialTab;
+  }
 
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),

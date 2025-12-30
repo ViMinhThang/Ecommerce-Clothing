@@ -72,7 +72,7 @@ class VariantCard extends StatelessWidget {
   Widget _buildColorDropdown() {
     final hasColor = colors.contains(variant.color);
     return DropdownButtonFormField<models.Color>(
-      value: hasColor ? variant.color : null,
+      initialValue: hasColor ? variant.color : null,
       items: colors
           .map(
             (color) => DropdownMenuItem<models.Color>(
@@ -93,7 +93,7 @@ class VariantCard extends StatelessWidget {
   Widget _buildSizeDropdown() {
     final hasSize = sizes.contains(variant.size);
     return DropdownButtonFormField<models.Size>(
-      value: hasSize ? variant.size : null,
+      initialValue: hasSize ? variant.size : null,
       items: sizes
           .map(
             (size) => DropdownMenuItem<models.Size>(

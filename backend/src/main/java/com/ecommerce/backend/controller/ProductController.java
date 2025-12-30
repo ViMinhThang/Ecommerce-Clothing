@@ -39,11 +39,12 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@ModelAttribute ProductRequest productRequest,
-            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> createProduct(
+            @ModelAttribute ProductRequest productRequest,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images) throws IOException {
         System.out.println(productRequest.toString());
-        Product createdProduct = productService.createProduct(productRequest, image);
+        Product createdProduct = productService.createProduct(productRequest, images);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
@@ -51,10 +52,11 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
             @ModelAttribute ProductRequest productRequest,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "existingImageIds", required = false) List<Long> existingImageIds) {
         try {
             System.out.println("Received request for product: " + id);
-            Product updatedProduct = productService.updateProduct(id, productRequest, image);
+            Product updatedProduct = productService.updateProduct(id, productRequest, images, existingImageIds);
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
             e.printStackTrace();

@@ -33,11 +33,15 @@ public class Product {
     @Lob
     private String description;
 
-    private String imageUrl;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @OrderBy("displayOrder ASC")
+    private List<ProductImage> images = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductVariants> variants = new ArrayList<>();
@@ -62,4 +66,25 @@ public class Product {
     @LastModifiedBy
     private User updatedBy;
 
+    /**
+     * Get the primary image URL for this product.
+     * Returns the URL of the image marked as primary, or the first image if none is
+     * marked.
+     */
+    public String getPrimaryImageUrl() {
+        return images.stream()
+                .filter(ProductImage::getIsPrimary)
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElseGet(() -> images.isEmpty() ? null : images.get(0).getImageUrl());
+    }
+
+    /**
+     * Get all image URLs for this product in display order.
+     */
+    public List<String> getImageUrls() {
+        return images.stream()
+                .map(ProductImage::getImageUrl)
+                .toList();
+    }
 }

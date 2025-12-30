@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,6 +32,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final SeasonRepository seasonRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -48,15 +50,16 @@ public class DatabaseSeeder implements CommandLineRunner {
         // 4. Các seed khác
         Map<String, Category> categories = seedCategories();
         List<Color> colors = initColor();
-        Map<String, Size> sizes = seedSizes10();            // 10 size
+        Map<String, Size> sizes = seedSizes10(); // 10 size
         Map<String, Material> materials = seedMaterials();
         Map<String, Season> seasons = seedSeasons();
         Map<String, Price> samplePrices = seedSamplePrices();
         Map<String, Product> sampleProducts = seedSampleProducts(categories);
         seedSampleProductVariants(sampleProducts, colors, sizes, materials, seasons, samplePrices);
-        seedDummyProductsAndVariants(sizes);                // dùng list size 10
+        seedDummyProductsAndVariants(sizes); // dùng list size 10
 
-        // 5. Tạo orders mẫu dùng 2 user thường (nếu muốn thêm admin thì truyền adminUser vào)
+        // 5. Tạo orders mẫu dùng 2 user thường (nếu muốn thêm admin thì truyền
+        // adminUser vào)
         createSampleOrders(user1, user2);
     }
 
@@ -65,17 +68,17 @@ public class DatabaseSeeder implements CommandLineRunner {
     private List<User> seedUsers() {
         User user1 = new User();
         user1.setUsername("john.doe");
-        user1.setPassword("password");
+        user1.setPassword(passwordEncoder.encode("password"));
         user1.setFullName("John Doe");
-        user1.setBirthDay(LocalDate.of(2000,6,2));
+        user1.setBirthDay(LocalDate.of(2000, 6, 2));
         user1.setStatus("active");
         user1.setEmail("john.doe@example.com");
 
         User user2 = new User();
         user2.setUsername("jane.doe");
-        user2.setPassword("password");
+        user2.setPassword(passwordEncoder.encode("password"));
         user2.setFullName("Jane Doe");
-        user2.setBirthDay(LocalDate.of(2003,2,20));
+        user2.setBirthDay(LocalDate.of(2003, 2, 20));
         user2.setStatus("active");
         user2.setEmail("jane.doe@example.com");
 
@@ -108,10 +111,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         // Nếu bạn có PasswordEncoder, hãy thay bằng passwordEncoder.encode("admin123")
         User admin = new User();
         admin.setUsername("admin");
-        admin.setPassword("admin123");
+        admin.setPassword(passwordEncoder.encode("admin123"));
         admin.setEmail("admin@example.com");
         admin.setFullName("System Administrator");
-        admin.setBirthDay(LocalDate.of(1999,12,10));
+        admin.setBirthDay(LocalDate.of(1999, 12, 10));
         admin.setStatus("active");
         admin = userRepository.save(admin);
 
@@ -145,7 +148,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         return userRepository.save(admin);
     }
 
-    // ================== CATEGORIES / SIZES / MATERIALS / SEASONS / PRICES ==================
+    // ================== CATEGORIES / SIZES / MATERIALS / SEASONS / PRICES
+    // ==================
 
     private Map<String, Category> seedCategories() {
         Category category1 = new Category();
@@ -191,8 +195,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         category7.setStatus("active");
 
         List<Category> saved = categoryRepository.saveAll(
-                List.of(category1, category2, category3, category4, category5, category6, category7)
-        );
+                List.of(category1, category2, category3, category4, category5, category6, category7));
 
         return saved.stream().collect(Collectors.toMap(Category::getName, c -> c));
     }
@@ -242,8 +245,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         s10.setStatus("active");
 
         List<Size> saved = sizeRepository.saveAll(
-                List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10)
-        );
+                List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10));
         return saved.stream().collect(Collectors.toMap(Size::getSizeName, s -> s));
     }
 
@@ -261,8 +263,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         material3.setStatus("active");
 
         List<Material> saved = materialRepository.saveAll(
-                List.of(material1, material2, material3)
-        );
+                List.of(material1, material2, material3));
         return saved.stream().collect(Collectors.toMap(Material::getMaterialName, m -> m));
     }
 
@@ -284,8 +285,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         season4.setStatus("active");
 
         List<Season> saved = seasonRepository.saveAll(
-                List.of(season1, season2, season3, season4)
-        );
+                List.of(season1, season2, season3, season4));
         return saved.stream().collect(Collectors.toMap(Season::getSeasonName, s -> s));
     }
 
@@ -313,14 +313,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         product1.setName("Laptop");
         product1.setDescription("A powerful laptop");
         product1.setCategory(categories.get("Dresses")); // category1
-        product1.setImageUrl("http://10.0.2.2:8080/uploads/products/3a3df57f-af6a-45c2-93c1-c4d3924616b6.jpg");
         product1.setStatus("active");
 
         Product product2 = new Product();
         product2.setName("The Lord of the Rings");
         product2.setDescription("A classic fantasy novel");
         product2.setCategory(categories.get("Jackets")); // category2
-        product2.setImageUrl("http://10.0.2.2:8080/uploads/products/5f1cd65a-196a-40c8-aa44-1d36eb0c9263.jpg");
         product2.setStatus("active");
 
         List<Product> saved = productRepository.saveAll(List.of(product1, product2));
@@ -337,8 +335,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Map<String, Size> sizes,
             Map<String, Material> materials,
             Map<String, Season> seasons,
-            Map<String, Price> samplePrices
-    ) {
+            Map<String, Price> samplePrices) {
         Color colorBlack = colors.stream()
                 .filter(c -> "Black".equalsIgnoreCase(c.getColorName()))
                 .findFirst().orElse(colors.get(0));
@@ -374,15 +371,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         productVariantsRepository.saveAll(List.of(variant1, variant2));
     }
 
-    /**
-     * Tạo dummy product & variants sao cho tổng số product ~ 50
-     */
     private void seedDummyProductsAndVariants(Map<String, Size> sizeMap) {
         long currentCount = productRepository.count();
-        if (currentCount >= MIN_TOTAL_PRODUCTS) return;
+        if (currentCount >= MIN_TOTAL_PRODUCTS)
+            return;
 
         int needToCreate = (int) Math.max(MIN_TOTAL_PRODUCTS - currentCount, DUMMY_PRODUCT_COUNT);
-        // để đơn giản, vẫn tạo DUMMY_PRODUCT_COUNT (48) như config bên trên
         int productToCreate = DUMMY_PRODUCT_COUNT;
 
         Random random = new Random();
@@ -397,11 +391,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             product.setName("Dummy Product " + i);
             product.setDescription("Description for dummy product " + i);
             product.setCategory(
-                    allCategories.get(random.nextInt(allCategories.size()))
-            );
-            product.setImageUrl(
-                    "http://10.0.2.2:8080/uploads/products/placeholder.jpg"
-            );
+                    allCategories.get(random.nextInt(allCategories.size())));
             product.setStatus("active");
             product = productRepository.save(product);
 
@@ -412,15 +402,13 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 if (!allColors.isEmpty()) {
                     variant.setColor(
-                            allColors.get(random.nextInt(allColors.size()))
-                    );
+                            allColors.get(random.nextInt(allColors.size())));
                 }
 
                 // chọn random trong 10 size
                 if (!allSizes.isEmpty()) {
                     variant.setSize(
-                            allSizes.get(random.nextInt(allSizes.size()))
-                    );
+                            allSizes.get(random.nextInt(allSizes.size())));
                 }
 
                 double rawBase = 10.0 + random.nextDouble() * 90.0; // 10–100
@@ -439,13 +427,11 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 if (!allMaterials.isEmpty()) {
                     variant.setMaterial(
-                            allMaterials.get(random.nextInt(allMaterials.size()))
-                    );
+                            allMaterials.get(random.nextInt(allMaterials.size())));
                 }
                 if (!allSeasons.isEmpty()) {
                     variant.setSeason(
-                            allSeasons.get(random.nextInt(allSeasons.size()))
-                    );
+                            allSeasons.get(random.nextInt(allSeasons.size())));
                 }
 
                 productVariantsRepository.save(variant);
@@ -457,7 +443,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private void createSampleOrders(User user1, User user2) {
         List<ProductVariants> allVariants = productVariantsRepository.findAll();
-        if (allVariants.isEmpty()) return;
+        if (allVariants.isEmpty())
+            return;
 
         Random random = new Random();
 
@@ -564,7 +551,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         c10.setStatus("active");
 
         return colorRepository.saveAll(
-                List.of(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10)
-        );
+                List.of(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10));
     }
 }

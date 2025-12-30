@@ -5,7 +5,7 @@ import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditOrderScreen extends BaseEditScreen<OrderView> {
-  const EditOrderScreen({super.key, OrderView? entity}) : super(entity: entity);
+  const EditOrderScreen({super.key, super.entity});
 
   @override
   State<EditOrderScreen> createState() => _EditOrderScreenState();
@@ -93,7 +93,7 @@ class _EditOrderScreenState
         ),
         const SizedBox(height: AppTheme.spaceMD),
         DropdownButtonFormField<String>(
-          value: _status,
+          initialValue: _status,
           decoration: FormDecorations.standard('Status'),
           items: const [
             DropdownMenuItem(value: 'pending', child: Text('Pending')),

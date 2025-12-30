@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/product_image.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,17 +37,27 @@ class EditProductViewModel extends ChangeNotifier {
       TextEditingController(text: existingProduct?.description ?? '');
 
   Category? _selectedCategory;
-  XFile? _selectedImage;
+  List<XFile> _selectedImages = [];
+  List<int> _existingImageIds = [];
   List<ProductVariant> _variants = [];
   bool _isInitializing = false;
   bool _isSaving = false;
 
   // Getters
   Category? get selectedCategory => _selectedCategory;
-  XFile? get selectedImage => _selectedImage;
+  List<XFile> get selectedImages => _selectedImages;
+  List<int> get existingImageIds => _existingImageIds;
   List<ProductVariant> get variants => _variants;
   bool get isInitializing => _isInitializing;
   bool get isSaving => _isSaving;
+
+  // Get existing images from product that are still selected
+  List<ProductImage> get existingImages {
+    if (existingProduct == null) return [];
+    return existingProduct!.images
+        .where((img) => _existingImageIds.contains(img.id))
+        .toList();
+  }
 
   // Mapping from providers
   List<Category> get categories => categoryProvider.categories;
@@ -60,19 +71,14 @@ class EditProductViewModel extends ChangeNotifier {
     }
   }
 
-  set selectedImage(XFile? value) {
-    if (_selectedImage != value) {
-      _selectedImage = value;
-      notifyListeners();
-    }
-  }
-
   static const double defaultPrice = 0.0;
 
   Future<void> initialize() async {
     selectedCategory = existingProduct?.category;
     if (existingProduct != null) {
       _variants = existingProduct!.variants.map((v) => v.copyWith()).toList();
+      // Initialize existing image IDs
+      _existingImageIds = existingProduct!.images.map((img) => img.id).toList();
     }
     await loadInitialData();
   }
@@ -109,17 +115,30 @@ class EditProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> pickImage() async {
+  Future<void> pickImages() async {
     try {
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        selectedImage = pickedFile;
+      final pickedFiles = await picker.pickMultiImage();
+      if (pickedFiles.isNotEmpty) {
+        _selectedImages.addAll(pickedFiles);
+        notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      debugPrint('Error picking images: $e');
       rethrow;
     }
+  }
+
+  void removeSelectedImage(int index) {
+    if (index >= 0 && index < _selectedImages.length) {
+      _selectedImages.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  void removeExistingImage(int imageId) {
+    _existingImageIds.remove(imageId);
+    notifyListeners();
   }
 
   void addVariant() {
@@ -189,15 +208,19 @@ class EditProductViewModel extends ChangeNotifier {
         id: existingProduct?.id ?? 0,
         name: nameController.text.trim(),
         description: descriptionController.text.trim(),
-        imageUrl: existingProduct?.imageUrl ?? '',
+        images: existingImages,
         category: selectedCategory!,
         variants: _variants,
       );
 
       if (isEditing) {
-        await productProvider.updateProduct(productData, image: selectedImage);
+        await productProvider.updateProduct(
+          productData,
+          images: _selectedImages,
+          existingImageIds: _existingImageIds,
+        );
       } else {
-        await productProvider.addProduct(productData, image: selectedImage);
+        await productProvider.addProduct(productData, images: _selectedImages);
       }
     } finally {
       _isSaving = false;
@@ -210,7 +233,7 @@ class EditProductViewModel extends ChangeNotifier {
       return nameController.text.isNotEmpty ||
           descriptionController.text.isNotEmpty ||
           selectedCategory != null ||
-          selectedImage != null ||
+          _selectedImages.isNotEmpty ||
           _variants.isNotEmpty;
     }
 
@@ -219,14 +242,16 @@ class EditProductViewModel extends ChangeNotifier {
         descriptionController.text != existingProduct!.description ||
         selectedCategory?.id != existingProduct!.category.id;
 
-    final hasImageChanged = selectedImage != null;
+    final hasImagesChanged =
+        _selectedImages.isNotEmpty ||
+        _existingImageIds.length != existingProduct!.images.length;
 
     final hasVariantsChanged = !const ListEquality().equals(
       _variants,
       existingProduct!.variants,
     );
 
-    return hasBasicInfoChanged || hasImageChanged || hasVariantsChanged;
+    return hasBasicInfoChanged || hasImagesChanged || hasVariantsChanged;
   }
 
   @override

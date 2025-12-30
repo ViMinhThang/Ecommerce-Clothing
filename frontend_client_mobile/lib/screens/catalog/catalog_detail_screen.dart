@@ -178,7 +178,7 @@ class _ChipButton extends StatelessWidget {
 
 /// Widget riêng cho sort chip, tự nó là Stateful nên screen chính vẫn Stateless
 class _SortChip extends StatefulWidget {
-  const _SortChip({super.key});
+  const _SortChip();
 
   @override
   State<_SortChip> createState() => _SortChipState();

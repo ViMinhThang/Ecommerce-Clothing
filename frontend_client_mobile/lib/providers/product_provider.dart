@@ -58,11 +58,12 @@ class ProductProvider with ChangeNotifier {
     await fetchProducts(refresh: true);
   }
 
-  Future<void> addProduct(Product product, {XFile? image}) async {
+  Future<void> addProduct(Product product, {List<XFile>? images}) async {
     try {
+      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
       final newProduct = await _productService.createProduct(
         product,
-        image: await FileUtils.convertXFileToMultipart(image),
+        images: multipartImages,
       );
       _products.add(newProduct);
       notifyListeners();
@@ -71,12 +72,18 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProduct(Product product, {XFile? image}) async {
+  Future<void> updateProduct(
+    Product product, {
+    List<XFile>? images,
+    List<int>? existingImageIds,
+  }) async {
     try {
+      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
       final updatedProduct = await _productService.updateProduct(
         product.id,
         product,
-        image: await FileUtils.convertXFileToMultipart(image),
+        images: multipartImages,
+        existingImageIds: existingImageIds,
       );
       final index = _products.indexWhere((p) => p.id == product.id);
       if (index != -1) {
