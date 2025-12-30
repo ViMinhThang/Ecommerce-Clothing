@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/wishlist_item.dart';
-import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/favorite_item.dart';
 
-class WishListProvider extends ChangeNotifier {
-  final List<WishListItem> _items = [];
+class FavoriteProvider extends ChangeNotifier {
+  final List<FavoriteItem> _items = [];
 
-  List<WishListItem> get items => List.unmodifiable(_items);
+  List<FavoriteItem> get items => List.unmodifiable(_items);
 
   bool isFavorite(int productId) {
     return _items.any((e) => e.productId == productId);
   }
 
-  void toggleFavorite(WishListItem item) {
-    print('WishListProvider: toggling product ${item.productId}');
+  void toggleFavorite(FavoriteItem item) {
+    print('FavoriteProvider: toggling product ${item.productId}');
     if (isFavorite(item.productId)) {
       removeItem(item.productId);
     } else {
@@ -20,16 +19,16 @@ class WishListProvider extends ChangeNotifier {
     }
   }
 
-  void addItem(WishListItem item) {
+  void addItem(FavoriteItem item) {
     if (!isFavorite(item.productId)) {
-      print('WishListProvider: adding item ${item.productName}');
+      print('FavoriteProvider: adding item ${item.productName}');
       _items.add(item);
       notifyListeners();
     }
   }
 
   void removeItem(int productId) {
-    print('WishListProvider: removing item $productId');
+    print('FavoriteProvider: removing item $productId');
     _items.removeWhere((e) => e.productId == productId);
     notifyListeners();
   }
