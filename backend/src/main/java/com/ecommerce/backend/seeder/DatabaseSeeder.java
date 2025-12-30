@@ -387,7 +387,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<Season> allSeasons = seasonRepository.findAll();
 
         // URL ảnh mẫu cho tất cả dummy products
-        String DUMMY_IMAGE_URL = "https://amazingstoriesgames.ca/cdn/shop/files/BAS66423.jpg?v=1735420398";
+        String DUMMY_IMAGE_URL = "https://patchwiki.biligame.com/images/lol/4/43/lvqxvolxskyaxgo4id1nqtv7u3v6rds.png";
 
         for (int i = 1; i <= productToCreate; i++) {
             Product product = new Product();
