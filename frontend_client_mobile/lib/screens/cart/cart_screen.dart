@@ -42,6 +42,29 @@ class _CartScreenState extends State<CartScreen> {
     return '${ApiConfig.baseUrl}$imageUrl';
   }
 
+  Color _getColorFromName(String colorName) {
+    final Map<String, Color> colorMap = {
+      'red': Colors.red,
+      'blue': Colors.blue,
+      'green': Colors.green,
+      'yellow': Colors.yellow,
+      'orange': Colors.orange,
+      'purple': Colors.purple,
+      'pink': Colors.pink,
+      'brown': Colors.brown,
+      'grey': Colors.grey,
+      'gray': Colors.grey,
+      'black': Colors.black,
+      'white': Colors.white,
+      'cyan': Colors.cyan,
+      'teal': Colors.teal,
+      'indigo': Colors.indigo,
+      'amber': Colors.amber,
+      'lime': Colors.lime,
+    };
+    return colorMap[colorName.toLowerCase()] ?? Colors.grey;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,11 +219,23 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text(
-                      "Color: ${item.colorName}",
-                      style: const TextStyle(
+                    const Text(
+                      "Color: ",
+                      style: TextStyle(
                         fontSize: 12,
                         color: Colors.black54,
+                      ),
+                    ),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: _getColorFromName(item.colorName),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
