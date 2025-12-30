@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/screens/home/main_screen.dart';
-import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'components/product_images.dart';
@@ -26,8 +27,28 @@ class ProductDetailScreen extends StatelessWidget {
   }
 }
 
-class _ProductDetailContent extends StatelessWidget {
+class _ProductDetailContent extends StatefulWidget {
   const _ProductDetailContent();
+
+  @override
+  State<_ProductDetailContent> createState() => _ProductDetailContentState();
+}
+
+class _ProductDetailContentState extends State<_ProductDetailContent> {
+  int _selectedNavIndex = 1; // Catalog selected (coming from catalog)
+
+  void _onNavItemTapped(int index) {
+    if (index == _selectedNavIndex) return;
+    
+    // Navigate to MainScreen with selected tab
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MainScreen(initialTab: index),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,16 +82,35 @@ class _ProductDetailContent extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: Consumer<CartProvider>(
-        builder: (context, cartProvider, child) {
+      bottomNavigationBar: Consumer2<CartProvider, WishlistProvider>(
+        builder: (context, cartProvider, wishlistProvider, child) {
           final cartItemCount = cartProvider.cart?.items.length ?? 0;
-          
+          final wishlistItemCount = wishlistProvider.itemCount;
+
           return BottomNavigationBar(
             items: [
-              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_border),
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                label: 'Catalog',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: wishlistItemCount > 0,
+                  label: Text(
+                    wishlistItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.favorite_border),
+                ),
                 label: 'Wishlist',
               ),
               BottomNavigationBarItem(
@@ -94,28 +134,8 @@ class _ProductDetailContent extends StatelessWidget {
                 label: 'Profile',
               ),
             ],
-            currentIndex: 1,
-            onTap: (index) {
-              if (index == 1) {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MainScreen(initialTab: 1),
-                    ),
-                  );
-                }
-              } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MainScreen(initialTab: index),
-                  ),
-                );
-              }
-            },
+            currentIndex: _selectedNavIndex,
+            onTap: _onNavItemTapped,
             selectedItemColor: Colors.black,
             unselectedItemColor: Colors.grey,
             showSelectedLabels: false,
