@@ -9,8 +9,7 @@ import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
-import 'package:frontend_client_mobile/providers/favorite_provider.dart';
-import 'package:frontend_client_mobile/models/favorite_item.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/category.dart';
 
@@ -78,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     // Using Consumer to listen to updates efficiently
-    final favoriteProvider = context.watch<FavoriteProvider>();
+    final wishlistProvider = context.watch<WishlistProvider>();
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
         return Scaffold(
@@ -271,18 +270,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         final product = productProvider.products[index];
                         return ProductCard(
                           product: product,
-                          isFavorite: favoriteProvider.isFavorite(product.id),
+                          isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
                           onFavoriteToggle: () {
-                            favoriteProvider.toggleFavorite(
-                              FavoriteItem(
-                                productId: product.id,
-                                productName: product.name,
-                                imageUrl: product.primaryImageUrl,
-                                price: product.variants.isNotEmpty
-                                    ? product.variants.first.price.basePrice
-                                    : 0,
-                                product: product,
-                              ),
+                            wishlistProvider.toggleWishlist(
+                              productId: product.id,
                             );
                           },
                           onTap: () {
@@ -316,31 +307,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         final product = productProvider.productViews[index];
                         return ProductViewCard(
                           product: product,
-                          isFavorite: favoriteProvider.isFavorite(product.id),
+                          isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
                           onFavoriteToggle: () {
-                            // Creating a mock product for FavoriteItem as done before in ProductViewCard
-                            final mockProduct = Product(
-                              id: product.id,
-                              name: product.name,
-                              description: product.description,
-                              images: [], // Can be improved if needed
-                              category: Category(
-                                id: 0,
-                                name: 'General',
-                                description: '',
-                                imageUrl: '',
-                                status: 'ACTIVE',
-                              ),
-                              variants: [],
-                            );
-                            favoriteProvider.toggleFavorite(
-                              FavoriteItem(
-                                productId: product.id,
-                                productName: product.name,
-                                imageUrl: product.imageUrl,
-                                price: product.displayPrice,
-                                product: mockProduct,
-                              ),
+                            wishlistProvider.toggleWishlist(
+                              productId: product.id,
                             );
                           },
                           onTap: () {

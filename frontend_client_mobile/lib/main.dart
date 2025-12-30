@@ -23,6 +23,7 @@ import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/checkout/checkout_screen.dart';
 import 'package:frontend_client_mobile/providers/favorite_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -39,6 +40,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => SearchProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (context) => WishlistProvider()),
         ChangeNotifierProvider(create: (context) => FilterProvider()),
       ],
       child: const MyApp(),

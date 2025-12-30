@@ -150,14 +150,6 @@ class ProductSelection extends StatelessWidget {
                       ),
                     );
                   }),
-                  Text(
-                    'More...',
-                    style: GoogleFonts.lora(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                      letterSpacing: 0.1,
-                    ),
-                  ),
                 ],
               ),
 
