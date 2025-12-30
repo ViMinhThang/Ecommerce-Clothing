@@ -330,23 +330,25 @@ public class ProductServiceImpl implements ProductService {
         if (variant.getColor() != null) {
             ProductVariantView.ColorInfo colorInfo = new ProductVariantView.ColorInfo();
             colorInfo.setId(variant.getColor().getId());
-            colorInfo.setName(variant.getColor().getColorName());
-            colorInfo.setHexCode(variant.getColor().getColorCode());
+            colorInfo.setColorName(variant.getColor().getColorName());
+            colorInfo.setColorCode(variant.getColor().getColorCode());
+            colorInfo.setStatus(variant.getColor().getStatus());
             view.setColor(colorInfo);
         }
 
         if (variant.getSize() != null) {
             ProductVariantView.SizeInfo sizeInfo = new ProductVariantView.SizeInfo();
             sizeInfo.setId(variant.getSize().getId());
-            sizeInfo.setName(variant.getSize().getSizeName());
+            sizeInfo.setSizeName(variant.getSize().getSizeName());
+            sizeInfo.setStatus(variant.getSize().getStatus());
             view.setSize(sizeInfo);
         }
 
         if (variant.getPrice() != null) {
             ProductVariantView.PriceInfo priceInfo = new ProductVariantView.PriceInfo();
             priceInfo.setId(variant.getPrice().getId());
-            priceInfo.setOriginalPrice(variant.getPrice().getBasePrice());
-            priceInfo.setDiscountPrice(variant.getPrice().getSalePrice());
+            priceInfo.setBasePrice(variant.getPrice().getBasePrice());
+            priceInfo.setSalePrice(variant.getPrice().getSalePrice());
             view.setPrice(priceInfo);
         }
 

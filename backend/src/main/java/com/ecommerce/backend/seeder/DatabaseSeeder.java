@@ -386,16 +386,32 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<Material> allMaterials = materialRepository.findAll();
         List<Season> allSeasons = seasonRepository.findAll();
 
+        // URL ảnh mẫu cho tất cả dummy products
+        String DUMMY_IMAGE_URL = "https://amazingstoriesgames.ca/cdn/shop/files/BAS66423.jpg?v=1735420398";
+
         for (int i = 1; i <= productToCreate; i++) {
             Product product = new Product();
             product.setName("Dummy Product " + i);
-            product.setDescription("Description for dummy product " + i);
+            product.setDescription("This is a sample product for testing purposes. Product number " + i
+                    + " with full details including images, variants, colors, sizes, and pricing information.");
             product.setCategory(
                     allCategories.get(random.nextInt(allCategories.size())));
             product.setStatus("active");
+
+            // Tạo ProductImage (QUAN TRỌNG - thiếu cái này nên không hiển thị ảnh)
+            ProductImage primaryImage = new ProductImage();
+            primaryImage.setImageUrl(DUMMY_IMAGE_URL);
+            primaryImage.setDisplayOrder(0);
+            primaryImage.setIsPrimary(true);
+            primaryImage.setProduct(product);
+
+            // Thêm image vào product
+            product.getImages().add(primaryImage);
+
+            // Save product (cascade sẽ save image)
             product = productRepository.save(product);
 
-            int variantCount = random.nextInt(3) + 1; // 1–3 variants
+            int variantCount = 2 + random.nextInt(3); // 2-4 variants
             for (int j = 0; j < variantCount; j++) {
                 ProductVariants variant = new ProductVariants();
                 variant.setProduct(product);
@@ -411,9 +427,12 @@ public class DatabaseSeeder implements CommandLineRunner {
                             allSizes.get(random.nextInt(allSizes.size())));
                 }
 
-                double rawBase = 10.0 + random.nextDouble() * 90.0; // 10–100
-                double basePrice = Math.round(rawBase / 10.0) * 10.0;
-                double salePrice = basePrice * 0.9;
+                // Tạo Price với giá hợp lý hơn (200-1500)
+                double basePrice = 200.0 + (random.nextDouble() * 1300.0); // 200-1500
+                basePrice = Math.round(basePrice / 10.0) * 10.0; // Làm tròn đến chục
+
+                double discountPercent = 0.1 + (random.nextDouble() * 0.3); // Giảm 10-40%
+                double salePrice = basePrice * (1 - discountPercent);
                 salePrice = Math.round(salePrice / 10.0) * 10.0;
 
                 Price price = new Price();
@@ -437,6 +456,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 productVariantsRepository.save(variant);
             }
         }
+
+        System.out.println("✅ Created " + productToCreate + " dummy products with images and variants");
     }
 
     // ================== ORDERS & COLORS ==================

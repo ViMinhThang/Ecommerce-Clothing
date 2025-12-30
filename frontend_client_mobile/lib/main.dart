@@ -7,7 +7,6 @@ import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
-import 'package:frontend_client_mobile/screens/auth/auth_gate.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
@@ -53,7 +52,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/dashboard',
+      initialRoute: '/home',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),

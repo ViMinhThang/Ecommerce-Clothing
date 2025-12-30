@@ -1,12 +1,18 @@
-import 'package:flutter/foundation.dart'; // Để dùng kIsWeb
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class ApiConfig {
+  static const String LOCAL_NETWORK_IP = "10.0.132.154";
+  
   static String get baseUrl {
     if (kIsWeb) {
       return "http://localhost:8080/";
+    } else if (Platform.isAndroid) {
+      return "http://$LOCAL_NETWORK_IP:8080/";
+    } else if (Platform.isIOS) {
+      return "http://localhost:8080/";
     } else {
-      // Dùng 10.0.2.2 cho Android Emulator
-      return "http://10.0.2.2:8080/";
+      return "http://localhost:8080/";
     }
   }
 }
