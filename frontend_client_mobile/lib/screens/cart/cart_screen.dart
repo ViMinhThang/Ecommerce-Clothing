@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CartScreen extends StatefulWidget {
@@ -46,7 +47,16 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Cart'),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          'Cart',
+          style: GoogleFonts.lora(
+            color: Colors.black,
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

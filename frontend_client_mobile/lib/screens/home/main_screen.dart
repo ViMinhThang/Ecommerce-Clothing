@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
@@ -91,7 +92,16 @@ class _ProfilePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          'Profile',
+          style: GoogleFonts.lora(
+            color: Colors.black,
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
