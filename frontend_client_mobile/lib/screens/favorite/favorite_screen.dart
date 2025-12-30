@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
-import 'package:frontend_client_mobile/models/wishlist_item.dart';
+import 'package:frontend_client_mobile/providers/favorite_provider.dart';
+import 'package:frontend_client_mobile/models/favorite_item.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class WishListScreen extends StatelessWidget {
-  const WishListScreen({super.key});
+class FavoriteScreen extends StatelessWidget {
+  const FavoriteScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final wishlist = context.watch<WishListProvider>();
+    final favorite = context.watch<FavoriteProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -28,7 +28,7 @@ class WishListScreen extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
-          if (wishlist.items.isNotEmpty)
+          if (favorite.items.isNotEmpty)
             TextButton(
               onPressed: () {
                 showDialog(
@@ -45,7 +45,7 @@ class WishListScreen extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          wishlist.clear();
+                          favorite.clear();
                           Navigator.pop(context);
                         },
                         child: const Text('Xóa'),
@@ -58,14 +58,14 @@ class WishListScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: wishlist.items.isEmpty
+      body: favorite.items.isEmpty
           ? const Center(child: Text('Chưa có sản phẩm yêu thích'))
           : ListView.separated(
               padding: const EdgeInsets.all(12),
-              itemCount: wishlist.items.length,
+              itemCount: favorite.items.length,
               separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (ctx, i) {
-                final WishListItem item = wishlist.items[i];
+                final FavoriteItem item = favorite.items[i];
                 return ListTile(
                   leading: item.imageUrl != null
                       ? Image.network(
@@ -92,7 +92,7 @@ class WishListScreen extends StatelessWidget {
                   subtitle: Text('₫${item.price.toStringAsFixed(0)}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.favorite, color: Colors.red),
-                    onPressed: () => wishlist.removeItem(item.productId),
+                    onPressed: () => favorite.removeItem(item.productId),
                   ),
                   onTap: () {
                     Navigator.push(

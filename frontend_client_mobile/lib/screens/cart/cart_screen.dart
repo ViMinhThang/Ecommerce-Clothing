@@ -4,7 +4,6 @@ import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -47,16 +46,7 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: Text(
-          'Cart',
-          style: GoogleFonts.lora(
-            color: Colors.black,
-            fontWeight: FontWeight.normal,
-            fontSize: 18,
-          ),
-        ),
+        title: const Text('Cart'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -373,10 +363,10 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 56,
             child: ElevatedButton(
               onPressed: cart.items.isEmpty
                   ? null
@@ -392,18 +382,18 @@ class _CartScreenState extends State<CartScreen> {
                 backgroundColor: Colors.black,
                 disabledBackgroundColor: Colors.grey,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_cart, color: Colors.white, size: 20),
+                  Icon(Icons.shopping_cart, color: Colors.white),
                   SizedBox(width: 8),
                   Text(
                     "Checkout",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
