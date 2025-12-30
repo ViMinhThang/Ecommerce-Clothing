@@ -1,13 +1,13 @@
 import 'package:frontend_client_mobile/models/product.dart';
 
-class WishListItem {
+class FavoriteItem {
   final int productId;
   final String productName;
   final String? imageUrl;
   final double price;
   final Product product;
 
-  WishListItem({
+  FavoriteItem({
     required this.productId,
     required this.productName,
     this.imageUrl,
@@ -18,7 +18,7 @@ class WishListItem {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WishListItem &&
+      other is FavoriteItem &&
           runtimeType == other.runtimeType &&
           productId == other.productId;
 

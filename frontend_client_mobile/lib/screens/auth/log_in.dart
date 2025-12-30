@@ -75,6 +75,47 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
               ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Trial Credentials:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Username: '),
+                        SelectableText(
+                          'john.doe',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Password: '),
+                        SelectableText(
+                          'password',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,

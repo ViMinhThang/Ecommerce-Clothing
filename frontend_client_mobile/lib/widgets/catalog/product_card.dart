@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/utils/file_utils.dart';
-import 'package:provider/provider.dart';
-import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
-import 'package:frontend_client_mobile/models/wishlist_item.dart';
-import 'package:frontend_client_mobile/models/category.dart';
-import 'package:frontend_client_mobile/models/product_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback? onTap;
+  final bool isFavorite;
+  final VoidCallback? onFavoriteToggle;
 
-  const ProductCard({super.key, required this.product, this.onTap});
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.isFavorite = false,
+    this.onFavoriteToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final wishlist = context.watch<WishListProvider>();
-    final isFav = wishlist.isFavorite(product.id);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -70,18 +71,7 @@ class ProductCard extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: GestureDetector(
-                    onTap: () {
-                      final item = WishListItem(
-                        productId: product.id,
-                        productName: product.name,
-                        imageUrl: product.primaryImageUrl,
-                        price: product.variants.isNotEmpty
-                            ? product.variants.first.price.basePrice
-                            : 0,
-                        product: product,
-                      );
-                      wishlist.toggleFavorite(item);
-                    },
+                    onTap: onFavoriteToggle,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
@@ -95,9 +85,9 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                       child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
                         size: 20,
-                        color: isFav ? Colors.red : Colors.grey,
+                        color: isFavorite ? Colors.red : Colors.grey,
                       ),
                     ),
                   ),
@@ -139,12 +129,19 @@ class ProductCard extends StatelessWidget {
 class ProductViewCard extends StatelessWidget {
   final ProductView product;
   final VoidCallback? onTap;
+  final bool isFavorite;
+  final VoidCallback? onFavoriteToggle;
 
-  const ProductViewCard({super.key, required this.product, this.onTap});
+  const ProductViewCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.isFavorite = false,
+    this.onFavoriteToggle,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final wishlist = context.watch<WishListProvider>();
-    final isFav = wishlist.isFavorite(product.id);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -195,37 +192,7 @@ class ProductViewCard extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: GestureDetector(
-                    onTap: () {
-                      final mockProduct = Product(
-                        id: product.id,
-                        name: product.name,
-                        description: product.description,
-                        images: [
-                          ProductImage(
-                            id: 0,
-                            imageUrl: product.imageUrl,
-                            displayOrder: 0,
-                            isPrimary: true,
-                          ),
-                        ],
-                        category: Category(
-                          id: 0,
-                          name: 'General',
-                          description: '',
-                          imageUrl: '',
-                          status: 'ACTIVE',
-                        ),
-                        variants: [],
-                      );
-                      final item = WishListItem(
-                        productId: product.id,
-                        productName: product.name,
-                        imageUrl: product.imageUrl,
-                        price: product.displayPrice,
-                        product: mockProduct,
-                      );
-                      wishlist.toggleFavorite(item);
-                    },
+                    onTap: onFavoriteToggle,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
@@ -239,9 +206,9 @@ class ProductViewCard extends StatelessWidget {
                         ],
                       ),
                       child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
                         size: 20,
-                        color: isFav ? Colors.red : Colors.grey,
+                        color: isFavorite ? Colors.red : Colors.grey,
                       ),
                     ),
                   ),
