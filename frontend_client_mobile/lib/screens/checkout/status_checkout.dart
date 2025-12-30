@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class StatusCheckoutScreen extends StatelessWidget {
   final String orderNumber;
 
-  const StatusCheckoutScreen({super.key, this.orderNumber = '245877456333248'});
+  const StatusCheckoutScreen({
+    Key? key,
+    this.orderNumber = '245877456333248',
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,10 @@ class StatusCheckoutScreen extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF4CAF50), width: 4),
+                  border: Border.all(
+                    color: const Color(0xFF4CAF50),
+                    width: 4,
+                  ),
                 ),
                 child: const Icon(
                   Icons.check,
@@ -93,7 +99,10 @@ class StatusCheckoutScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Continue',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),

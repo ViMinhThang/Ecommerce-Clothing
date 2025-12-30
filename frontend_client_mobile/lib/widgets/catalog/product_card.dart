@@ -35,10 +35,9 @@ class ProductCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child:
-                        product.primaryImageUrl != null &&
-                            product.primaryImageUrl!.isNotEmpty
+                        product.imageUrl != null && product.imageUrl!.isNotEmpty
                         ? Image.network(
-                            FileUtils.fixImgUrl(product.primaryImageUrl!),
+                            FileUtils.fixImgUrl(product.imageUrl!),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 const Center(
@@ -73,7 +72,7 @@ class ProductCard extends StatelessWidget {
                       final item = WishListItem(
                         productId: product.id,
                         productName: product.name,
-                        imageUrl: product.primaryImageUrl,
+                        imageUrl: product.imageUrl,
                         price: product.variants.isNotEmpty
                             ? product.variants.first.price.basePrice
                             : 0,
@@ -199,7 +198,7 @@ class ProductViewCard extends StatelessWidget {
                         id: product.id,
                         name: product.name,
                         description: product.description,
-                        images: [],
+                        imageUrl: product.imageUrl,
                         category: Category(
                           id: 0,
                           name: 'General',

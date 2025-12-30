@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
-  const PaymentMethodScreen({super.key});
+  const PaymentMethodScreen({Key? key}) : super(key: key);
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
@@ -163,7 +163,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         onPressed: () {},
                         child: const Text(
                           'Edit',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ],
@@ -171,17 +174,26 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Dmitriy Divnov',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Brest, Belarus',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '+375 (29) 749-19-24',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -232,7 +244,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 ),
                 child: const Text(
                   'Pay',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -253,10 +268,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -348,7 +360,11 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 color: isSelected ? Colors.black : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(Icons.circle, size: 12, color: Colors.white)
+                  ? const Icon(
+                Icons.circle,
+                size: 12,
+                color: Colors.white,
+              )
                   : null,
             ),
           ],

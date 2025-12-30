@@ -122,7 +122,7 @@ public class CartServiceImpl implements CartService {
         view.setId(item.getId());
         view.setVariantId(item.getProductVariants().getId());
         view.setProductName(item.getProductVariants().getProduct().getName());
-        view.setProductImage(item.getProductVariants().getProduct().getPrimaryImageUrl());
+        view.setProductImage(item.getProductVariants().getProduct().getImageUrl());
         view.setColorName(item.getProductVariants().getColor() != null
                 ? item.getProductVariants().getColor().getColorName()
                 : "");

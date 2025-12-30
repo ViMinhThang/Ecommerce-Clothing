@@ -129,12 +129,12 @@ class ApiClient {
     if (_interceptorAdded) return;
     _interceptorAdded = true;
 
-    final TokenStorage tokenStorage = TokenStorage();
+    final TokenStorage _tokenStorage = TokenStorage();
 
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await tokenStorage.readAccessToken();
+          final token = await _tokenStorage.readAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -146,7 +146,7 @@ class ApiClient {
           if (status == 401) {
             // tránh vòng lặp: nếu request là refresh thì không gọi lại
             if (e.requestOptions.path.contains('/api/auth/refresh')) {
-              await tokenStorage.clear();
+              await _tokenStorage.clear();
               return handler.next(e);
             }
 

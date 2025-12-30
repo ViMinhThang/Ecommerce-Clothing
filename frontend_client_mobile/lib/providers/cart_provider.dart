@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/cart_item.dart';
 import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:frontend_client_mobile/models/order_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';

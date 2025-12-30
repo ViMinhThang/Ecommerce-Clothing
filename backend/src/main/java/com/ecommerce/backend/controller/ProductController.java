@@ -3,6 +3,7 @@ package com.ecommerce.backend.controller;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.view.ProductSearchView;
 import com.ecommerce.backend.dto.view.ProductView;
+import com.ecommerce.backend.dto.view.ProductVariantView;
 import com.ecommerce.backend.model.Product;
 import com.ecommerce.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +88,12 @@ public class ProductController {
     public ResponseEntity<List<ProductSearchView>> searchByNameAndCategory(@RequestParam("name") String name,
             @RequestParam("categoryId") long categoryId) {
         return ResponseEntity.ok(productService.searchByNameAndCategory(name, categoryId));
+    }
+
+    @GetMapping("/variants/{id}")
+    public ResponseEntity<List<ProductVariantView>> getProductVariants(@PathVariable Long id) {
+        List<ProductVariantView> variants = productService.getProductVariants(id);
+        return ResponseEntity.ok(variants);
     }
 
     private ResponseEntity<Page<ProductView>> response(Page<ProductView> res) {

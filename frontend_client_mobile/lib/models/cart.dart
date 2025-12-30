@@ -96,6 +96,10 @@ class AddToCartRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId, 'variantId': variantId, 'quantity': quantity};
+    return {
+      'userId': userId,
+      'variantId': variantId,
+      'quantity': quantity,
+    };
   }
 }

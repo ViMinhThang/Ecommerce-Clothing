@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private static final String UPLOAD_DIR = "./uploads/";
-    private static final String IMAGE_BASE_URL = "http://10.0.2.2:8080/uploads/";
+    private static final String IMAGE_BASE_URL = "http://10.0.2.2:8080/uploads/products/";
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -42,7 +41,6 @@ public class ProductServiceImpl implements ProductService {
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
-    private final OrderItemRepository orderItemRepository;
 
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
@@ -55,25 +53,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product createProduct(ProductRequest request, List<MultipartFile> images) throws IOException {
-        Product product = new Product();
-        updateBasicFields(product, request);
-        assignCategory(product, request.getCategoryId());
-        handleMultipleImageUpload(product, images);
-        createVariants(product, request.getParsedVariants());
+    public Product createProduct(ProductRequest request, MultipartFile image) throws IOException {
+        Product product = buildProductFromRequest(new Product(), request, image);
         return productRepository.save(product);
     }
 
     @Override
-    public Product updateProduct(Long id, ProductRequest request, List<MultipartFile> images,
-            List<Long> existingImageIds) throws IOException {
+    public Product updateProduct(Long id, ProductRequest request, MultipartFile image) throws IOException {
         Product existingProduct = findProductOrThrow(id);
-        updateBasicFields(existingProduct, request);
-        assignCategory(existingProduct, request.getCategoryId());
         clearExistingVariants(existingProduct);
-        updateImages(existingProduct, images, existingImageIds);
-        createVariants(existingProduct, request.getParsedVariants());
-        return productRepository.save(existingProduct);
+        Product updatedProduct = buildProductFromRequest(existingProduct, request, image);
+        return productRepository.save(updatedProduct);
     }
 
     @Override
@@ -133,68 +123,24 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
+    private Product buildProductFromRequest(Product product, ProductRequest request, MultipartFile image)
+            throws IOException {
+        updateBasicFields(product, request);
+        handleImageUpload(product, image);
+        assignCategory(product, request.getCategoryId());
+        createVariants(product, request.getParsedVariants());
+        return product;
+    }
+
     private void updateBasicFields(Product product, ProductRequest request) {
         product.setName(request.getName());
         product.setDescription(request.getDescription());
     }
 
-    private void handleMultipleImageUpload(Product product, List<MultipartFile> images) throws IOException {
-        if (images == null || images.isEmpty()) {
-            return;
-        }
-
-        int displayOrder = product.getImages().size();
-        boolean isFirst = product.getImages().isEmpty();
-
-        for (MultipartFile image : images) {
-            if (isValidImage(image)) {
-                String imageUrl = saveImage(image);
-
-                ProductImage productImage = new ProductImage();
-                productImage.setImageUrl(imageUrl);
-                productImage.setDisplayOrder(displayOrder++);
-                productImage.setIsPrimary(isFirst);
-                productImage.setProduct(product);
-
-                product.getImages().add(productImage);
-                isFirst = false;
-            }
-        }
-    }
-
-    private void updateImages(Product product, List<MultipartFile> newImages, List<Long> existingImageIds)
-            throws IOException {
-        // Remove images not in existingImageIds (user deleted them)
-        if (existingImageIds != null) {
-            product.getImages().removeIf(img -> !existingImageIds.contains(img.getId()));
-        } else {
-            // If no existing IDs provided, keep all existing images
-        }
-
-        // Add new images
-        handleMultipleImageUpload(product, newImages);
-
-        // Ensure at least one image is primary
-        ensurePrimaryImage(product);
-
-        // Reorder display order
-        reorderImages(product);
-    }
-
-    private void ensurePrimaryImage(Product product) {
-        if (product.getImages().isEmpty())
-            return;
-
-        boolean hasPrimary = product.getImages().stream().anyMatch(ProductImage::getIsPrimary);
-        if (!hasPrimary) {
-            product.getImages().get(0).setIsPrimary(true);
-        }
-    }
-
-    private void reorderImages(Product product) {
-        List<ProductImage> images = product.getImages();
-        for (int i = 0; i < images.size(); i++) {
-            images.get(i).setDisplayOrder(i);
+    private void handleImageUpload(Product product, MultipartFile image) throws IOException {
+        if (isValidImage(image)) {
+            String imageUrl = saveImage(image);
+            product.setImageUrl(imageUrl);
         }
     }
 
@@ -282,28 +228,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void clearExistingVariants(Product product) {
-        // Soft-delete variants that are referenced by orders (set status to INACTIVE)
-        // and only remove variants that are not referenced
-        List<ProductVariants> variantsToKeep = new java.util.ArrayList<>();
-        List<ProductVariants> variantsToRemove = new java.util.ArrayList<>();
-
-        for (ProductVariants variant : product.getVariants()) {
-            if (variant.getId() > 0 && isVariantReferencedByOrders(variant.getId())) {
-                // This variant has orders - soft delete instead of hard delete
-                variant.setStatus("INACTIVE");
-                variantsToKeep.add(variant);
-            } else {
-                variantsToRemove.add(variant);
-            }
-        }
-
-        // Remove only variants not referenced by orders
-        product.getVariants().removeAll(variantsToRemove);
-    }
-
-    private boolean isVariantReferencedByOrders(Long variantId) {
-        // Check if any order items reference this variant
-        return orderItemRepository.existsByProductVariantsId(variantId);
+        product.getVariants().clear();
     }
 
     private ProductView mapToProductView(Product product) {
@@ -311,16 +236,10 @@ public class ProductServiceImpl implements ProductService {
         double basePrice = extractBasePrice(firstVariant);
         double salePrice = extractSalePrice(firstVariant);
 
-        // Get all image URLs
-        List<String> imageUrls = product.getImages().stream()
-                .map(ProductImage::getImageUrl)
-                .collect(Collectors.toList());
-
         return new ProductView(
                 product.getId(),
                 product.getName(),
-                product.getPrimaryImageUrl(),
-                imageUrls,
+                product.getImageUrl(),
                 basePrice,
                 salePrice,
                 product.getDescription());
@@ -373,14 +292,7 @@ public class ProductServiceImpl implements ProductService {
 
     private String saveImage(MultipartFile image) throws IOException {
         String newFilename = generateUniqueFilename(image);
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-
-        // Create uploads directory if it doesn't exist
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(newFilename);
+        Path filePath = Paths.get(UPLOAD_DIR + newFilename);
         Files.copy(image.getInputStream(), filePath);
         return IMAGE_BASE_URL + newFilename;
     }

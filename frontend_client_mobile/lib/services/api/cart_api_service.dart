@@ -30,8 +30,7 @@ abstract class CartApiService {
 
 @RestApi()
 abstract class ProductVariantApiService {
-  factory ProductVariantApiService(Dio dio, {String? baseUrl}) =
-      _ProductVariantApiService;
+  factory ProductVariantApiService(Dio dio, {String? baseUrl}) = _ProductVariantApiService;
 
   @GET("api/products/variants/{id}")
   Future<List<ProductVariant>> getProductVariants(@Path("id") int productId);

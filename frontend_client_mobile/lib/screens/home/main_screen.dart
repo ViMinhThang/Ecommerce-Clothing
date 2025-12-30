@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
+import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
@@ -20,10 +22,14 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialTab;
   }
 
-  static const List<Widget> _screens = <Widget>[
-    HomeScreen(),
-    CatalogNavigator(),
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const CatalogNavigator(),
+    const WishListScreen(),
+    const CartScreen(),
+    const _ProfilePlaceholder(),
   ];
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -33,7 +39,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack maintains the state of all screens (no rebuild on switch)
       body: IndexedStack(index: _selectedIndex, children: _screens),
 
       bottomNavigationBar: BottomNavigationBar(
@@ -63,6 +68,60 @@ class _MainScreenState extends State<MainScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed, // Essential for 5 items
+      ),
+    );
+  }
+}
+
+// Placeholder for Profile screen
+class _ProfilePlaceholder extends StatelessWidget {
+  const _ProfilePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, size: 50, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Guest User',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in to access your profile',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Navigate to login screen
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
+              ),
+              child: const Text('Sign In'),
+            ),
+          ],
+        ),
       ),
     );
   }
