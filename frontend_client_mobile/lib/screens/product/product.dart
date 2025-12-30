@@ -12,8 +12,7 @@ import 'package:frontend_client_mobile/models/wishlist_item.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
-  const ProductDetailScreen({Key? key, required this.productId})
-    : super(key: key);
+  const ProductDetailScreen({super.key, required this.productId});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -24,6 +23,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? selectedColorName;
   String? selectedSizeName;
   int quantity = 1;
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
 
   // Product data from API
   Product? product;
@@ -34,6 +35,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? errorMessage;
 
   late ProductVariantApiService _variantApiService;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -86,8 +93,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         // Auto-select first variant
         if (variants.isNotEmpty) {
           selectedVariantId = variants.first.id;
-          selectedColorName = variants.first.color?.colorName;
-          selectedSizeName = variants.first.size?.sizeName;
+          selectedColorName = variants.first.color.colorName;
+          selectedSizeName = variants.first.size.sizeName;
         }
       });
     } catch (e) {
@@ -100,16 +107,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   List<String> get availableColors {
     return variants
-        .where((v) => v.color != null)
-        .map((v) => v.color!.colorName)
+        .where((v) => true) // color is non-nullable
+        .map((v) => v.color.colorName)
         .toSet()
         .toList();
   }
 
   List<String> get availableSizes {
     return variants
-        .where((v) => v.size != null)
-        .map((v) => v.size!.sizeName)
+        .where((v) => true) // size is non-nullable
+        .map((v) => v.size.sizeName)
         .toSet()
         .toList();
   }
@@ -144,15 +151,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return variant.price.basePrice > variant.price.salePrice;
   }
 
-  String get productImageUrl {
-    if (product?.imageUrl != null && product!.imageUrl!.isNotEmpty) {
-      if (product!.imageUrl!.startsWith('http')) {
-        return product!.imageUrl!;
-      } else {
-        return '${ApiConfig.baseUrl}${product!.imageUrl}';
-      }
+  List<String> get productImageUrls {
+    if (product == null || product!.imageUrls.isEmpty) {
+      return ['https://via.placeholder.com/450x450?text=No+Image'];
     }
-    return 'https://via.placeholder.com/450x450?text=No+Image';
+    return product!.imageUrls.map((url) {
+      if (url.startsWith('http')) {
+        return url;
+      }
+      return '${ApiConfig.baseUrl}$url';
+    }).toList();
+  }
+
+  String get productImageUrl {
+    final urls = productImageUrls;
+    return urls.isNotEmpty
+        ? urls.first
+        : 'https://via.placeholder.com/450x450?text=No+Image';
   }
 
   @override
@@ -173,18 +188,65 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     color: const Color(0xFFF5F5F5),
                     child: isLoadingProduct
                         ? const Center(child: CircularProgressIndicator())
-                        : Image.network(
-                            productImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(
-                                  Icons.image,
-                                  size: 100,
-                                  color: Colors.grey,
+                        : Stack(
+                            children: [
+                              PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentImageIndex = index;
+                                  });
+                                },
+                                itemCount: productImageUrls.length,
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    productImageUrls[index],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.image,
+                                          size: 100,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              if (productImageUrls.length > 1)
+                                Positioned(
+                                  bottom: 20,
+                                  left: 0,
+                                  right: 0,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(
+                                      productImageUrls.length,
+                                      (index) => AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 300,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        height: 8,
+                                        width: _currentImageIndex == index
+                                            ? 24
+                                            : 8,
+                                        decoration: BoxDecoration(
+                                          color: _currentImageIndex == index
+                                              ? Colors.black
+                                              : Colors.grey.withOpacity(0.5),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
+                            ],
                           ),
                   ),
                   Positioned(
@@ -263,7 +325,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   final item = WishListItem(
                                     productId: product!.id,
                                     productName: product!.name,
-                                    imageUrl: product!.imageUrl,
+                                    imageUrl: product!.primaryImageUrl,
                                     price: variants.isNotEmpty
                                         ? variants.first.price.salePrice
                                         : 0,
@@ -338,11 +400,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             children: availableColors.map((colorName) {
                               // Find variant with this color to get hex code
                               final variantWithColor = variants.firstWhere(
-                                (v) => v.color?.colorName == colorName,
+                                (v) => v.color.colorName == colorName,
                               );
                               final hexCode =
-                                  variantWithColor.color?.colorCode ??
-                                  '#000000';
+                                  variantWithColor.color.colorCode ?? '#000000';
                               final colorValue = Color(
                                 int.parse(hexCode.replaceFirst('#', '0xFF')),
                               );
@@ -354,15 +415,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     // Find matching variant
                                     final matchingVariant = variants.firstWhere(
                                       (v) =>
-                                          v.color?.colorName == colorName &&
-                                          v.size?.sizeName == selectedSizeName,
+                                          v.color.colorName == colorName &&
+                                          v.size.sizeName == selectedSizeName,
                                       orElse: () => variants.firstWhere(
-                                        (v) => v.color?.colorName == colorName,
+                                        (v) => v.color.colorName == colorName,
                                       ),
                                     );
                                     selectedVariantId = matchingVariant.id;
                                     selectedSizeName =
-                                        matchingVariant.size?.sizeName;
+                                        matchingVariant.size.sizeName;
                                   });
                                 },
                                 child: Container(
@@ -421,16 +482,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     // Find matching variant
                                     final matchingVariant = variants.firstWhere(
                                       (v) =>
-                                          v.size?.sizeName == sizeName &&
-                                          v.color?.colorName ==
+                                          v.size.sizeName == sizeName &&
+                                          v.color.colorName ==
                                               selectedColorName,
                                       orElse: () => variants.firstWhere(
-                                        (v) => v.size?.sizeName == sizeName,
+                                        (v) => v.size.sizeName == sizeName,
                                       ),
                                     );
                                     selectedVariantId = matchingVariant.id;
                                     selectedColorName =
-                                        matchingVariant.color?.colorName;
+                                        matchingVariant.color.colorName;
                                   });
                                 },
                                 child: Container(
@@ -531,10 +592,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           quantity: quantity,
                                         );
 
-                                    if (success && mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
+                                    if (!mounted) return;
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    if (success) {
+                                      messenger.showSnackBar(
                                         const SnackBar(
                                           content: Text(
                                             'Added to cart successfully!',
@@ -543,10 +606,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           duration: Duration(seconds: 2),
                                         ),
                                       );
-                                    } else if (mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
+                                    } else {
+                                      messenger.showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             cartProvider.error ??
