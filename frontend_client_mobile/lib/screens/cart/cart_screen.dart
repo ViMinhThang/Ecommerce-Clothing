@@ -14,6 +14,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   static const int _currentUserId = 1;
+  final Map<int, bool> _loadingItems = {}; // Track loading state for each item
 
   @override
   void initState() {
@@ -218,14 +219,21 @@ class _CartScreenState extends State<CartScreen> {
           ),
           IconButton(
             onPressed: () async {
-              await cartProvider.removeItem(item.id, _currentUserId);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Item removed from cart'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
+              setState(() => _loadingItems[item.id] = true);
+              try {
+                await cartProvider.removeItem(item.id, _currentUserId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Item removed from cart'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _loadingItems[item.id] = false);
+                }
               }
             },
             icon: const Icon(Icons.close),
@@ -242,6 +250,8 @@ class _CartScreenState extends State<CartScreen> {
     CartItemView item,
     CartProvider cartProvider,
   ) {
+    final isLoading = _loadingItems[item.id] ?? false;
+    
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -251,13 +261,20 @@ class _CartScreenState extends State<CartScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            onPressed: item.quantity > 1
+            onPressed: (item.quantity > 1 && !isLoading)
                 ? () async {
-                    await cartProvider.updateQuantity(
-                      item.id,
-                      item.quantity - 1,
-                      _currentUserId,
-                    );
+                    setState(() => _loadingItems[item.id] = true);
+                    try {
+                      await cartProvider.updateQuantity(
+                        item.id,
+                        item.quantity - 1,
+                        _currentUserId,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _loadingItems[item.id] = false);
+                      }
+                    }
                   }
                 : null,
             icon: const Icon(Icons.remove, size: 18),
@@ -266,19 +283,37 @@ class _CartScreenState extends State<CartScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              "${item.quantity}",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
+            child: isLoading
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                    ),
+                  )
+                : Text(
+                    "${item.quantity}",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
           ),
           IconButton(
-            onPressed: () async {
-              await cartProvider.updateQuantity(
-                item.id,
-                item.quantity + 1,
-                _currentUserId,
-              );
-            },
+            onPressed: !isLoading
+                ? () async {
+                    setState(() => _loadingItems[item.id] = true);
+                    try {
+                      await cartProvider.updateQuantity(
+                        item.id,
+                        item.quantity + 1,
+                        _currentUserId,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _loadingItems[item.id] = false);
+                      }
+                    }
+                  }
+                : null,
             icon: const Icon(Icons.add, size: 18),
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(),

@@ -22,8 +22,9 @@ public class ProductVariantView {
     @AllArgsConstructor
     public static class ColorInfo {
         private Long id;
-        private String name;
-        private String hexCode;
+        private String colorName;
+        private String colorCode;
+        private String status;
     }
 
     @Getter
@@ -32,7 +33,8 @@ public class ProductVariantView {
     @AllArgsConstructor
     public static class SizeInfo {
         private Long id;
-        private String name;
+        private String sizeName;
+        private String status;
     }
 
     @Getter
@@ -41,7 +43,7 @@ public class ProductVariantView {
     @AllArgsConstructor
     public static class PriceInfo {
         private Long id;
-        private Double originalPrice;
-        private Double discountPrice;
+        private Double basePrice;
+        private Double salePrice;
     }
 }

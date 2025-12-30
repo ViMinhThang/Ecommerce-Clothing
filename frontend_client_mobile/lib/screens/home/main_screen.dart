@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
-import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
+import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
@@ -22,10 +22,20 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialTab;
   }
 
+  @override
+  void didUpdateWidget(MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab != widget.initialTab) {
+      setState(() {
+        _selectedIndex = widget.initialTab;
+      });
+    }
+  }
+
   final List<Widget> _screens = [
     const HomeScreen(),
     const CatalogNavigator(),
-    const FavoriteScreen(),
+    const WishListScreen(),
     const CartScreen(),
     const _ProfilePlaceholder(),
   ];
@@ -47,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
-            label: 'Favorite',
+            label: 'Wishlist',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag_outlined),
@@ -62,11 +72,12 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
 
+        // --- Styling to match e-commerce app common practices ---
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed, // Essential for 5 items
       ),
     );
   }

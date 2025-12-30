@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:provider/provider.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   const PaymentMethodScreen({Key? key}) : super(key: key);
@@ -8,8 +13,123 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  String selectedPayment = 'credit_card';
+  String selectedPayment = 'cod';
   bool showCardNumber = false;
+  bool _isLoading = false;
+  int _selectedNavIndex = 3; // Cart is selected by default
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _onNavItemTapped(int index) {
+    if (index == _selectedNavIndex) return;
+    
+    switch (index) {
+      case 0: // Home
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        break;
+      case 1: // Catalog
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 1,
+        );
+        break;
+      case 2: // Wishlist
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 2,
+        );
+        break;
+      case 3: // Cart
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 3,
+        );
+        break;
+      case 4: // Profile
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 4,
+        );
+        break;
+    }
+  }
+
+  Future<void> _handleOrder() async {
+    // Only process COD for now
+    if (selectedPayment != 'cod') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only Cash on Delivery is supported at this time'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      final cart = cartProvider.cart;
+
+      if (cart == null || cart.items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your cart is empty'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Get cart item IDs
+      final cartItemIds = cart.items.map((item) => item.id).toList();
+      
+      // Call API with cart item IDs (matching backend OrderDTO)
+      final orderApiService = ApiClient.getOrderApiService();
+      final response = await orderApiService.createOrderFromCart({
+        'cartItemIds': cartItemIds,
+      });
+
+      // Clear cart after successful order
+      cartProvider.clear();
+
+      if (!mounted) return;
+
+      // Navigate to success screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StatusCheckoutScreen(
+            orderNumber: response.id.toString(),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Order failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,83 +344,86 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
 
-          // Pay Button
+          // Order Button
           Padding(
             padding: const EdgeInsets.all(20),
             child: SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle payment
-                },
+                onPressed: _isLoading ? null : _handleOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Pay',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Order',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ),
 
           // Bottom Navigation Bar
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 10,
-                  offset: const Offset(0, -3),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.home_outlined, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
+          Consumer<CartProvider>(
+            builder: (context, cartProvider, child) {
+              final cartItemCount = cartProvider.cart?.items.length ?? 0;
+              
+              return BottomNavigationBar(
+                items: [
+                  const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.favorite_border),
+                    label: 'Wishlist',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Badge(
+                      isLabelVisible: cartItemCount > 0,
+                      label: Text(
+                        cartItemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      backgroundColor: Colors.black,
+                      child: const Icon(Icons.shopping_bag_outlined),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.menu, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.shopping_cart, size: 28),
-                      color: Colors.black,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.person_outline, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                    label: 'Cart',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline),
+                    label: 'Profile',
+                  ),
+                ],
+                currentIndex: _selectedNavIndex,
+                onTap: _onNavItemTapped,
+                selectedItemColor: Colors.black,
+                unselectedItemColor: Colors.grey,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                type: BottomNavigationBarType.fixed,
+              );
+            },
           ),
         ],
       ),
@@ -409,10 +532,14 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   Widget _buildVNPayIcon() {
     return Container(
       padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
+      child: Image.network(
+        'https://cdn-new.topcv.vn/unsafe/https://static.topcv.vn/company_logos/cong-ty-cp-giai-phap-thanh-toan-viet-nam-vnpay-6194ba1fa3d66.jpg',
+        fit: BoxFit.contain,
+        width: 40,
+        height: 40,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to text logo if image fails to load
+          return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFF0066B3),
@@ -427,8 +554,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 letterSpacing: 1,
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
