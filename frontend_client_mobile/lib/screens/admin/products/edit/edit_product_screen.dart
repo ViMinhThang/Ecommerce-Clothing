@@ -4,8 +4,8 @@ import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/section/form_sections.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/section/action_buttons_section.dart';
-import 'package:frontend_client_mobile/widgets/common/discard_dialog.dart';
-import 'package:frontend_client_mobile/widgets/common/loading_overlay.dart';
+import 'package:frontend_client_mobile/widgets/discard_dialog.dart';
+import 'package:frontend_client_mobile/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/product.dart';
 import '../../../../providers/category_provider.dart';
@@ -39,7 +39,10 @@ class _EditProductScreenState
   IconData getSectionIcon() => Icons.inventory_2_outlined;
 
   @override
-  void initializeForm() {}
+  void initializeForm() {
+    // ViewModel initialization is deferred to didChangeDependencies
+    // because it needs access to providers
+  }
 
   @override
   void didChangeDependencies() {
@@ -71,9 +74,11 @@ class _EditProductScreenState
     await _viewModel.saveProduct();
   }
 
+  // Override build to add WillPopScope and ViewModel provider
   @override
   Widget build(BuildContext context) {
     if (!_viewModelInitialized) {
+      // Return placeholder until viewModel is initialized
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -112,13 +117,14 @@ class _EditProductScreenState
                 ),
               ],
             ),
-            child: ActionButtonsSection(formKey: _formKey),
+            child: const ActionButtonsSection(),
           ),
         ),
       ),
     );
   }
 
+  // Override buildFormBody to add loading overlay
   @override
   Widget buildFormBody() {
     return Stack(
@@ -129,6 +135,7 @@ class _EditProductScreenState
     );
   }
 
+  // Override buildFormFields to use the ProductForm sections
   @override
   Widget buildFormFields() {
     return Consumer<EditProductViewModel>(
@@ -137,13 +144,17 @@ class _EditProductScreenState
     );
   }
 
+  // Override buildActionButtons - ProductForm has its own action buttons
   @override
   Widget buildActionButtons() {
+    // Return empty container since ProductForm includes ActionButtonsSection
     return const SizedBox.shrink();
   }
 
+  // Override to customize section header
   @override
   Widget buildSectionHeader() {
+    // Return empty since ProductForm manages its own sections
     return const SizedBox.shrink();
   }
 }

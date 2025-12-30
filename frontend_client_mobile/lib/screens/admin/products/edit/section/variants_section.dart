@@ -60,7 +60,10 @@ class VariantsSection extends StatelessWidget {
                 onPressed: viewModel.addVariant,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.primaryBlack,
-                  side: const BorderSide(color: AppTheme.mediumGray, width: 1),
+                  side: const BorderSide(
+                    color: AppTheme.mediumGray, // Softer border
+                    width: 1,
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppTheme.spaceSM,
                     vertical: 4,

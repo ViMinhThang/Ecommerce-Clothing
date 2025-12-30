@@ -92,17 +92,20 @@ class _ProductApiService implements ProductApiService {
     String description,
     int categoryId,
     String variants,
-    List<MultipartFile> images,
+    MultipartFile? image,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.fields.add(MapEntry('name', name));
     _data.fields.add(MapEntry('description', description));
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
-    _data.files.addAll(images.map((i) => MapEntry('images', i)));
+    if (image != null) {
+      _data.files.add(MapEntry('image', image));
+    }
     final _options = _setStreamType<Product>(
       Options(
             method: 'POST',
@@ -136,24 +139,20 @@ class _ProductApiService implements ProductApiService {
     String description,
     int categoryId,
     String variants,
-    List<MultipartFile> images,
-    List<int> existingImageIds,
+    MultipartFile? image,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.fields.add(MapEntry('name', name));
     _data.fields.add(MapEntry('description', description));
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
-    _data.files.addAll(images.map((i) => MapEntry('images', i)));
-    _data.files.add(
-      MapEntry(
-        'existingImageIds',
-        MultipartFile.fromBytes(existingImageIds, filename: null),
-      ),
-    );
+    if (image != null) {
+      _data.files.add(MapEntry('image', image));
+    }
     final _options = _setStreamType<Product>(
       Options(
             method: 'PUT',

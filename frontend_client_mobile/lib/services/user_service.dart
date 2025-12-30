@@ -57,4 +57,13 @@ class UserService {
   Future<User> uploadAvatar(int id, File avatar) async {
     return await _api.uploadAvatar(id, avatar);
   }
+
+  // New methods for current user profile
+  Future<UserDetailView> getCurrentUserProfile(int userId) =>
+      _api.getCurrentUserProfile(userId);
+
+  Future<void> updateCurrentUserProfile(
+    int userId,
+    UserUpdateRequest request,
+  ) => _api.updateCurrentUserProfile(userId, request);
 }

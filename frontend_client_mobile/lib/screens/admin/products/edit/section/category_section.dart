@@ -37,7 +37,8 @@ class CategorySection extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceMD),
           Consumer<CategoryProvider>(
             builder: (context, provider, _) {
-              if (viewModel.isInitializing && provider.categories.isEmpty) {
+              if (viewModel.isLoadingCategories &&
+                  provider.categories.isEmpty) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppTheme.spaceMD),

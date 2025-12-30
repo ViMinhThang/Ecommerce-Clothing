@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
-import 'package:frontend_client_mobile/screens/product/product.dart';
-import 'package:frontend_client_mobile/widgets/catalog/category_chip.dart';
+import 'package:frontend_client_mobile/screens/product_layout.dart';
+import 'package:frontend_client_mobile/widgets/category_chip.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
-import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
+import 'package:frontend_client_mobile/widgets/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Clear và bật loading ngay để kích hoạt skeleton
     p.prepareForCategory(categoryId); // phương thức mới, xem dưới
-    p.fetchProductsByCategory(categoryId, refresh: true);
+    p.fetchProductsByCategory(categoryId, isRefresh: true);
 
     if (_scrollController.hasClients) _scrollController.jumpTo(0);
   }
@@ -154,7 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      Padding(
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
@@ -162,12 +163,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Consumer<CategoryProvider>(
                           builder: (context, categoryProvider, child) {
                             if (categoryProvider.isLoading) {
+                              // Hiển thị shimmer skeleton list
                               return SizedBox(
-                                height: 40,
+                                height: 40, // Đúng chiều cao card category thật
                                 child: ListView.separated(
-                                  shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: 6,
+                                  itemCount: 6, // số skeleton bạn muốn
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(width: 8),
                                   itemBuilder: (_, __) =>
@@ -175,50 +176,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             }
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  Padding(
+                            return Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: CategoryChip(
+                                    label: "All",
+                                    isSelected: _selectedCategoryIndex == 0,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategoryId = 0;
+                                        _selectedCategoryIndex = 0;
+                                      });
+                                      context
+                                          .read<ProductProvider>()
+                                          .prepareForCategory(0);
+                                      context
+                                          .read<ProductProvider>()
+                                          .fetchProducts(refresh: true);
+                                    },
+                                  ),
+                                ),
+                                ...categoryProvider.categories.map((category) {
+                                  final index =
+                                      categoryProvider.categories.indexOf(
+                                        category,
+                                      ) +
+                                      1;
+                                  return Padding(
                                     padding: const EdgeInsets.only(right: 12.0),
                                     child: CategoryChip(
-                                      label: "All",
-                                      isSelected: _selectedCategoryIndex == 0,
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedCategoryId = 0;
-                                          _selectedCategoryIndex = 0;
-                                        });
-                                        context
-                                            .read<ProductProvider>()
-                                            .prepareForCategory(0);
-                                        context
-                                            .read<ProductProvider>()
-                                            .fetchProducts(refresh: true);
-                                      },
-                                    ),
-                                  ),
-                                  ...categoryProvider.categories.map((category) {
-                                    final index =
-                                        categoryProvider.categories.indexOf(
-                                          category,
-                                        ) +
-                                        1;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 12.0),
-                                      child: CategoryChip(
-                                        label: category.name,
-                                        isSelected:
-                                            _selectedCategoryIndex == index,
-                                        onTap: () => _onCategorySelected(
-                                          index,
-                                          category.id!,
-                                        ),
+                                      label: category.name,
+                                      isSelected:
+                                          _selectedCategoryIndex == index,
+                                      onTap: () => _onCategorySelected(
+                                        index,
+                                        category.id!,
                                       ),
-                                    );
-                                  }),
-                                ],
-                              ),
+                                    ),
+                                  );
+                                }),
+                              ],
                             );
                           },
                         ),
@@ -229,17 +227,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (productProvider.isLoading &&
                     productProvider.products.isEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.all(8.0),
-                    sliver: SliverGrid.count(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                      children: List.generate(
-                        6,
-                        (index) => Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: const ProductCardSkeleton(),
-                        ),
+                  SliverGrid.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    children: List.generate(
+                      6,
+                      (index) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const ProductCardSkeleton(),
                       ),
                     ),
                   ),
@@ -265,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProductDetailScreen(productId: product.id),
+                                builder: (context) => const ProductPage(),
                               ),
                             );
                           },
@@ -295,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProductDetailScreen(productId: product.id),
+                                builder: (context) => const ProductPage(),
                               ),
                             );
                           },

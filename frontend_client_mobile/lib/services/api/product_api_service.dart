@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
 import 'package:frontend_client_mobile/models/product.dart';
@@ -28,7 +27,7 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "images") List<MultipartFile> images,
+    @Part(name: "image") MultipartFile? image,
   );
 
   @PUT("api/products/{id}")
@@ -39,8 +38,7 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "images") List<MultipartFile> images,
-    @Part(name: "existingImageIds") List<int> existingImageIds,
+    @Part(name: "image") MultipartFile? image,
   );
 
   @DELETE("api/products/{id}")
@@ -52,4 +50,6 @@ abstract class ProductApiService {
     @Path("pageIndex") int pageIndex,
     @Path("pageSize") int pageSize,
   );
+  // @GET("api/products//filter/{categoryId}")
+  // Future filterProduct(int categoryId) async {}
 }

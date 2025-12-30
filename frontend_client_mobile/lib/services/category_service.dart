@@ -6,12 +6,8 @@ import 'package:frontend_client_mobile/services/api/category_api_service.dart';
 class CategoryService {
   final CategoryApiService _apiService = ApiClient.getCategoryApiService();
 
-  Future<List<Category>> getCategories({
-    String? name,
-    int page = 0,
-    int size = 10,
-  }) async {
-    return await _apiService.getCategories(name, page, size);
+  Future<List<Category>> getCategories({String? name}) async {
+    return await _apiService.getCategories(name);
   }
 
   Future<Category> createCategory(Category category) async {

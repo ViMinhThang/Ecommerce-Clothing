@@ -14,7 +14,9 @@ class RoleService {
     if (data is List) {
       return data
           .whereType<Map>()
-          .map((item) => RoleView.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) => RoleView.fromJson(Map<String, dynamic>.from(item)),
+          )
           .toList();
     }
     return const [];
