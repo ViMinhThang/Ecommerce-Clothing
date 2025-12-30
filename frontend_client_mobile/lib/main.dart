@@ -21,6 +21,13 @@ import 'package:frontend_client_mobile/screens/auth/onBoarding_screen.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/config/theme_config.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
+import 'package:frontend_client_mobile/screens/checkout/checkout_screen.dart';
+import 'package:frontend_client_mobile/providers/favorite_provider.dart';
+import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 void main() {
   runApp(
     MultiProvider(
@@ -34,6 +41,9 @@ void main() {
         ChangeNotifierProvider(create: (context) => DashboardProvider()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => SearchProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (context) => FilterProvider()),
       ],
       child: const MyApp(),
     ),
@@ -61,10 +71,14 @@ class MyApp extends StatelessWidget {
         '/orders': (context) => const ManageOrdersScreen(),
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
+        '/cart': (context) => const CartScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
+        '/favorite': (context) => const FavoriteScreen(),
       },
       theme: ThemeData(
         useMaterial3: false,
         brightness: Brightness.light,
+        textTheme: GoogleFonts.loraTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: AppTheme.background,
         primaryColor: AppTheme.primaryBlack,
         colorScheme: ColorScheme(

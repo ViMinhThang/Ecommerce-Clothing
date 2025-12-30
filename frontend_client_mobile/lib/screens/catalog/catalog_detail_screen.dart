@@ -4,6 +4,10 @@ import 'package:frontend_client_mobile/widgets/product_card.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
+import 'package:frontend_client_mobile/providers/favorite_provider.dart';
+import 'package:frontend_client_mobile/models/favorite_item.dart';
+import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/category.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -20,6 +24,7 @@ class CatalogDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     final filterProvider = context.watch<FilterProvider>();
+    final favoriteProvider = context.watch<FavoriteProvider>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final fp = context.read<FilterProvider>();
@@ -135,7 +140,39 @@ class CatalogDetailScreen extends StatelessWidget {
                 sliver: SliverGrid(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final product = filterProvider.productViews[index];
-                    return ProductViewCard(product: product);
+                    return ProductViewCard(
+                      product: product,
+                      isFavorite: favoriteProvider.isFavorite(product.id),
+                      onFavoriteToggle: () {
+                        // Creating a mock product for FavoriteItem
+                        final mockProduct = Product(
+                          id: product.id,
+                          name: product.name,
+                          description: product.description,
+                          images: [],
+                          category: Category(
+                            id: 0,
+                            name: 'General',
+                            description: '',
+                            imageUrl: '',
+                            status: 'ACTIVE',
+                          ),
+                          variants: [],
+                        );
+                        favoriteProvider.toggleFavorite(
+                          FavoriteItem(
+                            productId: product.id,
+                            productName: product.name,
+                            imageUrl: product.imageUrl,
+                            price: product.displayPrice,
+                            product: mockProduct,
+                          ),
+                        );
+                      },
+                      onTap: () {
+                        // Navigate to detail if needed, currently not implemented in original code
+                      },
+                    );
                   }, childCount: filterProvider.productViews.length),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
