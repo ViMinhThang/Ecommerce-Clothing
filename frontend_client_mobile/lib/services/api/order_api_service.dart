@@ -20,8 +20,12 @@ abstract class OrderApiService {
   );
   @GET("/api/orders/{id}")
   Future<OrderView> getOrder(@Path("id") int? id);
+  
   @POST("/api/orders")
   Future<OrderView> createOrder(@Body() OrderView order);
+  
+  @POST("/api/orders")
+  Future<OrderView> createOrderFromCart(@Body() Map<String, dynamic> cartItemIds);
 
   @PUT("/api/orders/{id}")
   Future<OrderView> updateOrder(@Path("id") int id, @Body() OrderView order);

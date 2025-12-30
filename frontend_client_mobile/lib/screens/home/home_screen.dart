@@ -83,9 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             title: Text(
               "Eleven",
-              style: const TextStyle(
-                fontWeight: FontWeight.normal,
+              style: GoogleFonts.lora(
                 color: Colors.black,
+                fontWeight: FontWeight.normal,
+                fontSize: 18,
               ),
             ),
             actions: [

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
-import 'package:frontend_client_mobile/widgets/shared/bottom_nav_bar.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -220,9 +220,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-        selectedIndex: _selectedNavIndex,
-        onItemTapped: _onNavItemTapped,
+      bottomNavigationBar: Consumer<CartProvider>(
+        builder: (context, cartProvider, child) {
+          final cartItemCount = cartProvider.cart?.items.length ?? 0;
+          
+          return BottomNavigationBar(
+            items: [
+              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_border),
+                label: 'Wishlist',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: cartItemCount > 0,
+                  label: Text(
+                    cartItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.shopping_bag_outlined),
+                ),
+                label: 'Cart',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                label: 'Profile',
+              ),
+            ],
+            currentIndex: _selectedNavIndex,
+            onTap: _onNavItemTapped,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
+          );
+        },
       ),
     );
   }

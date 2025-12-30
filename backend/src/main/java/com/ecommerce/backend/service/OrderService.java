@@ -10,10 +10,16 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
      Page<OrderView> getAllOrders(Pageable pageable);
+
      OrderDetailView getOrderById(long id);
-     Order createOrder(OrderDTO orderDTO);
+
+     OrderView createOrder(OrderDTO orderDTO);
+
      Order updateOrder(long id, OrderDTO orderDTO);
+
      void deleteOrder(long id);
+
      OrderStatistics orderStatistics();
+
      Page<OrderView> getAllOrdersByStatus(String status, Pageable pageable);
 }

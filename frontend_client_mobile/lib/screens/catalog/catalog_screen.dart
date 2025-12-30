@@ -4,6 +4,7 @@ import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:frontend_client_mobile/widgets/catalog/catalog_card.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key});
@@ -28,9 +29,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
         leadingWidth: 56,
         backgroundColor: Colors.white,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Catalog',
-          style: TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
+          style: GoogleFonts.lora(
+            color: Colors.black,
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
         ),
         actions: [
           IconButton(

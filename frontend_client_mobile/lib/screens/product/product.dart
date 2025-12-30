@@ -24,6 +24,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? selectedSizeName;
   int quantity = 1;
   int _currentImageIndex = 0;
+  int _selectedNavIndex = 1; // Track selected nav tab (1 = Product/Catalog)
   final PageController _pageController = PageController();
 
   // Product data from API
@@ -763,52 +764,74 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: 'Wishlist',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: 1,
-        onTap: (index) {
-          // If tapping Catalog (index 1), just go back
-          if (index == 1) {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialTab: 1),
-                ),
-              );
-            }
-          } else {
-            // Navigate to MainScreen with the selected tab
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MainScreen(initialTab: index),
+      bottomNavigationBar: Consumer<CartProvider>(
+        builder: (context, cartProvider, child) {
+          final cartItemCount = cartProvider.cart?.items.length ?? 0;
+          
+          return BottomNavigationBar(
+            items: [
+              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_border),
+                label: 'Wishlist',
               ),
-            );
-          }
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: cartItemCount > 0,
+                  label: Text(
+                    cartItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.shopping_bag_outlined),
+                ),
+                label: 'Cart',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                label: 'Profile',
+              ),
+            ],
+            currentIndex: _selectedNavIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedNavIndex = index;
+              });
+              
+              // If tapping Catalog (index 1), just go back
+              if (index == 1) {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MainScreen(initialTab: 1),
+                    ),
+                  );
+                }
+              } else {
+                // Navigate to MainScreen with the selected tab
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MainScreen(initialTab: index),
+                  ),
+                );
+              }
+            },
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
+          );
         },
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
       ),
     );
   }

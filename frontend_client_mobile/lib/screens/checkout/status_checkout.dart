@@ -42,7 +42,7 @@ class StatusCheckoutScreen extends StatelessWidget {
 
               // Payment successful text
               const Text(
-                'Payment successful!',
+                'Order successful!',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w400,

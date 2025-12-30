@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/widgets/shared/bottom_nav_bar.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:provider/provider.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   const PaymentMethodScreen({Key? key}) : super(key: key);
@@ -9,8 +13,9 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  String selectedPayment = 'credit_card';
+  String selectedPayment = 'cod';
   bool showCardNumber = false;
+  bool _isLoading = false;
   int _selectedNavIndex = 3; // Cart is selected by default
 
   @override
@@ -57,6 +62,72 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           arguments: 4,
         );
         break;
+    }
+  }
+
+  Future<void> _handleOrder() async {
+    // Only process COD for now
+    if (selectedPayment != 'cod') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only Cash on Delivery is supported at this time'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      final cart = cartProvider.cart;
+
+      if (cart == null || cart.items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your cart is empty'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Get cart item IDs
+      final cartItemIds = cart.items.map((item) => item.id).toList();
+      
+      // Call API with cart item IDs (matching backend OrderDTO)
+      final orderApiService = ApiClient.getOrderApiService();
+      final response = await orderApiService.createOrderFromCart({
+        'cartItemIds': cartItemIds,
+      });
+
+      // Clear cart after successful order
+      cartProvider.clear();
+
+      if (!mounted) return;
+
+      // Navigate to success screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StatusCheckoutScreen(
+            orderNumber: response.id.toString(),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Order failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -273,39 +344,86 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
 
-          // Pay Button
+          // Order Button
           Padding(
             padding: const EdgeInsets.all(20),
             child: SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle payment
-                },
+                onPressed: _isLoading ? null : _handleOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Pay',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Order',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ),
 
           // Bottom Navigation Bar
-          CustomBottomNavBar(
-            selectedIndex: _selectedNavIndex,
-            onItemTapped: _onNavItemTapped,
+          Consumer<CartProvider>(
+            builder: (context, cartProvider, child) {
+              final cartItemCount = cartProvider.cart?.items.length ?? 0;
+              
+              return BottomNavigationBar(
+                items: [
+                  const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.favorite_border),
+                    label: 'Wishlist',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Badge(
+                      isLabelVisible: cartItemCount > 0,
+                      label: Text(
+                        cartItemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      backgroundColor: Colors.black,
+                      child: const Icon(Icons.shopping_bag_outlined),
+                    ),
+                    label: 'Cart',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline),
+                    label: 'Profile',
+                  ),
+                ],
+                currentIndex: _selectedNavIndex,
+                onTap: _onNavItemTapped,
+                selectedItemColor: Colors.black,
+                unselectedItemColor: Colors.grey,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                type: BottomNavigationBarType.fixed,
+              );
+            },
           ),
         ],
       ),
