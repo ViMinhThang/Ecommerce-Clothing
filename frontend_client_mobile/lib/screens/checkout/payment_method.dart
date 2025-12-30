@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/widgets/shared/bottom_nav_bar.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   const PaymentMethodScreen({Key? key}) : super(key: key);
@@ -10,6 +11,54 @@ class PaymentMethodScreen extends StatefulWidget {
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   String selectedPayment = 'credit_card';
   bool showCardNumber = false;
+  int _selectedNavIndex = 3; // Cart is selected by default
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _onNavItemTapped(int index) {
+    if (index == _selectedNavIndex) return;
+    
+    switch (index) {
+      case 0: // Home
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        break;
+      case 1: // Catalog
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 1,
+        );
+        break;
+      case 2: // Wishlist
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 2,
+        );
+        break;
+      case 3: // Cart
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 3,
+        );
+        break;
+      case 4: // Profile
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: 4,
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -254,53 +303,9 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           ),
 
           // Bottom Navigation Bar
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 10,
-                  offset: const Offset(0, -3),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.home_outlined, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.menu, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.shopping_cart, size: 28),
-                      color: Colors.black,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.person_outline, size: 28),
-                      color: Colors.grey,
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CustomBottomNavBar(
+            selectedIndex: _selectedNavIndex,
+            onItemTapped: _onNavItemTapped,
           ),
         ],
       ),
@@ -409,10 +414,14 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   Widget _buildVNPayIcon() {
     return Container(
       padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
+      child: Image.network(
+        'https://cdn-new.topcv.vn/unsafe/https://static.topcv.vn/company_logos/cong-ty-cp-giai-phap-thanh-toan-viet-nam-vnpay-6194ba1fa3d66.jpg',
+        fit: BoxFit.contain,
+        width: 40,
+        height: 40,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to text logo if image fails to load
+          return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFF0066B3),
@@ -427,8 +436,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 letterSpacing: 1,
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

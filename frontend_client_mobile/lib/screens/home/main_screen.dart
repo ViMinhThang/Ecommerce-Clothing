@@ -22,6 +22,16 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialTab;
   }
 
+  @override
+  void didUpdateWidget(MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab != widget.initialTab) {
+      setState(() {
+        _selectedIndex = widget.initialTab;
+      });
+    }
+  }
+
   final List<Widget> _screens = [
     const HomeScreen(),
     const CatalogNavigator(),

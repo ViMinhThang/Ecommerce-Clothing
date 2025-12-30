@@ -56,7 +56,10 @@ class MyApp extends StatelessWidget {
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
-        "/home": (context) => const MainScreen(),
+        "/home": (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as int?;
+          return MainScreen(initialTab: args ?? 0);
+        },
         // '/dashboard': (context) =>
         //     const AuthGate(child: DashboardScreen(), requireAdmin: true),
         '/dashboard': (context) => const DashboardScreen(),

@@ -31,28 +31,66 @@ class CartProvider extends ChangeNotifier {
     required int quantity,
   }) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
+      // ✅ VALIDATION: quantity check (frontend pre-validation)
+      if (quantity <= 0) {
+        _error = 'Quantity must be greater than 0';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
       final request = AddToCartRequest(
         userId: userId,
         variantId: variantId,
         quantity: quantity,
       );
-      await _cartApiService.addToCart(request);
-
-      // Auto-refresh cart if we have a userId context, but here we just return success
-      // The UI should call fetchCart() after this returns true.
-
+      
+      final response = await _cartApiService.addToCart(request);
+      
+      // ✅ Update local cart state with response
+      _cartView = response;
+      _error = null;
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // ✅ IMPROVED ERROR HANDLING: Extract meaningful error message
+      String errorMessage = _extractErrorMessage(e.toString());
+      _error = errorMessage;
       _isLoading = false;
       notifyListeners();
       return false;
     }
+  }
+
+  // ✅ Helper method to extract readable error messages
+  String _extractErrorMessage(String error) {
+    // Handle DioException with backend error response
+    if (error.contains('Product variant is not available')) {
+      return 'This product is no longer available for purchase';
+    }
+    if (error.contains('Quantity must be greater than 0')) {
+      return 'Please enter a valid quantity';
+    }
+    if (error.contains('Cannot add items to another user\'s cart')) {
+      return 'You can only add items to your own cart';
+    }
+    if (error.contains('User not found')) {
+      return 'User account not found';
+    }
+    if (error.contains('Product variant not found')) {
+      return 'Product not found';
+    }
+    if (error.contains('Connection')) {
+      return 'Network connection error. Please try again.';
+    }
+    
+    // Default error message
+    return 'Failed to add item to cart. Please try again.';
   }
 
   Future<void> fetchCart(int userId) async {
@@ -73,21 +111,79 @@ class CartProvider extends ChangeNotifier {
 
   Future<void> updateQuantity(int cartItemId, int quantity, int userId) async {
     try {
+      // Update local state immediately for smooth UI
+      if (_cartView != null) {
+        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        if (itemIndex >= 0) {
+          final updatedItem = _cartView!.items[itemIndex];
+          final oldQuantity = updatedItem.quantity;
+          final oldSubtotal = updatedItem.subtotal;
+          
+          // Create updated item with new quantity
+          final newItem = CartItemView(
+            id: updatedItem.id,
+            variantId: updatedItem.variantId,
+            productName: updatedItem.productName,
+            productImage: updatedItem.productImage,
+            colorName: updatedItem.colorName,
+            sizeName: updatedItem.sizeName,
+            quantity: quantity,
+            price: updatedItem.price,
+            subtotal: updatedItem.price * quantity,
+          );
+          
+          // Update list
+          _cartView!.items[itemIndex] = newItem;
+          
+          // Recalculate total
+          final priceDifference = (newItem.subtotal - oldSubtotal);
+          _cartView = CartView(
+            id: _cartView!.id,
+            userId: _cartView!.userId,
+            items: _cartView!.items,
+            totalPrice: _cartView!.totalPrice + priceDifference,
+          );
+          
+          notifyListeners();
+        }
+      }
+      
+      // Call API in background without blocking UI
       await _cartApiService.updateQuantity(cartItemId, quantity);
-      await fetchCart(userId);
     } catch (e) {
       _error = e.toString();
-      notifyListeners();
+      // Reload from server on error
+      await fetchCart(userId);
     }
   }
 
   Future<void> removeItem(int cartItemId, int userId) async {
     try {
+      // Update local state immediately
+      if (_cartView != null) {
+        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        if (itemIndex >= 0) {
+          final removedItem = _cartView!.items[itemIndex];
+          final newTotalPrice = _cartView!.totalPrice - removedItem.subtotal;
+          
+          _cartView!.items.removeAt(itemIndex);
+          _cartView = CartView(
+            id: _cartView!.id,
+            userId: _cartView!.userId,
+            items: _cartView!.items,
+            totalPrice: newTotalPrice,
+          );
+          
+          notifyListeners();
+        }
+      }
+      
+      // Call API in background
       await _cartApiService.removeFromCart(cartItemId);
-      await fetchCart(userId);
     } catch (e) {
       _error = e.toString();
-      notifyListeners();
+      // Reload from server on error
+      await fetchCart(userId);
     }
   }
 
