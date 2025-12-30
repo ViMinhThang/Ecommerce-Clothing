@@ -86,8 +86,12 @@ class StatusCheckoutScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate back or to home screen
-                    Navigator.of(context).pop();
+                    // Navigate to home screen
+                    Navigator.pushNamedAndRemoveUntil(
+                      context, 
+                      '/home', 
+                      (route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
