@@ -31,8 +31,8 @@ import java.util.UUID;
 @Transactional
 public class ProductServiceImpl implements ProductService {
 
-    private static final String UPLOAD_DIR = "./uploads/";
-    private static final String IMAGE_BASE_URL = "http://10.0.2.2:8080/uploads/products/";
+    private static final String UPLOAD_DIR = "./uploads/products/";
+    private static final String IMAGE_BASE_URL = "http://10.0.2.2:8080/uploads/products";
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -53,16 +53,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product createProduct(ProductRequest request, MultipartFile image) throws IOException {
-        Product product = buildProductFromRequest(new Product(), request, image);
+    @SuppressWarnings("null")
+    public Product createProduct(ProductRequest request, List<MultipartFile> images) throws IOException {
+        Product product = buildProductFromRequest(new Product(), request, images);
         return productRepository.save(product);
     }
 
     @Override
-    public Product updateProduct(Long id, ProductRequest request, MultipartFile image) throws IOException {
+    @SuppressWarnings("null")
+    public Product updateProduct(Long id, ProductRequest request, List<MultipartFile> images,
+            List<Long> existingImageIds) throws IOException {
         Product existingProduct = findProductOrThrow(id);
-        clearExistingVariants(existingProduct);
-        Product updatedProduct = buildProductFromRequest(existingProduct, request, image);
+
+        if (existingImageIds == null) {
+            existingProduct.getImages().clear();
+        } else {
+            existingProduct.getImages().removeIf(img -> !existingImageIds.contains(img.getId()));
+        }
+
+        Product updatedProduct = buildProductFromRequest(existingProduct, request, images);
         return productRepository.save(updatedProduct);
     }
 
@@ -123,12 +132,12 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
-    private Product buildProductFromRequest(Product product, ProductRequest request, MultipartFile image)
+    private Product buildProductFromRequest(Product product, ProductRequest request, List<MultipartFile> images)
             throws IOException {
         updateBasicFields(product, request);
-        handleImageUpload(product, image);
+        handleImagesUpload(product, images);
         assignCategory(product, request.getCategoryId());
-        createVariants(product, request.getParsedVariants());
+        syncVariants(product, request.getParsedVariants());
         return product;
     }
 
@@ -137,10 +146,18 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
     }
 
-    private void handleImageUpload(Product product, MultipartFile image) throws IOException {
-        if (isValidImage(image)) {
-            String imageUrl = saveImage(image);
-            product.setImageUrl(imageUrl);
+    private void handleImagesUpload(Product product, List<MultipartFile> images) throws IOException {
+        if (images != null && !images.isEmpty()) {
+            int currentImageCount = product.getImages().size();
+            for (int i = 0; i < images.size(); i++) {
+                MultipartFile image = images.get(i);
+                if (isValidImage(image)) {
+                    String imageUrl = saveImage(image);
+                    boolean isPrimary = (currentImageCount == 0 && i == 0);
+                    ProductImage productImage = new ProductImage(imageUrl, currentImageCount + i, isPrimary, product);
+                    product.getImages().add(productImage);
+                }
+            }
         }
     }
 
@@ -160,20 +177,69 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
     }
 
-    private void createVariants(Product product, List<ProductVariantRequest> variantRequests) {
-        if (variantRequests == null || variantRequests.isEmpty()) {
+    private void syncVariants(Product product, List<ProductVariantRequest> variantRequests) {
+        if (variantRequests == null) {
             return;
         }
 
+        List<ProductVariants> currentVariants = product.getVariants();
+        List<Long> incomingIds = variantRequests.stream()
+                .map(ProductVariantRequest::getId)
+                .filter(id -> id != null)
+                .toList();
+
+        // 1. Mark variants as INACTIVE if they are not in the request
+        // We don't remove them physically to avoid FK constraint violations with
+        // order_item
+        for (ProductVariants variant : currentVariants) {
+            if (!incomingIds.contains(variant.getId())) {
+                variant.setStatus("INACTIVE");
+            }
+        }
+
+        // 2. Update existing or add new
         for (ProductVariantRequest variantRequest : variantRequests) {
-            ProductVariants variant = buildVariantFromRequest(product, variantRequest);
-            product.getVariants().add(variant);
+            if (variantRequest.getId() != null) {
+                // Find and update existing variant
+                currentVariants.stream()
+                        .filter(v -> v.getId() == variantRequest.getId())
+                        .findFirst()
+                        .ifPresent(v -> updateVariantFromRequest(v, variantRequest));
+            } else {
+                // Create and add new variant
+                ProductVariants variant = buildVariantFromRequest(product, variantRequest);
+                variant.setStatus("ACTIVE");
+                product.getVariants().add(variant);
+            }
+        }
+    }
+
+    private void updateVariantFromRequest(ProductVariants variant, ProductVariantRequest request) {
+        assignColor(variant, request.getColorId());
+        assignSize(variant, request.getSizeId());
+        updatePrice(variant, request.getPrice());
+        variant.setStatus("ACTIVE");
+    }
+
+    private void updatePrice(ProductVariants variant, PriceRequest priceRequest) {
+        if (priceRequest == null) {
+            return;
+        }
+
+        if (variant.getPrice() != null) {
+            Price price = variant.getPrice();
+            price.setBasePrice(priceRequest.getBasePrice());
+            price.setSalePrice(calculateSalePrice(priceRequest));
+            priceRepository.save(price);
+        } else {
+            assignPrice(variant, priceRequest);
         }
     }
 
     private ProductVariants buildVariantFromRequest(Product product, ProductVariantRequest request) {
         ProductVariants variant = new ProductVariants();
         variant.setProduct(product);
+        variant.setStatus("ACTIVE");
         assignColor(variant, request.getColorId());
         assignSize(variant, request.getSizeId());
         assignPrice(variant, request.getPrice());
@@ -227,10 +293,6 @@ public class ProductServiceImpl implements ProductService {
                 : request.getBasePrice();
     }
 
-    private void clearExistingVariants(Product product) {
-        product.getVariants().clear();
-    }
-
     private ProductView mapToProductView(Product product) {
         Optional<ProductVariants> firstVariant = product.getVariants().stream().findFirst();
         double basePrice = extractBasePrice(firstVariant);
@@ -239,7 +301,8 @@ public class ProductServiceImpl implements ProductService {
         return new ProductView(
                 product.getId(),
                 product.getName(),
-                product.getImageUrl(),
+                product.getPrimaryImageUrl(),
+                product.getImageUrls(),
                 basePrice,
                 salePrice,
                 product.getDescription());

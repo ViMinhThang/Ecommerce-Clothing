@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/providers/dashboard_provider.dart';
+import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
@@ -38,6 +39,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => SearchProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => WishListProvider()),
+        ChangeNotifierProvider(create: (context) => FilterProvider()),
       ],
       child: const MyApp(),
     ),
@@ -56,8 +58,9 @@ class MyApp extends StatelessWidget {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
         "/home": (context) => const MainScreen(),
-        '/dashboard': (context) =>
-            const AuthGate(child: DashboardScreen(), requireAdmin: true),
+        // '/dashboard': (context) =>
+        //     const AuthGate(child: DashboardScreen(), requireAdmin: true),
+        '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
         '/categories': (context) => const ManageCategoriesScreen(),
         '/users': (context) => const ManageUsersScreen(),

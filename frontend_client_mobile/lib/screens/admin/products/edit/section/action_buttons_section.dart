@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../../../config/theme_config.dart';
 
 class ActionButtonsSection extends StatelessWidget {
-  const ActionButtonsSection({super.key});
+  final GlobalKey<FormState>? formKey;
+
+  const ActionButtonsSection({super.key, this.formKey});
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +84,13 @@ class ActionButtonsSection extends StatelessWidget {
   Future<void> _handleSave(BuildContext context) async {
     final viewModel = Provider.of<EditProductViewModel>(context, listen: false);
     try {
-      final formKey = Form.of(context).widget.key as GlobalKey<FormState>;
-      if (!viewModel.validateForm(formKey)) return;
+      // Use the passed formKey if available, otherwise validate through viewModel
+      if (formKey != null) {
+        if (!viewModel.validateForm(formKey!)) return;
+      }
 
       await viewModel.saveProduct();
-      if (Form.of(context).mounted) {
+      if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -112,7 +116,7 @@ class ActionButtonsSection extends StatelessWidget {
         );
       }
     } catch (e) {
-      if (Form.of(context).mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

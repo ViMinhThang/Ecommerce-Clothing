@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/models/wishlist_item.dart';
 import 'package:frontend_client_mobile/models/category.dart';
+import 'package:frontend_client_mobile/models/product_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -35,9 +36,10 @@ class ProductCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child:
-                        product.imageUrl != null && product.imageUrl!.isNotEmpty
+                        product.primaryImageUrl != null &&
+                            product.primaryImageUrl!.isNotEmpty
                         ? Image.network(
-                            FileUtils.fixImgUrl(product.imageUrl!),
+                            FileUtils.fixImgUrl(product.primaryImageUrl!),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 const Center(
@@ -72,7 +74,7 @@ class ProductCard extends StatelessWidget {
                       final item = WishListItem(
                         productId: product.id,
                         productName: product.name,
-                        imageUrl: product.imageUrl,
+                        imageUrl: product.primaryImageUrl,
                         price: product.variants.isNotEmpty
                             ? product.variants.first.price.basePrice
                             : 0,
@@ -87,7 +89,7 @@ class ProductCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                           ),
                         ],
@@ -198,7 +200,14 @@ class ProductViewCard extends StatelessWidget {
                         id: product.id,
                         name: product.name,
                         description: product.description,
-                        imageUrl: product.imageUrl,
+                        images: [
+                          ProductImage(
+                            id: 0,
+                            imageUrl: product.imageUrl,
+                            displayOrder: 0,
+                            isPrimary: true,
+                          ),
+                        ],
                         category: Category(
                           id: 0,
                           name: 'General',
@@ -224,7 +233,7 @@ class ProductViewCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                           ),
                         ],

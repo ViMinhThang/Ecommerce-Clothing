@@ -57,7 +57,9 @@ class _AdminProductCardState extends State<AdminProductCard> {
   }
 
   Widget _buildProductImage() {
-    final imageUrl = ImageHelper.getFullImageUrl(widget.product.imageUrl);
+    final imageUrl = ImageHelper.getFullImageUrl(
+      widget.product.primaryImageUrl,
+    );
     return Container(
       width: 80,
       height: 80,

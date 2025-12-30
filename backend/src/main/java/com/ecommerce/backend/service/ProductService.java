@@ -19,9 +19,10 @@ public interface ProductService {
 
     Product getProductById(Long id);
 
-    Product createProduct(ProductRequest productRequest, MultipartFile image) throws IOException;
+    Product createProduct(ProductRequest productRequest, List<MultipartFile> images) throws IOException;
 
-    Product updateProduct(Long id, ProductRequest productRequest, MultipartFile image) throws IOException;
+    Product updateProduct(Long id, ProductRequest productRequest, List<MultipartFile> images,
+            List<Long> existingImageIds) throws IOException;
 
     void deleteProduct(Long id);
 
