@@ -28,7 +28,7 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") MultipartFile? image,
+    @Part(name: "images") List<MultipartFile> images,
   );
 
   @PUT("api/products/{id}")
@@ -39,7 +39,8 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") MultipartFile? image,
+    @Part(name: "images") List<MultipartFile> images,
+    @Part(name: "existingImageIds") List<int> existingImageIds,
   );
 
   @DELETE("api/products/{id}")
@@ -51,6 +52,4 @@ abstract class ProductApiService {
     @Path("pageIndex") int pageIndex,
     @Path("pageSize") int pageSize,
   );
-  // @GET("api/products//filter/{categoryId}")
-  // Future filterProduct(int categoryId) async {}
 }

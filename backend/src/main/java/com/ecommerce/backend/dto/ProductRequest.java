@@ -1,14 +1,10 @@
 package com.ecommerce.backend.dto;
 
-import com.ecommerce.backend.model.Category;
-import com.ecommerce.backend.model.Product;
-import com.ecommerce.backend.model.ProductVariants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +24,8 @@ public class ProductRequest {
         }
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(variants, new TypeReference<List<ProductVariantRequest>>() {});
+            return mapper.readValue(variants, new TypeReference<List<ProductVariantRequest>>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse variants JSON: " + e.getMessage(), e);
         }

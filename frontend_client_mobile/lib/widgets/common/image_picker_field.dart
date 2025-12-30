@@ -1,8 +1,7 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../config/theme_config.dart';
+import '../../config/theme_config.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? currentImage;
@@ -17,13 +16,6 @@ class ImagePickerField extends StatelessWidget {
     required this.onPickImage,
     this.label = 'IMAGE',
   });
-  String _fixImageUrl(String url) {
-    if (kIsWeb && url.contains("10.0.2.2")) {
-      return url.replaceAll("10.0.2.2", "localhost");
-    }
-    print('Fixed image URL: $url');
-    return url;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,10 +95,10 @@ class ImagePickerField extends StatelessWidget {
 
     return Container(
       width: 120,
-      height: 160, // Reduced height
+      height: 160,
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(8), // Rounded corners
+        borderRadius: BorderRadius.circular(8),
       ),
       child: hasImage
           ? ClipRRect(

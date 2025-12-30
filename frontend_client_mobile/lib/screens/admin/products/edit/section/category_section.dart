@@ -37,8 +37,7 @@ class CategorySection extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceMD),
           Consumer<CategoryProvider>(
             builder: (context, provider, _) {
-              if (viewModel.isLoadingCategories &&
-                  provider.categories.isEmpty) {
+              if (viewModel.isInitializing && provider.categories.isEmpty) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppTheme.spaceMD),
@@ -50,7 +49,7 @@ class CategorySection extends StatelessWidget {
                 );
               }
               return DropdownButtonFormField<Category>(
-                value: viewModel.selectedCategory,
+                initialValue: viewModel.selectedCategory,
                 onChanged: (value) => viewModel.selectedCategory = value,
                 items: provider.categories
                     .map<DropdownMenuItem<Category>>(

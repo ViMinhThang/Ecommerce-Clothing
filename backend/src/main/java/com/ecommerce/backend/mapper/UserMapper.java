@@ -1,13 +1,9 @@
 package com.ecommerce.backend.mapper;
 
-import com.ecommerce.backend.dto.view.OrderDetailView;
-import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.dto.view.UserDetailView;
 import com.ecommerce.backend.dto.view.UserItemView;
 import com.ecommerce.backend.model.Order;
 import com.ecommerce.backend.model.User;
-
-import java.util.stream.Collectors;
 
 public class UserMapper {
     public static UserItemView toUserItemView(User user) {

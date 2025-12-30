@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:frontend_client_mobile/services/api/auth_api_service.dart';
 import 'package:frontend_client_mobile/services/api/category_api_service.dart';
 import 'package:frontend_client_mobile/services/api/color_api_service.dart';
 import 'package:frontend_client_mobile/services/api/dashboard_api_service.dart';
@@ -11,6 +12,7 @@ import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 import 'package:frontend_client_mobile/services/api/search_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(
@@ -30,8 +32,8 @@ class ApiClient {
   static DashboardApiService? _dashboardApiService;
   static UserApiService? _userApiService;
   static SearchApiService? _searchApiService;
+  static AuthApiService? _authApiService;
   static Dio get dio => _dio;
-  static UserApiService? _userApiService;
 
   static ProductApiService getProductApiService() {
     _productApiService ??= ProductApiService(_dio);
@@ -87,6 +89,12 @@ class ApiClient {
     return _searchApiService!;
   }
 
+  static AuthApiService getAuthApiService() {
+    _authApiService ??= AuthApiService(_dio);
+    configInterceptor();
+    return _authApiService!;
+  }
+
   static String? _extractMessage(dynamic data) {
     if (data == null) return null;
 
@@ -113,8 +121,17 @@ class ApiClient {
     if (_interceptorAdded) return;
     _interceptorAdded = true;
 
+    // JWT Interceptor - Add token to requests
     dio.interceptors.add(
       InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('auth_token');
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
         onError: (DioException e, handler) {
           // Chỉ xử lý lỗi có response từ backend (4xx, 5xx)
           if (e.type == DioExceptionType.badResponse && e.response != null) {
@@ -144,8 +161,4 @@ class AppHttpException implements Exception {
   AppHttpException(this.message);
   @override
   String toString() => message; // để e.toString() trả về đúng message
-  static UserApiService getUserApiService() {
-    _userApiService ??= UserApiService(_dio);
-    return _userApiService!;
-  }
 }

@@ -8,7 +8,6 @@ import '../../../widgets/shared/admin_list_item.dart';
 import '../../../widgets/shared/confirmation_dialog.dart';
 import '../base/base_manage_screen.dart';
 import 'edit_category_screen.dart';
-import '../../../utils/image_helper.dart';
 
 class ManageCategoriesScreen extends BaseManageScreen<model.Category> {
   const ManageCategoriesScreen({super.key});
@@ -45,6 +44,11 @@ class _ManageCategoriesScreenState
   }
 
   @override
+  void onScrollToBottom() {
+    _categoryProvider.fetchMoreCategories();
+  }
+
+  @override
   void refreshData() {
     _categoryProvider.fetchCategories();
   }
@@ -61,7 +65,8 @@ class _ManageCategoriesScreenState
 
   @override
   bool isLoading() {
-    return context.watch<CategoryProvider>().isLoading;
+    final provider = context.watch<CategoryProvider>();
+    return provider.isLoading || provider.isFetchingMore;
   }
 
   @override
@@ -137,19 +142,34 @@ class _ManageCategoriesScreenState
   @override
   Widget buildList() {
     final items = getItems();
+    final provider = context.watch<CategoryProvider>();
+
     return SliverList.builder(
-      itemCount: items.length,
+      itemCount: items.length + (provider.isFetchingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        final item = items[index];
-        return AdminListItem(
-          leading: _buildLeadingWidget(item),
-          title: _getItemTitle(item),
-          subtitle: _buildSubtitle(item),
-          onEdit: () => navigateToEdit(item),
-          onDelete: () => handleDelete(item),
-          editTooltip: 'Edit Category',
-          deleteTooltip: 'Delete Category',
-        );
+        if (index < items.length) {
+          final item = items[index];
+          return AdminListItem(
+            leading: _buildLeadingWidget(item),
+            title: _getItemTitle(item),
+            subtitle: _buildSubtitle(item),
+            onEdit: () => navigateToEdit(item),
+            onDelete: () => handleDelete(item),
+            editTooltip: 'Edit Category',
+            deleteTooltip: 'Delete Category',
+          );
+        } else {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
       },
     );
   }

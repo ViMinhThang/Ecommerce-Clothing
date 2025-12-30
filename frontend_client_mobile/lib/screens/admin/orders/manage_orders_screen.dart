@@ -2,33 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../config/theme_config.dart';
-import '../../../layouts/admin_layout.dart';
 import '../../../models/order_view.dart';
 import '../../../providers/order_provider.dart';
-import '../../../utils/dialogs.dart';
+import '../../../widgets/shared/admin_search_bar.dart';
+import '../../../widgets/shared/confirmation_dialog.dart';
+import '../../../widgets/shared/empty_state_widget.dart';
+import '../base/base_manage_screen.dart';
 import 'edit_order_screen.dart';
 
-class ManageOrdersScreen extends StatefulWidget {
+class ManageOrdersScreen extends BaseManageScreen<OrderView> {
   const ManageOrdersScreen({super.key});
 
   @override
   State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
-  final TextEditingController _searchController = TextEditingController();
+class _ManageOrdersScreenState
+    extends BaseManageScreenState<OrderView, ManageOrdersScreen> {
   final ScrollController _scrollController = ScrollController();
   String _selectedSort = _SortOption.defaults.first.id;
   String _selectedStatus = _StatusOption.defaults.first.id;
+
+  OrderProvider get _orderProvider =>
+      Provider.of<OrderProvider>(context, listen: false);
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_handleInfiniteScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<OrderProvider>().initialize();
-    });
   }
 
   @override
@@ -36,65 +37,164 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     _scrollController
       ..removeListener(_handleInfiniteScroll)
       ..dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AdminLayout(
-      title: 'Order Management',
-      selectedIndex: 5,
-      actions: [
-        IconButton(
-          onPressed: () => context.read<OrderProvider>().refreshAll(),
-          icon: const Icon(Icons.refresh),
-        ),
-      ],
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        onPressed: () => _handleCreateOrder(context.read<OrderProvider>()),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
-        child: Consumer<OrderProvider>(
-          builder: (context, provider, _) {
-            final visibleOrders = _filterOrders(provider.orders);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildControls(provider),
-                const SizedBox(height: 16),
-                _buildStatistics(provider),
-                const SizedBox(height: 16),
-                Expanded(child: _buildListView(provider, visibleOrders)),
-              ],
-            );
-          },
-        ),
-      ),
-    );
+  String getScreenTitle() => 'Order Management';
+
+  @override
+  int getSelectedIndex() => 5;
+
+  @override
+  String getEntityName() => 'order';
+
+  @override
+  IconData getEmptyStateIcon() => Icons.shopping_bag_outlined;
+
+  @override
+  String getSearchHint() => 'Search Order...';
+
+  @override
+  void fetchData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _orderProvider.initialize();
+    });
   }
 
-  Widget _buildControls(OrderProvider provider) {
+  @override
+  void refreshData() {
+    _orderProvider.refreshAll();
+  }
+
+  @override
+  void onSearchChanged(String query) {
+    setState(() {});
+  }
+
+  @override
+  List<OrderView> getItems() {
+    final orders = context.watch<OrderProvider>().orders;
+    final query = searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return orders;
+    return orders
+        .where(
+          (order) =>
+              order.id.toString().contains(query) ||
+              order.buyerEmail.toLowerCase().contains(query) ||
+              order.status.toLowerCase().contains(query),
+        )
+        .toList();
+  }
+
+  @override
+  bool isLoading() {
+    return context.watch<OrderProvider>().isLoading;
+  }
+
+  @override
+  Future<void> navigateToAdd() async {
+    final result = await Navigator.push<OrderView?>(
+      context,
+      MaterialPageRoute(builder: (_) => const EditOrderScreen()),
+    );
+    if (result != null) {
+      await _orderProvider.createOrder(result);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã tạo đơn hàng thành công')),
+        );
+      }
+    }
+  }
+
+  @override
+  Future<void> navigateToEdit(OrderView item) async {
+    final result = await Navigator.push<OrderView?>(
+      context,
+      MaterialPageRoute(builder: (_) => EditOrderScreen(entity: item)),
+    );
+    if (result != null) {
+      await _orderProvider.updateOrder(result);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã cập nhật đơn hàng')));
+      }
+    }
+  }
+
+  @override
+  Future<void> handleDelete(OrderView item) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Delete Confirm',
+      message: 'Bạn có chắc muốn xóa đơn #${item.id}?',
+    );
+    if (confirmed && mounted) {
+      await _orderProvider.deleteOrder(item.id);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Đã xóa đơn hàng #${item.id}')));
+      }
+    }
+  }
+
+  @override
+  List<Widget> buildHeaderWidgets() {
+    return [_buildStatistics()];
+  }
+
+  @override
+  Widget buildSearchSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSearchBar(),
+        AdminSearchBar(
+          hintText: getSearchHint(),
+          controller: searchController,
+          onChanged: onSearchChanged,
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildStatusDropdown(provider)),
+            Expanded(child: _buildStatusDropdown()),
             const SizedBox(width: 12),
-            Expanded(child: _buildSortDropdown(provider)),
+            Expanded(child: _buildSortDropdown()),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStatistics(OrderProvider provider) {
+  @override
+  Widget buildList() {
+    final items = getItems();
+    if (items.isEmpty) {
+      return SliverFillRemaining(
+        child: EmptyStateWidget(
+          icon: getEmptyStateIcon(),
+          message: 'Không có đơn hàng nào',
+        ),
+      );
+    }
+
+    return SliverList.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _OrderTile(
+          order: item,
+          onEdit: () => navigateToEdit(item),
+          onDelete: () => handleDelete(item),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatistics() {
+    final provider = context.watch<OrderProvider>();
     final stats = provider.statistics;
     final isLoading = provider.isLoadingStatistics;
 
@@ -222,47 +322,9 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusSM,
-        boxShadow: AppTheme.shadowSM,
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: AppTheme.bodyMedium,
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
-          hintText: 'Search Order...',
-          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
-          border: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: AppTheme.borderThin.top,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppTheme.borderRadiusSM,
-            borderSide: const BorderSide(
-              color: AppTheme.mediumGray,
-              width: 1.5,
-            ),
-          ),
-          filled: true,
-          fillColor: AppTheme.primaryWhite,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        ),
-        onChanged: (_) => setState(() {}),
-      ),
-    );
-  }
-
-  Widget _buildStatusDropdown(OrderProvider provider) {
+  Widget _buildStatusDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedStatus,
+      initialValue: _selectedStatus,
       decoration: _dropdownDecoration('Status'),
       items: _StatusOption.defaults
           .map(
@@ -278,14 +340,17 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
         final selected = _StatusOption.defaults.firstWhere(
           (element) => element.id == value,
         );
-        provider.updateFilters(status: selected.status, applyStatus: true);
+        _orderProvider.updateFilters(
+          status: selected.status,
+          applyStatus: true,
+        );
       },
     );
   }
 
-  Widget _buildSortDropdown(OrderProvider provider) {
+  Widget _buildSortDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSort,
+      initialValue: _selectedSort,
       decoration: _dropdownDecoration('Sort'),
       items: _SortOption.defaults
           .map(
@@ -301,13 +366,16 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
         final selected = _SortOption.defaults.firstWhere(
           (element) => element.id == value,
         );
-        provider.updateFilters(
+        _orderProvider.updateFilters(
           sortBy: selected.sortBy,
           direction: selected.direction,
         );
       },
     );
   }
+
+  @override
+  ScrollController? getScrollController() => _scrollController;
 
   InputDecoration _dropdownDecoration(String label) => InputDecoration(
     labelText: label,
@@ -327,156 +395,6 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     filled: true,
     fillColor: AppTheme.primaryWhite,
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-  );
-
-  Widget _buildListView(OrderProvider provider, List<OrderView> data) {
-    if (provider.isLoading && provider.orders.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (data.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: provider.refreshAll,
-        child: ListView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 80),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    color: AppTheme.mediumGray,
-                    size: 40,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Không có đơn hàng nào',
-                    style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.mediumGray,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: provider.refreshAll,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: data.length,
-        itemBuilder: (context, index) => _OrderTile(
-          order: data[index],
-          onEdit: () => _handleEditOrder(provider, data[index]),
-          onDelete: () => _handleDeleteOrder(provider, data[index]),
-        ),
-      ),
-    );
-  }
-
-  List<OrderView> _filterOrders(List<OrderView> source) {
-    final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return source;
-    return source
-        .where(
-          (order) =>
-              order.id.toString().contains(query) ||
-              order.buyerEmail.toLowerCase().contains(query) ||
-              order.status.toLowerCase().contains(query),
-        )
-        .toList();
-  }
-
-  Future<void> _handleCreateOrder(OrderProvider provider) async {
-    final payload = await Navigator.push<Map<String, dynamic>?>(
-      context,
-      MaterialPageRoute(builder: (_) => const EditOrderScreen()),
-    );
-    if (payload == null) return;
-
-    try {
-      await provider.createOrder(_mapFormToOrder(payload));
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã tạo đơn hàng thành công')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Không thể tạo đơn hàng: $error')));
-    }
-  }
-
-  Future<void> _handleEditOrder(OrderProvider provider, OrderView order) async {
-    final payload = await Navigator.push<Map<String, dynamic>?>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EditOrderScreen(order: _mapOrderToForm(order)),
-      ),
-    );
-    if (payload == null) return;
-
-    try {
-      await provider.updateOrder(_mapFormToOrder(payload));
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Đã cập nhật đơn hàng')));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể cập nhật đơn hàng: $error')),
-      );
-    }
-  }
-
-  Future<void> _handleDeleteOrder(
-    OrderProvider provider,
-    OrderView order,
-  ) async {
-    final confirmed = await showConfirmDialog(
-      context,
-      title: 'Delete Confirm',
-      message: 'Bạn có chắc muốn xóa đơn #${order.id}?',
-    );
-    if (!confirmed) return;
-
-    try {
-      await provider.deleteOrder(order.id);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Đã xóa đơn hàng #${order.id}')));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Không thể xóa đơn hàng: $error')));
-    }
-  }
-
-  Map<String, dynamic> _mapOrderToForm(OrderView order) => {
-    'id': order.id,
-    'customer': order.buyerEmail,
-    'total': order.totalPrice,
-    'date': order.createdDate,
-    'status': order.status,
-  };
-
-  OrderView _mapFormToOrder(Map<String, dynamic> data) => OrderView(
-    id: (data['id'] as int?) ?? 0,
-    buyerEmail: (data['customer'] as String?)?.trim() ?? '',
-    totalPrice: (data['total'] as num?)?.toDouble() ?? 0,
-    createdDate: (data['date'] as String?) ?? '',
-    status: (data['status'] as String?) ?? 'pending',
   );
 
   void _handleInfiniteScroll() {
@@ -523,10 +441,12 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   static String _formatDate(String value) {
     final parsed = DateTime.tryParse(value);
     if (parsed == null) return value;
-    final two = (int v) => v.toString().padLeft(2, '0');
+    String two(int v) => v.toString().padLeft(2, '0');
     return '${parsed.year}-${two(parsed.month)}-${two(parsed.day)}';
   }
 }
+
+// Helper widgets and classes
 
 class _OrderTile extends StatelessWidget {
   const _OrderTile({

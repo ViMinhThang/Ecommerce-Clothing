@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/widgets/app_bar_widget.dart';
-import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart';
+import 'package:frontend_client_mobile/widgets/common/app_bar_widget.dart';
+import 'package:frontend_client_mobile/widgets/common/logo_and_text_widget.dart';
 
 void main() {
   runApp(MaterialApp(home: SuccessScreen()));

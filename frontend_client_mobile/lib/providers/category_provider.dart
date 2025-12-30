@@ -10,29 +10,59 @@ class CategoryProvider with ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   bool _isLoading = false;
+  bool _isFetchingMore = false;
+  int _currentPage = 0;
+  final int _pageSize = 10;
+  bool _hasMore = true;
   String _searchQuery = '';
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get isFetchingMore => _isFetchingMore;
+  bool get hasMore => _hasMore;
 
   Future<void> initialize() async {
-    print("Calling API");
     if (_isLoading) return;
     await fetchCategories();
     _isLoading = true;
   }
 
-  Future<void> fetchCategories() async {
-    print("Calling API");
+  Future<void> fetchCategories({bool refresh = true}) async {
+    if (refresh) {
+      _isLoading = true;
+      _currentPage = 0;
+      _hasMore = true;
+      notifyListeners();
+    } else {
+      if (!_hasMore || _isFetchingMore) return;
+      _isFetchingMore = true;
+      notifyListeners();
+    }
 
     try {
-      _categories = await _categoryService.getCategories(
+      final newCategories = await _categoryService.getCategories(
         name: _searchQuery.isEmpty ? null : _searchQuery,
+        page: _currentPage,
+        size: _pageSize,
       );
-    } catch (e) {
-      print('Error fetching categories: $e');
+
+      if (refresh) {
+        _categories = newCategories;
+      } else {
+        _categories.addAll(newCategories);
+      }
+
+      _hasMore = newCategories.length == _pageSize;
+      if (_hasMore) _currentPage++;
+    } finally {
+      _isLoading = false;
+      _isFetchingMore = false;
+      notifyListeners();
     }
-    notifyListeners();
+  }
+
+  Future<void> fetchMoreCategories() async {
+    await fetchCategories(refresh: false);
   }
 
   Future<void> searchCategories(String name) async {
@@ -66,7 +96,6 @@ class CategoryProvider with ChangeNotifier {
       }
       return updatedCategory;
     } catch (e) {
-      print('Error updating category: $e');
       rethrow;
     }
   }
@@ -77,7 +106,6 @@ class CategoryProvider with ChangeNotifier {
       _categories.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting category: $e');
       rethrow;
     }
   }
@@ -90,7 +118,6 @@ class CategoryProvider with ChangeNotifier {
       );
       return imageUrl;
     } catch (e) {
-      print('Error uploading category image: $e');
       rethrow;
     }
   }

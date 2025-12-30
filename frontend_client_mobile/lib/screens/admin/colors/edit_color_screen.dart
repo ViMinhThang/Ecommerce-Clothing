@@ -7,8 +7,7 @@ import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditColorScreen extends BaseEditScreen<model.Color> {
-  const EditColorScreen({super.key, model.Color? entity})
-    : super(entity: entity);
+  const EditColorScreen({super.key, super.entity});
 
   @override
   State<EditColorScreen> createState() => _EditColorScreenState();
@@ -77,7 +76,7 @@ class _EditColorScreenState
         ),
         const SizedBox(height: AppTheme.spaceMD),
         DropdownButtonFormField<String>(
-          value: _status,
+          initialValue: _status,
           decoration: FormDecorations.standard('Status'),
           items: const [
             DropdownMenuItem(value: 'active', child: Text('Active')),
