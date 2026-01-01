@@ -1,5 +1,6 @@
 package com.ecommerce.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,19 +33,23 @@ public class Price {
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
+    @JsonIgnore
     private LocalDateTime createdDate;
 
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
+    @JsonIgnore
     private LocalDateTime updatedDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
+    @JsonIgnore
     @CreatedBy
     private User createdBy;
 
     @ManyToOne
     @JoinColumn(name = "updated_by")
+    @JsonIgnore
     @LastModifiedBy
     private User updatedBy;
 

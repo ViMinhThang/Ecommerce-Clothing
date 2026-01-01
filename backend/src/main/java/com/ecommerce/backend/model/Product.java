@@ -1,5 +1,6 @@
 package com.ecommerce.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,7 +31,7 @@ public class Product {
 
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -50,20 +51,24 @@ public class Product {
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
+    @JsonIgnore
     private LocalDateTime createdDate;
 
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
+    @JsonIgnore
     private LocalDateTime updatedDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
     @CreatedBy
+    @JsonIgnore
     private User createdBy;
 
     @ManyToOne
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
+    @JsonIgnore
     private User updatedBy;
 
     /**

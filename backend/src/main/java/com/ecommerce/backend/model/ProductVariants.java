@@ -54,18 +54,23 @@ public class ProductVariants {
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
+    @JsonIgnore
     private LocalDateTime createdDate;
+
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
+    @JsonIgnore
     private LocalDateTime updatedDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
     @CreatedBy
+    @JsonIgnore
     private User createdBy;
 
     @ManyToOne
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
+    @JsonIgnore
     private User updatedBy;
 }
