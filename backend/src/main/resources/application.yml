@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/ecommercedb
     username: postgres
-    password: "230204"
+    password: 204863
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -16,3 +16,7 @@ spring:
     init:
       mode: always
       separator: ;;
+      data-locations: classpath:data.sql
+#      data-locations: classpath:data.sql, classpath:data_crawl.sql
+#  204863
+#  "230204"
