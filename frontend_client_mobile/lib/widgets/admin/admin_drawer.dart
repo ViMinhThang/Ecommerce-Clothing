@@ -22,7 +22,7 @@ class _AdminDrawerState extends State<AdminDrawer>
   }
 
   void _initializeAnimations() {
-    const int itemCount = 7;
+    const int itemCount = 8;
     _controllers = List.generate(
       itemCount,
       (index) =>
@@ -127,6 +127,14 @@ class _AdminDrawerState extends State<AdminDrawer>
                   'Colors',
                   '/colors',
                   6,
+                  null,
+                ),
+                _buildAnimatedItem(
+                  7,
+                  Icons.local_offer_outlined,
+                  'Vouchers',
+                  '/vouchers',
+                  7,
                   null,
                 ),
               ],

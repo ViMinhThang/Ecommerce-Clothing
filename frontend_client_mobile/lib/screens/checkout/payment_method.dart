@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:frontend_client_mobile/models/voucher.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/providers/voucher_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
@@ -25,10 +27,67 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   bool showCardNumber = false;
   bool _isLoading = false;
   int _selectedNavIndex = 3;
+  
+  final _voucherController = TextEditingController();
+  bool _isValidatingVoucher = false;
+  ValidateVoucherResponse? _voucherResponse;
+  String? _voucherError;
+  String? _appliedVoucherCode;
 
   @override
   void dispose() {
+    _voucherController.dispose();
     super.dispose();
+  }
+  
+  double get _discountAmount => _voucherResponse?.discountAmount ?? 0;
+  double get _finalPrice => widget.selectedTotal - _discountAmount;
+
+  Future<void> _validateVoucher() async {
+    final code = _voucherController.text.trim();
+    if (code.isEmpty) {
+      setState(() => _voucherError = 'Please enter a voucher code');
+      return;
+    }
+    
+    setState(() {
+      _isValidatingVoucher = true;
+      _voucherError = null;
+    });
+    
+    try {
+      final response = await context.read<VoucherProvider>().validateVoucher(
+        code,
+        widget.selectedTotal,
+      );
+      
+      setState(() {
+        _isValidatingVoucher = false;
+        if (response != null && response.valid) {
+          _voucherResponse = response;
+          _appliedVoucherCode = code;
+          _voucherError = null;
+        } else {
+          _voucherResponse = null;
+          _appliedVoucherCode = null;
+          _voucherError = response?.message ?? 'Invalid voucher';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isValidatingVoucher = false;
+        _voucherError = 'Failed to validate voucher';
+      });
+    }
+  }
+  
+  void _removeVoucher() {
+    setState(() {
+      _voucherResponse = null;
+      _appliedVoucherCode = null;
+      _voucherError = null;
+      _voucherController.clear();
+    });
   }
 
   void _onNavItemTapped(int index) {
@@ -103,10 +162,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       // Use selected item IDs passed from cart screen
       final cartItemIds = widget.selectedItemIds;
       
-      // Call API with selected cart item IDs
       final orderApiService = ApiClient.getOrderApiService();
       final response = await orderApiService.createOrderFromCart({
         'cartItemIds': cartItemIds,
+        'voucherCode': _appliedVoucherCode,
       });
 
       // Remove only checked out items from cart
@@ -196,12 +255,100 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
                   const SizedBox(height: 12),
 
-                  // COD Option
                   _buildPaymentOption(
                     icon: _buildCODIcon(),
                     title: 'Cash on Delivery',
                     value: 'cod',
                   ),
+
+                  const SizedBox(height: 24),
+
+                  Text(
+                    'Voucher',
+                    style: GoogleFonts.lora(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  if (_appliedVoucherCode != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.green[700], size: 24),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _appliedVoucherCode!,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[700],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  '-\$${_discountAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(color: Colors.green[600], fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _removeVoucher,
+                            icon: Icon(Icons.close, color: Colors.green[700]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _voucherController,
+                            textCapitalization: TextCapitalization.characters,
+                            decoration: InputDecoration(
+                              hintText: 'Enter voucher code',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              errorText: _voucherError,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _isValidatingVoucher ? null : _validateVoucher,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: _isValidatingVoucher
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text('Apply', style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -324,11 +471,53 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Total
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      const Text(
+                        'Subtotal',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
                       Text(
+                        '\$${widget.selectedTotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_discountAmount > 0) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Discount ($_appliedVoucherCode)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                        Text(
+                          '-\$${_discountAmount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
                         'Total',
                         style: TextStyle(
                           fontSize: 20,
@@ -337,8 +526,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         ),
                       ),
                       Text(
-                        '119.00\$',
-                        style: TextStyle(
+                        '\$${_finalPrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,

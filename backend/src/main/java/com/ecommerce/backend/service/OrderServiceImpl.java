@@ -7,6 +7,7 @@ import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.mapper.OrderMapper;
 import com.ecommerce.backend.model.Order;
 import com.ecommerce.backend.model.OrderItem;
+import com.ecommerce.backend.model.Voucher;
 import com.ecommerce.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
+    private final VoucherService voucherService;
 
     @Override
     public Page<OrderView> getAllOrders(Pageable pageable) {
@@ -46,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderView createOrder(OrderDTO orderDTO) {
-        var user = userRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("Khong tim thay user"));
+        var user = userRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("User not found"));
         var cartItems = cartItemRepository.findByIdInAndCart(orderDTO.getCartItemIds(), user.getCart());
         var orderItems = new ArrayList<OrderItem>();
 
@@ -72,9 +74,24 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         order.setTotalPrice(sum);
 
+        double discountAmount = 0;
+        double finalPrice = sum;
+
+        if (orderDTO.getVoucherCode() != null && !orderDTO.getVoucherCode().trim().isEmpty()) {
+            Voucher voucher = voucherService.applyVoucher(orderDTO.getVoucherCode(), sum);
+            if (voucher != null) {
+                discountAmount = ((VoucherServiceImpl) voucherService).calculateDiscount(voucher, sum);
+                finalPrice = sum - discountAmount;
+                order.setVoucher(voucher);
+                voucherService.incrementUsedCount(voucher.getId());
+            }
+        }
+
+        order.setDiscountAmount(discountAmount);
+        order.setFinalPrice(finalPrice);
+
         Order savedOrder = orderRepository.save(order);
 
-        // Remove purchased items from cart
         cartItemRepository.deleteAll(cartItems);
 
         return OrderMapper.toOrderView(savedOrder);
