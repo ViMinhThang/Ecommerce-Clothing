@@ -7,7 +7,14 @@ import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:provider/provider.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
-  const PaymentMethodScreen({Key? key}) : super(key: key);
+  final List<int> selectedItemIds;
+  final double selectedTotal;
+  
+  const PaymentMethodScreen({
+    Key? key,
+    required this.selectedItemIds,
+    required this.selectedTotal,
+  }) : super(key: key);
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
@@ -17,7 +24,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   String selectedPayment = 'cod';
   bool showCardNumber = false;
   bool _isLoading = false;
-  int _selectedNavIndex = 3; // Cart is selected by default
+  int _selectedNavIndex = 3;
 
   @override
   void dispose() {
@@ -82,29 +89,28 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
     try {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
-      final cart = cartProvider.cart;
 
-      if (cart == null || cart.items.isEmpty) {
+      if (widget.selectedItemIds.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Your cart is empty'),
+            content: Text('No items selected for checkout'),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      // Get cart item IDs
-      final cartItemIds = cart.items.map((item) => item.id).toList();
+      // Use selected item IDs passed from cart screen
+      final cartItemIds = widget.selectedItemIds;
       
-      // Call API with cart item IDs (matching backend OrderDTO)
+      // Call API with selected cart item IDs
       final orderApiService = ApiClient.getOrderApiService();
       final response = await orderApiService.createOrderFromCart({
         'cartItemIds': cartItemIds,
       });
 
-      // Clear cart after successful order
-      cartProvider.clear();
+      // Remove only checked out items from cart
+      await cartProvider.removeSelectedItems(cartItemIds, 1);
 
       if (!mounted) return;
 

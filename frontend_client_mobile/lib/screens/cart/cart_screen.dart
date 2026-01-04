@@ -15,7 +15,9 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   static const int _currentUserId = 1;
-  final Map<int, bool> _loadingItems = {}; // Track loading state for each item
+  final Map<int, bool> _loadingItems = {};
+  final Set<int> _selectedItems = {}; // Track selected item IDs
+  bool _selectAll = false;
 
   @override
   void initState() {
@@ -30,6 +32,14 @@ class _CartScreenState extends State<CartScreen> {
       context,
       listen: false,
     ).fetchCart(_currentUserId);
+    // Select all items by default
+    final cart = Provider.of<CartProvider>(context, listen: false).cart;
+    if (cart != null) {
+      setState(() {
+        _selectedItems.addAll(cart.items.map((e) => e.id));
+        _selectAll = true;
+      });
+    }
   }
 
   String _getImageUrl(String? imageUrl) {
@@ -40,6 +50,34 @@ class _CartScreenState extends State<CartScreen> {
       return imageUrl;
     }
     return '${ApiConfig.baseUrl}$imageUrl';
+  }
+
+  void _toggleSelectAll(List<CartItemView> items) {
+    setState(() {
+      if (_selectAll) {
+        _selectedItems.clear();
+      } else {
+        _selectedItems.addAll(items.map((e) => e.id));
+      }
+      _selectAll = !_selectAll;
+    });
+  }
+
+  void _toggleItemSelection(int itemId, List<CartItemView> items) {
+    setState(() {
+      if (_selectedItems.contains(itemId)) {
+        _selectedItems.remove(itemId);
+      } else {
+        _selectedItems.add(itemId);
+      }
+      _selectAll = _selectedItems.length == items.length;
+    });
+  }
+
+  double _calculateSelectedTotal(List<CartItemView> items) {
+    return items
+        .where((item) => _selectedItems.contains(item.id))
+        .fold(0.0, (sum, item) => sum + (item.price * item.quantity));
   }
 
   @override
@@ -112,31 +150,60 @@ class _CartScreenState extends State<CartScreen> {
 
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Center(
-                  child: Text(
-                    "You have ${items.length} products in your Cart",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black54,
-                    ),
+              // Select All Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade200),
                   ),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _selectAll,
+                        onChanged: (_) => _toggleSelectAll(items),
+                        activeColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Select All (${items.length})',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${_selectedItems.length} selected',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    return _buildCartItem(item, cartProvider);
+                    return _buildCartItem(item, cartProvider, items);
                   },
                 ),
               ),
-              _buildPriceSummary(cart!, cartProvider),
+              _buildPriceSummary(cart!, cartProvider, items),
             ],
           );
         },
@@ -144,35 +211,56 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(CartItemView item, CartProvider cartProvider) {
+  Widget _buildCartItem(CartItemView item, CartProvider cartProvider, List<CartItemView> items) {
+    final isSelected = _selectedItems.contains(item.id);
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white60,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? Colors.black : Colors.grey.shade200,
+          width: isSelected ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.grey.shade200,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Checkbox
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: isSelected,
+              onChanged: (_) => _toggleItemSelection(item.id, items),
+              activeColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Product Image
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
               _getImageUrl(item.productImage),
-              width: 100,
-              height: 120,
+              width: 80,
+              height: 100,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  width: 100,
-                  height: 120,
+                  width: 80,
+                  height: 100,
                   color: Colors.grey[200],
                   child: const Icon(Icons.image, color: Colors.grey),
                 );
@@ -187,51 +275,57 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   item.productName,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Text(
                       "Color: ${item.colorName}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Colors.black54,
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Text(
                       "Size: ${item.sizeName}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Colors.black54,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  "\$${item.price.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "\$${item.price.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    _buildQuantityController(item, cartProvider),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _buildQuantityController(item, cartProvider),
               ],
             ),
           ),
+          // Remove button
           IconButton(
             onPressed: () async {
               setState(() => _loadingItems[item.id] = true);
               try {
                 await cartProvider.removeItem(item.id, _currentUserId);
+                _selectedItems.remove(item.id);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -246,8 +340,8 @@ class _CartScreenState extends State<CartScreen> {
                 }
               }
             },
-            icon: const Icon(Icons.close),
-            color: Colors.black54,
+            icon: const Icon(Icons.close, size: 20),
+            color: Colors.grey,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -265,13 +359,13 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: (item.quantity > 1 && !isLoading)
+          InkWell(
+            onTap: (item.quantity > 1 && !isLoading)
                 ? () async {
                     setState(() => _loadingItems[item.id] = true);
                     try {
@@ -287,16 +381,17 @@ class _CartScreenState extends State<CartScreen> {
                     }
                   }
                 : null,
-            icon: const Icon(Icons.remove, size: 18),
-            padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(Icons.remove, size: 16, color: item.quantity > 1 ? Colors.black : Colors.grey),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: isLoading
                 ? SizedBox(
-                    width: 16,
-                    height: 16,
+                    width: 14,
+                    height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
@@ -304,11 +399,11 @@ class _CartScreenState extends State<CartScreen> {
                   )
                 : Text(
                     "${item.quantity}",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
           ),
-          IconButton(
-            onPressed: !isLoading
+          InkWell(
+            onTap: !isLoading
                 ? () async {
                     setState(() => _loadingItems[item.id] = true);
                     try {
@@ -324,85 +419,9 @@ class _CartScreenState extends State<CartScreen> {
                     }
                   }
                 : null,
-            icon: const Icon(Icons.add, size: 18),
-            padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceSummary(CartView cart, CartProvider cartProvider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        border: Border(top: BorderSide(color: Colors.grey.shade200, width: 1)),
-      ),
-      child: Column(
-        children: [
-          _buildPriceRow(
-            "Total Price",
-            "\$${cart.totalPrice.toStringAsFixed(2)}",
-            isGrey: true,
-          ),
-          const SizedBox(height: 8),
-          _buildPriceRow("Estimated delivery fees", "Free", isGrey: true),
-          const SizedBox(height: 16),
-          Divider(color: Colors.grey.shade300, thickness: 1),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Total:",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                "\$${cart.totalPrice.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: cart.items.isEmpty
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaymentMethodScreen(),
-                        ),
-                      );
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                disabledBackgroundColor: Colors.grey,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                "Checkout",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(Icons.add, size: 16),
             ),
           ),
         ],
@@ -410,26 +429,89 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, String value, {bool isGrey = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            color: isGrey ? Colors.grey.shade600 : Colors.black,
+  Widget _buildPriceSummary(CartView cart, CartProvider cartProvider, List<CartItemView> items) {
+    final selectedTotal = _calculateSelectedTotal(items);
+    final selectedCount = _selectedItems.length;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Total section
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Total ($selectedCount items)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${selectedTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Checkout button
+            SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: selectedCount == 0
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PaymentMethodScreen(
+                              selectedItemIds: _selectedItems.toList(),
+                              selectedTotal: selectedTotal,
+                            ),
+                          ),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  disabledBackgroundColor: Colors.grey.shade400,
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  'Checkout ($selectedCount)',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            color: isGrey ? Colors.grey.shade600 : Colors.black,
-            fontWeight: isGrey ? FontWeight.normal : FontWeight.w600,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
