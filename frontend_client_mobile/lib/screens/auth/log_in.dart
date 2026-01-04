@@ -27,14 +27,20 @@ class _LoginScreenState extends State<LoginScreen> {
     debugPrint('Login attempt started: ${_username.text.trim()}');
     setState(() => _loading = true);
     try {
-      await _authService.login(
+      final roles = await _authService.login(
         username: _username.text.trim(),
         password: _password.text,
       );
-      debugPrint('Login service call successful');
+      debugPrint('Login successful. Roles: $roles');
       if (!mounted) return;
-      debugPrint('Navigating to /home');
-      Navigator.pushReplacementNamed(context, '/home');
+      
+      if (roles.contains('ROLE_ADMIN')) {
+        debugPrint('Admin user - navigating to /dashboard');
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        debugPrint('Regular user - navigating to /home');
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
       debugPrint('Login error: $e');
       final msg = e.toString().replaceFirst('Exception: ', '');
@@ -123,42 +129,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _loading ? null : _doLogin,
                   child: _loading
                       ? const CircularProgressIndicator()
-                      : const Text('Đăng nhập'),
+                      : const Text('Sign In'),
                 ),
               ),
 
               const SizedBox(height: 20),
               Text(
-                "Hoặc đăng nhập bằng",
+                "Or sign in with",
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 12),
               SocialWidget(
-                icondata: Icons.g_mobiledata_outlined,
-                text: "Đăng nhập Bằng Google",
-                textColor: Colors.black,
-                color: Colors.white,
+                type: "google",
+                text: "Sign in with Google",
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               SocialWidget(
-                icondata: Icons.facebook_outlined,
-                text: "Đăng nhập Bằng Facebook",
-                textColor: Colors.white,
-                color: Colors.blue,
+                type: "facebook",
+                text: "Sign in with Facebook",
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               SocialWidget(
-                icondata: Icons.apple_outlined,
-                text: "Đăng nhập Bằng Apple",
-                textColor: Colors.white,
-                color: Colors.black,
+                type: "apple",
+                text: "Sign in with Apple",
               ),
 
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Chưa có tài khoản?"),
+                  const Text("Don't have an account?"),
                   InkWell(
                     onTap: () => Navigator.push(
                       context,
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: const Text(
-                      " Đăng ký",
+                      " Sign Up",
                       style: TextStyle(
                         color: Colors.blue,
                         decoration: TextDecoration.underline,

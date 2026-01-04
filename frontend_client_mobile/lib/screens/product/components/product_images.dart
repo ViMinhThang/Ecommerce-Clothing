@@ -49,7 +49,7 @@ class _ProductImagesState extends State<ProductImages> {
                       itemBuilder: (context, index) {
                         return Image.network(
                           provider.productImageUrls[index],
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
                             return const Center(
                               child: Icon(

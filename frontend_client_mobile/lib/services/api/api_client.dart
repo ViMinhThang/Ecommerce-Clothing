@@ -13,6 +13,7 @@ import 'package:frontend_client_mobile/services/api/product_api_service.dart';
 import 'package:frontend_client_mobile/services/api/search_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
+import 'package:frontend_client_mobile/services/api/voucher_api_service.dart';
 import 'package:frontend_client_mobile/services/token_storage.dart';
 
 class ApiClient {
@@ -35,6 +36,7 @@ class ApiClient {
   static SearchApiService? _searchApiService;
   static CartApiService? _cartApiService;
   static AuthApiService? _authApiService;
+  static VoucherApiService? _voucherApiService;
   static Dio get dio => _dio;
 
   static ProductApiService getProductApiService() {
@@ -101,6 +103,12 @@ class ApiClient {
     _authApiService ??= AuthApiService(_dio);
     configInterceptor();
     return _authApiService!;
+  }
+
+  static VoucherApiService getVoucherApiService() {
+    _voucherApiService ??= VoucherApiService(_dio);
+    configInterceptor();
+    return _voucherApiService!;
   }
 
   static String? _extractMessage(dynamic data) {

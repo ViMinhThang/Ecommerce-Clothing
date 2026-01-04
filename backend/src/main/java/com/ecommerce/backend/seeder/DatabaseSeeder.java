@@ -4,12 +4,15 @@ import com.ecommerce.backend.model.*;
 import com.ecommerce.backend.repository.*;
 import com.ecommerce.backend.service.AiRecommentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ecommerce.backend.service.AiRecommentService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -28,6 +31,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final MaterialRepository materialRepository;
     private final SeasonRepository seasonRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VoucherRepository voucherRepository;
     private final AiRecommentService aiRecommentService;
     @Override
     @Transactional
@@ -36,23 +40,70 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println("Data already exists. Skipping seed.");
             return;
         }
-
         System.out.println("Starting seeding...");
-
         User admin = initUsers();
         Map<String, Category> categoryMap = initCategories();
         Map<String, Color> colorMap = initColors();
         Map<String, Size> sizeMap = initSizes();
         Map<String, Material> materialMap = initMaterials();
         Map<String, Season> seasonMap = initSeasons();
-
+        initVouchers();
         seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
         System.out.println("Seeding completed.");
         aiRecommentService.buildCache();
         System.out.println("Nạp dữ liệu vào cache thành công");
     }
 
-    // --- Helper Methods to Reduce Code Size ---
+    private void initVouchers() {
+        if (voucherRepository.count() > 0)
+                        return;
+
+                List<Voucher> vouchers = List.of(
+                                Voucher.builder()
+                                                .code("WELCOME10")
+                                                .description("10% off for new customers")
+                                                .discountType(DiscountType.PERCENTAGE)
+                                                .discountValue(10)
+                                                .minOrderAmount(50)
+                                                .maxDiscountAmount(20)
+                                                .startDate(LocalDateTime.now())
+                                                .endDate(LocalDateTime.now().plusMonths(3))
+                                                .usageLimit(100)
+                                                .usedCount(0)
+                                                .status(VoucherStatus.ACTIVE)
+                                                .build(),
+                                Voucher.builder()
+                                                .code("SAVE20")
+                                                .description("$20 off orders over $100")
+                                                .discountType(DiscountType.FIXED_AMOUNT)
+                                                .discountValue(20)
+                                                .minOrderAmount(100)
+                                                .maxDiscountAmount(20)
+                                                .startDate(LocalDateTime.now())
+                                                .endDate(LocalDateTime.now().plusMonths(1))
+                                                .usageLimit(50)
+                                                .usedCount(0)
+                                                .status(VoucherStatus.ACTIVE)
+                                                .build(),
+                                Voucher.builder()
+                                                .code("SUMMER25")
+                                                .description("25% summer sale - max $50 off")
+                                                .discountType(DiscountType.PERCENTAGE)
+                                                .discountValue(25)
+                                                .minOrderAmount(80)
+                                                .maxDiscountAmount(50)
+                                                .startDate(LocalDateTime.now())
+                                                .endDate(LocalDateTime.now().plusMonths(2))
+                                                .usageLimit(200)
+                                                .usedCount(0)
+                                                .status(VoucherStatus.ACTIVE)
+                                                .build());
+
+                voucherRepository.saveAll(vouchers);
+                System.out.println("Vouchers seeded: " + vouchers.size());
+        }
+
+        // --- Helper Methods to Reduce Code Size ---
 
     private Product createProduct(User creator, Category category, String name, String description,
                                   String primaryImageUrl, List<String> secondaryImageUrls) {
