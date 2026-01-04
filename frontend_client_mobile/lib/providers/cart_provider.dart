@@ -199,4 +199,39 @@ class CartProvider extends ChangeNotifier {
     clear();
     return res;
   }
+
+  /// Remove only selected items from cart (for partial checkout)
+  Future<void> removeSelectedItems(List<int> itemIds, int userId) async {
+    try {
+      // Update local state immediately
+      if (_cartView != null) {
+        double removedTotal = 0;
+        _cartView!.items.removeWhere((item) {
+          if (itemIds.contains(item.id)) {
+            removedTotal += item.subtotal;
+            return true;
+          }
+          return false;
+        });
+        
+        _cartView = CartView(
+          id: _cartView!.id,
+          userId: _cartView!.userId,
+          items: _cartView!.items,
+          totalPrice: _cartView!.totalPrice - removedTotal,
+        );
+        
+        notifyListeners();
+      }
+      
+      // Call API to remove each item
+      for (final itemId in itemIds) {
+        await _cartApiService.removeFromCart(itemId);
+      }
+    } catch (e) {
+      _error = e.toString();
+      // Reload from server on error
+      await fetchCart(userId);
+    }
+  }
 }

@@ -33,7 +33,9 @@ class ProductSelection extends StatelessWidget {
                 'No colors available',
                 style: TextStyle(color: Colors.grey),
               )
-            : Row(
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
                 children: provider.availableColors.map((colorName) {
                   final isSelected = provider.selectedColorName == colorName;
                   final isAvailable =
@@ -85,6 +87,7 @@ class ProductSelection extends StatelessWidget {
                   );
                 }).toList(),
               ),
+              ),
 
         const SizedBox(height: 32),
 
@@ -106,10 +109,10 @@ class ProductSelection extends StatelessWidget {
                 'No sizes available',
                 style: TextStyle(color: Colors.grey),
               )
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ...provider.availableSizes.map((sizeName) {
+            : Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: provider.availableSizes.map((sizeName) {
                     final isSelected = provider.selectedSizeName == sizeName;
                     final isAvailable =
                         provider.selectedColorName == null ||
@@ -125,7 +128,6 @@ class ProductSelection extends StatelessWidget {
                         child: Container(
                           width: 52,
                           height: 52,
-                          margin: const EdgeInsets.only(right: 12),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: isSelected
@@ -149,8 +151,7 @@ class ProductSelection extends StatelessWidget {
                         ),
                       ),
                     );
-                  }),
-                ],
+                  }).toList(),
               ),
 
         const SizedBox(height: 12),

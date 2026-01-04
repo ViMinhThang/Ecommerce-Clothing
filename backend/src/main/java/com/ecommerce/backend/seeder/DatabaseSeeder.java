@@ -10,228 +10,369 @@ import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
-    private final CategoryRepository categoryRepository;
-    private final ProductRepository productRepository;
-    private final ColorRepository colorRepository;
-    private final SizeRepository sizeRepository;
-    private final PriceRepository priceRepository;
-    private final ProductVariantsRepository productVariantsRepository;
-    private final MaterialRepository materialRepository;
-    private final SeasonRepository seasonRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AiRecommentService aiRecommentService;
-    @Override
-    @Transactional
-    public void run(String... args) throws JsonProcessingException {
-        if (productRepository.count() > 0) {
-            System.out.println("Data already exists. Skipping seed.");
-            return;
+
+
+        // Simplification: We will not pass exact variant details from JSON because they
+        // are complex (nested objects).
+        // Instead, we will simulate variants based on the 'colors' list name available
+        // in JSON
+        // but pass them as simple strings to a helper.
+
+        private void createVariants(Product product, List<String> colorNames, double basePrice, double salePrice,
+                        Map<String, Color> colorMap, Map<String, Size> sizeMap,
+                        Map<String, Material> materialMap, Map<String, Season> seasonMap) {
+
+                if (colorNames == null || colorNames.isEmpty())
+                        return;
+
+                Random random = new Random();
+                List<String> sizeKeys = new ArrayList<>(sizeMap.keySet());
+                List<String> materialKeys = new ArrayList<>(materialMap.keySet());
+                List<String> seasonKeys = new ArrayList<>(seasonMap.keySet());
+
+                List<ProductVariants> variants = new ArrayList<>();
+
+                for (String cName : colorNames) {
+                        Color col = colorMap.get(cName);
+                        if (col == null)
+                                continue;
+
+                        // Create 2 random variants per color
+                        for (int k = 0; k < 2; k++) {
+                                ProductVariants v = new ProductVariants();
+                                v.setProduct(product);
+                                v.setColor(col);
+                                v.setSize(sizeMap.get(sizeKeys.get(random.nextInt(sizeKeys.size()))));
+
+                                Price pr = new Price();
+                                pr.setBasePrice(basePrice);
+                                pr.setSalePrice(salePrice);
+                                pr.setStatus("active");
+                                pr = priceRepository.save(pr);
+                                v.setPrice(pr);
+
+                                v.setMaterial(materialMap.get(materialKeys.get(random.nextInt(materialKeys.size()))));
+                                v.setSeason(seasonMap.get(seasonKeys.get(random.nextInt(seasonKeys.size()))));
+                                v.setStatus("active");
+                                variants.add(v);
+                        }
+                }
+                productVariantsRepository.saveAll(variants);
         }
 
-        System.out.println("Starting seeding...");
+        // --- Init Data Methods ---
 
-        User admin = initUsers();
-        Map<String, Category> categoryMap = initCategories();
-        Map<String, Color> colorMap = initColors();
-        Map<String, Size> sizeMap = initSizes();
-        Map<String, Material> materialMap = initMaterials();
-        Map<String, Season> seasonMap = initSeasons();
+        private User initUsers() {
+                Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("ROLE_ADMIN");
+                        r.setStatus("active");
+                        return roleRepository.save(r);
+                });
+                Role userRole = roleRepository.findByName("ROLE_USER").orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("ROLE_USER");
+                        r.setStatus("active");
+                        return roleRepository.save(r);
+                });
 
-        seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
-        System.out.println("Seeding completed.");
-        aiRecommentService.buildCache();
-        System.out.println("Nạp dữ liệu vào cache thành công");
-    }
+                // Create john_doe user
+                userRepository.findByUsername("john_doe").orElseGet(() -> {
+                        User u = new User();
+                        u.setUsername("john_doe");
+                        u.setPassword(passwordEncoder.encode("password"));
+                        u.setFullName("John Doe");
+                        u.setEmail("john_doe@example.com");
+                        u.setStatus("active");
+                        u = userRepository.save(u);
+                        UserRole ur = new UserRole();
+                        ur.setUser(u);
+                        ur.setRole(userRole);
+                        ur.setStatus("active");
+                        userRoleRepository.save(ur);
+                        return u;
+                });
 
-    // --- Helper Methods to Reduce Code Size ---
-
-    private Product createProduct(User creator, Category category, String name, String description,
-                                  String primaryImageUrl, List<String> secondaryImageUrls) {
-        Product p = new Product();
-        p.setName(name);
-        p.setDescription(description);
-        p.setCategory(category);
-        p.setStatus("active");
-        p.setCreatedBy(creator);
-        p.setUpdatedBy(creator);
-
-        List<ProductImage> images = new ArrayList<>();
-
-        // Primary
-        if (primaryImageUrl != null && !primaryImageUrl.isEmpty()) {
-            ProductImage pi = new ProductImage();
-            pi.setImageUrl(primaryImageUrl);
-            pi.setIsPrimary(true);
-            pi.setDisplayOrder(0);
-            pi.setProduct(p);
-            images.add(pi);
+                return userRepository.findByUsername("sys.admin").orElseGet(() -> {
+                        User u = new User();
+                        u.setUsername("sys.admin");
+                        u.setPassword(passwordEncoder.encode("123456"));
+                        u.setFullName("System Administrator");
+                        u.setEmail("sys.admin@example.com");
+                        u.setStatus("active");
+                        u = userRepository.save(u);
+                        UserRole ur = new UserRole();
+                        ur.setUser(u);
+                        ur.setRole(adminRole);
+                        ur.setStatus("active");
+                        userRoleRepository.save(ur);
+                        return u;
+                });
         }
 
-        // Secondary
-        if (secondaryImageUrls != null) {
-            for (int i = 0; i < secondaryImageUrls.size(); i++) {
-                ProductImage pi = new ProductImage();
-                pi.setImageUrl(secondaryImageUrls.get(i));
-                pi.setIsPrimary(false);
-                pi.setDisplayOrder(i + 1);
-                pi.setProduct(p);
-                images.add(pi);
-            }
+        private Map<String, Size> initSizes() {
+                Map<String, Size> map = new HashMap<>();
+                String[] sizes = { "XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL" };
+                List<Size> list = new ArrayList<>();
+                for (String s : sizes) {
+                        Size size = new Size();
+                        size.setSizeName(s);
+                        size.setStatus("active");
+                        list.add(size);
+                }
+                sizeRepository.saveAll(list).forEach(s -> map.put(s.getSizeName(), s));
+                return map;
         }
 
-        p.setImages(images);
-        return productRepository.save(p);
-    }
-
-    // Simplification: We will not pass exact variant details from JSON because they are complex (nested objects).
-    // Instead, we will simulate variants based on the 'colors' list name available in JSON
-    // but pass them as simple strings to a helper.
-
-    private void createVariants(Product product, List<String> colorNames, double basePrice, double salePrice,
-                                Map<String, Color> colorMap, Map<String, Size> sizeMap,
-                                Map<String, Material> materialMap, Map<String, Season> seasonMap) {
-
-        if (colorNames == null || colorNames.isEmpty()) return;
-
-        Random random = new Random();
-        List<String> sizeKeys = new ArrayList<>(sizeMap.keySet());
-        List<String> materialKeys = new ArrayList<>(materialMap.keySet());
-        List<String> seasonKeys = new ArrayList<>(seasonMap.keySet());
-
-        List<ProductVariants> variants = new ArrayList<>();
-
-        for (String cName : colorNames) {
-            Color col = colorMap.get(cName);
-            if (col == null) continue;
-
-            // Create 2 random variants per color
-            for (int k = 0; k < 2; k++) {
-                ProductVariants v = new ProductVariants();
-                v.setProduct(product);
-                v.setColor(col);
-                v.setSize(sizeMap.get(sizeKeys.get(random.nextInt(sizeKeys.size()))));
-
-                Price pr = new Price();
-                pr.setBasePrice(basePrice);
-                pr.setSalePrice(salePrice);
-                pr.setStatus("active");
-                pr = priceRepository.save(pr);
-                v.setPrice(pr);
-
-                v.setMaterial(materialMap.get(materialKeys.get(random.nextInt(materialKeys.size()))));
-                v.setSeason(seasonMap.get(seasonKeys.get(random.nextInt(seasonKeys.size()))));
-                v.setStatus("active");
-                variants.add(v);
-            }
+        private Map<String, Material> initMaterials() {
+                Map<String, Material> map = new HashMap<>();
+                String[] materials = { "Cotton", "Wool", "Leather", "Polyester", "Silk", "Linen", "Denim" };
+                List<Material> list = new ArrayList<>();
+                for (String s : materials) {
+                        Material m = new Material();
+                        m.setMaterialName(s);
+                        m.setStatus("active");
+                        list.add(m);
+                }
+                materialRepository.saveAll(list).forEach(m -> map.put(m.getMaterialName(), m));
+                return map;
         }
-        productVariantsRepository.saveAll(variants);
-    }
 
-    // --- Init Data Methods ---
+        private Map<String, Season> initSeasons() {
+                Map<String, Season> map = new HashMap<>();
+                String[] seasons = { "Spring", "Summer", "Autumn", "Winter" };
+                List<Season> list = new ArrayList<>();
+                for (String s : seasons) {
+                        Season season = new Season();
+                        season.setSeasonName(s);
+                        season.setStatus("active");
+                        list.add(season);
+                }
+                seasonRepository.saveAll(list).forEach(s -> map.put(s.getSeasonName(), s));
+                return map;
+        }
 
-    private User initUsers() {
-        Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseGet(() -> {
-            Role r = new Role(); r.setName("ROLE_ADMIN"); r.setStatus("active"); return roleRepository.save(r);
-        });
-        Role userRole = roleRepository.findByName("ROLE_USER").orElseGet(() -> {
-            Role r = new Role(); r.setName("ROLE_USER"); r.setStatus("active"); return roleRepository.save(r);
-        });
-        return userRepository.findByUsername("sys.admin").orElseGet(() -> {
-            User u = new User(); u.setUsername("sys.admin"); u.setPassword(passwordEncoder.encode("123456"));
-            u.setFullName("System Administrator"); u.setEmail("sys.admin@example.com"); u.setStatus("active");
-            u = userRepository.save(u);
-            UserRole ur = new UserRole(); ur.setUser(u); ur.setRole(adminRole); ur.setStatus("active"); userRoleRepository.save(ur);
-            return u;
-        });
-    }
+        private Map<String, Color> initColors() {
+                Map<String, Color> map = new HashMap<>();
+                List<Color> list = new ArrayList<>();
 
-    private Map<String, Size> initSizes() {
-        Map<String, Size> map = new HashMap<>();
-        String[] sizes = {"XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"};
-        List<Size> list = new ArrayList<>();
-        for (String s : sizes) { Size size = new Size(); size.setSizeName(s); size.setStatus("active"); list.add(size); }
-        sizeRepository.saveAll(list).forEach(s -> map.put(s.getSizeName(), s));
-        return map;
-    }
+                // 1. Các màu cơ bản
+                {
+                        Color c = new Color();
+                        c.setColorName("White");
+                        c.setColorCode("#FFFFFF");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Black");
+                        c.setColorCode("#000000");
+                        c.setStatus("active");
+                        list.add(c);
+                }
 
-    private Map<String, Material> initMaterials() {
-        Map<String, Material> map = new HashMap<>();
-        String[] materials = {"Cotton", "Wool", "Leather", "Polyester", "Silk", "Linen", "Denim"};
-        List<Material> list = new ArrayList<>();
-        for (String s : materials) { Material m = new Material(); m.setMaterialName(s); m.setStatus("active"); list.add(m); }
-        materialRepository.saveAll(list).forEach(m -> map.put(m.getMaterialName(), m));
-        return map;
-    }
+                // 2. Các màu Material Design & Phổ biến
+                {
+                        Color c = new Color();
+                        c.setColorName("Blue");
+                        c.setColorCode("#2196F3");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Brown");
+                        c.setColorCode("#795548");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Red");
+                        c.setColorCode("#F44336");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Yellow");
+                        c.setColorCode("#FFEB3B");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Indigo");
+                        c.setColorCode("#3F51B5");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Grey");
+                        c.setColorCode("#9E9E9E");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Pink");
+                        c.setColorCode("#E91E63");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Green");
+                        c.setColorCode("#4CAF50");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Orange");
+                        c.setColorCode("#FF9800");
+                        c.setStatus("active");
+                        list.add(c);
+                }
 
-    private Map<String, Season> initSeasons() {
-        Map<String, Season> map = new HashMap<>();
-        String[] seasons = {"Spring", "Summer", "Autumn", "Winter"};
-        List<Season> list = new ArrayList<>();
-        for (String s : seasons) { Season season = new Season(); season.setSeasonName(s); season.setStatus("active"); list.add(season); }
-        seasonRepository.saveAll(list).forEach(s -> map.put(s.getSeasonName(), s));
-        return map;
-    }
+                // 3. Các màu đặc biệt (Tone trầm/nhạt)
+                {
+                        Color c = new Color();
+                        c.setColorName("Navy");
+                        c.setColorCode("#000080");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Burgundy");
+                        c.setColorCode("#800020");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Beige");
+                        c.setColorCode("#F5F5DC");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Tan");
+                        c.setColorCode("#D2B48C");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Khaki");
+                        c.setColorCode("#F0E68C");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Silver");
+                        c.setColorCode("#C0C0C0");
+                        c.setStatus("active");
+                        list.add(c);
+                }
+                {
+                        Color c = new Color();
+                        c.setColorName("Olive");
+                        c.setColorCode("#808000");
+                        c.setStatus("active");
+                        list.add(c);
+                }
 
-    private Map<String, Color> initColors() {
-        Map<String, Color> map = new HashMap<>();
-        List<Color> list = new ArrayList<>();
+                // 4. Màu tùy chọn (Thường để mặc định hoặc null tùy logic frontend)
+                {
+                        Color c = new Color();
+                        c.setColorName("Custom");
+                        c.setColorCode("#000000");
+                        c.setStatus("active");
+                        list.add(c);
+                }
 
-        // 1. Các màu cơ bản
-        { Color c = new Color(); c.setColorName("White"); c.setColorCode("#FFFFFF"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Black"); c.setColorCode("#000000"); c.setStatus("active"); list.add(c); }
+                colorRepository.saveAll(list).forEach(c -> map.put(c.getColorName(), c));
+                return map;
+        }
 
-        // 2. Các màu Material Design & Phổ biến
-        { Color c = new Color(); c.setColorName("Blue"); c.setColorCode("#2196F3"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Brown"); c.setColorCode("#795548"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Red"); c.setColorCode("#F44336"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Yellow"); c.setColorCode("#FFEB3B"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Indigo"); c.setColorCode("#3F51B5"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Grey"); c.setColorCode("#9E9E9E"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Pink"); c.setColorCode("#E91E63"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Green"); c.setColorCode("#4CAF50"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Orange"); c.setColorCode("#FF9800"); c.setStatus("active"); list.add(c); }
+        private Map<String, Category> initCategories() {
+                Map<String, Category> map = new HashMap<>();
+                List<Category> list = new ArrayList<>();
+                {
+                        Category cat = new Category();
+                        cat.setName("Dresses");
+                        cat.setDescription("Various products for Dresses");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Dresses.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("Jackets");
+                        cat.setDescription("Various products for Jackets");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Jacket.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("Coats");
+                        cat.setDescription("Various products for Coats");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Coats.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("Shoe");
+                        cat.setDescription("Various products for Shoe");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Lingerie.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("New Products");
+                        cat.setDescription("Various products for New Products");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/newProducts.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("Shirts");
+                        cat.setDescription("Various products for Shirts");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Shirts.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                {
+                        Category cat = new Category();
+                        cat.setName("Collections");
+                        cat.setDescription("Various products for Collections");
+                        cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Collections.png");
+                        cat.setStatus("active");
+                        list.add(cat);
+                }
+                categoryRepository.saveAll(list).forEach(c -> map.put(c.getName(), c));
+                return map;
+        }
 
-        // 3. Các màu đặc biệt (Tone trầm/nhạt)
-        { Color c = new Color(); c.setColorName("Navy"); c.setColorCode("#000080"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Burgundy"); c.setColorCode("#800020"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Beige"); c.setColorCode("#F5F5DC"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Tan"); c.setColorCode("#D2B48C"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Khaki"); c.setColorCode("#F0E68C"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Silver"); c.setColorCode("#C0C0C0"); c.setStatus("active"); list.add(c); }
-        { Color c = new Color(); c.setColorName("Olive"); c.setColorCode("#808000"); c.setStatus("active"); list.add(c); }
-
-        // 4. Màu tùy chọn (Thường để mặc định hoặc null tùy logic frontend)
-        { Color c = new Color(); c.setColorName("Custom"); c.setColorCode("#000000"); c.setStatus("active"); list.add(c); }
-
-        colorRepository.saveAll(list).forEach(c -> map.put(c.getColorName(), c));
-        return map;
-    }
-
-    private Map<String, Category> initCategories() {
-        Map<String, Category> map = new HashMap<>();
-        List<Category> list = new ArrayList<>();
-        { Category cat = new Category(); cat.setName("Dresses"); cat.setDescription("Various products for Dresses"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Dresses.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("Jackets"); cat.setDescription("Various products for Jackets"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Jacket.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("Coats"); cat.setDescription("Various products for Coats"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Coats.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("Shoe"); cat.setDescription("Various products for Shoe"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Lingerie.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("New Products"); cat.setDescription("Various products for New Products"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/newProducts.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("Shirts"); cat.setDescription("Various products for Shirts"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Shirts.png"); cat.setStatus("active"); list.add(cat); }
-        { Category cat = new Category(); cat.setName("Collections"); cat.setDescription("Various products for Collections"); cat.setImageUrl("http://10.0.2.2:8080/uploads/categories/Collections.png"); cat.setStatus("active"); list.add(cat); }
-        categoryRepository.saveAll(list).forEach(c -> map.put(c.getName(), c));
-        return map;
-    }
-
-    // --- Main Seed Method ---
-    private void seedProducts(User admin, Map<String, Category> categoryMap, Map<String, Color> colorMap,
+        
+     private void seedProducts(User admin, Map<String, Category> categoryMap, Map<String, Color> colorMap,
                               Map<String, Size> sizeMap, Map<String, Material> materialMap, Map<String, Season> seasonMap) {
 
         Product p;

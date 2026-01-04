@@ -31,6 +31,15 @@ public class Order {
     private List<OrderItem> orderItems;
 
     private double totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
+
+    private double discountAmount;
+
+    private double finalPrice;
+
     private String status;
 
     @Column(nullable = false, updatable = false)
