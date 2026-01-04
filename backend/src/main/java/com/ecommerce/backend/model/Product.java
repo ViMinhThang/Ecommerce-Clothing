@@ -39,7 +39,7 @@ public class Product {
     @OrderBy("displayOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -59,13 +59,13 @@ public class Product {
     @JsonIgnore
     private LocalDateTime updatedDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     @CreatedBy
     @JsonIgnore
     private User createdBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
     @JsonIgnore

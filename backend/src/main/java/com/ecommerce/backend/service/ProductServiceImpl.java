@@ -41,7 +41,6 @@ public class ProductServiceImpl implements ProductService {
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
-
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
@@ -82,6 +81,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
+        if(categoryId == 0){
+            return productRepository.findAll(pageable).map(this::mapToProductView);
+        }
         return productRepository.findByCategoryIdAndStatus(categoryId, status, pageable)
                 .map(this::mapToProductView);
     }
@@ -123,6 +125,16 @@ public class ProductServiceImpl implements ProductService {
         return variants.stream()
                 .map(this::mapToProductVariantView)
                 .toList();
+    }
+
+    @Override
+    public List<ProductView> getAll() {
+        return productRepository.findAll().stream().map(this::mapToProductView).toList();
+    }
+
+    @Override
+    public List<ProductView> getByListId(List<Long> ids) {
+        return productRepository.findAllById(ids).stream().map(this::mapToProductView).toList();
     }
 
     // ==================== Private Helper Methods ====================
@@ -302,7 +314,6 @@ public class ProductServiceImpl implements ProductService {
                 product.getId(),
                 product.getName(),
                 product.getPrimaryImageUrl(),
-                product.getImageUrls(),
                 basePrice,
                 salePrice,
                 product.getDescription());
