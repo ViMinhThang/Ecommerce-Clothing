@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
@@ -52,33 +55,63 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
 
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: 'Wishlist',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Consumer2<CartProvider, WishlistProvider>(
+        builder: (context, cartProvider, wishlistProvider, child) {
+          final cartItemCount = cartProvider.cart?.items.length ?? 0;
+          final wishlistItemCount = wishlistProvider.itemCount;
 
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+          return BottomNavigationBar(
+            items: [
+              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: wishlistItemCount > 0,
+                  label: Text(
+                    wishlistItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.favorite_border),
+                ),
+                label: 'Wishlist',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: cartItemCount > 0,
+                  label: Text(
+                    cartItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.shopping_bag_outlined),
+                ),
+                label: 'Cart',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                label: 'Profile',
+              ),
+            ],
 
-        // --- Styling to match e-commerce app common practices ---
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed, // Essential for 5 items
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
+          );
+        },
       ),
     );
   }

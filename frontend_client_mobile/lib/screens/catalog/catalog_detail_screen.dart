@@ -148,8 +148,7 @@ class CatalogDetailScreen extends StatelessWidget {
                         );
                       },
                       onTap: () {
-                        Navigator.push(
-                          context,
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                             builder: (context) => ProductDetailScreen(productId: product.id),
                           ),
