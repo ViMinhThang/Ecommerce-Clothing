@@ -37,7 +37,7 @@ class EditProductViewModel extends ChangeNotifier {
       TextEditingController(text: existingProduct?.description ?? '');
 
   Category? _selectedCategory;
-  List<XFile> _selectedImages = [];
+  final List<XFile> _selectedImages = [];
   List<int> _existingImageIds = [];
   List<ProductVariant> _variants = [];
   bool _isInitializing = false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
 import '../../../../../config/theme_config.dart';
 
 class ActionButtonsSection extends StatelessWidget {
@@ -27,7 +28,7 @@ class ActionButtonsSection extends StatelessWidget {
                 disabledForegroundColor: AppTheme.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppTheme.borderRadiusXS,
                 ),
                 elevation: 0,
               ),
@@ -41,12 +42,14 @@ class ActionButtonsSection extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      viewModel.isEditing ? 'SAVE CHANGES' : 'CREATE PRODUCT',
-                      style: AppTheme.button.copyWith(
+                      viewModel.isEditing
+                          ? 'COMMIT_CHANGES'
+                          : 'INITIALIZE_PRODUCT',
+                      style: GoogleFonts.outfit(
                         color: AppTheme.primaryWhite,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
                       ),
                     ),
             ),
@@ -62,16 +65,16 @@ class ActionButtonsSection extends StatelessWidget {
                 side: const BorderSide(color: AppTheme.primaryBlack, width: 1),
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppTheme.borderRadiusXS,
                 ),
               ),
               child: Text(
-                'CANCEL',
-                style: AppTheme.button.copyWith(
+                'ABORT',
+                style: GoogleFonts.outfit(
                   color: AppTheme.primaryBlack,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
                 ),
               ),
             ),

@@ -47,7 +47,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 Map<String, Season> seasonMap = initSeasons();
                 initVouchers();
                 seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
-                aiRecommentService.buildCache();
+//                aiRecommentService.buildCache();
                 System.out.println("Nạp dữ liệu vào cache thành công");
                 System.out.println("Seeding completed.");
         }

@@ -17,9 +17,27 @@ class ManageCategoriesScreen extends BaseManageScreen<model.Category> {
 }
 
 class _ManageCategoriesScreenState
-    extends BaseManageScreenState<model.Category, ManageCategoriesScreen> {
+    extends BaseManageScreenState<model.Category, ManageCategoriesScreen>
+    with SingleTickerProviderStateMixin {
   CategoryProvider get _categoryProvider =>
       Provider.of<CategoryProvider>(context, listen: false);
+
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   String getScreenTitle() => 'Category Management';
@@ -39,7 +57,9 @@ class _ManageCategoriesScreenState
   @override
   void fetchData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _categoryProvider.fetchCategories();
+      _categoryProvider.fetchCategories().then((_) {
+        if (mounted) _animationController.forward(from: 0);
+      });
     });
   }
 
@@ -50,7 +70,9 @@ class _ManageCategoriesScreenState
 
   @override
   void refreshData() {
-    _categoryProvider.fetchCategories();
+    _categoryProvider.fetchCategories().then((_) {
+      if (mounted) _animationController.forward(from: 0);
+    });
   }
 
   @override
@@ -107,23 +129,36 @@ class _ManageCategoriesScreenState
   Widget _buildLeadingWidget(model.Category item) {
     final imageUrl = FileUtils.fixImgUrl(item.imageUrl);
     return Container(
-      width: 60,
-      height: 60,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color: AppTheme.offWhite,
-        borderRadius: AppTheme.borderRadiusSM,
-        border: Border.all(color: const Color(0xFFB0B0B0), width: 1),
+        color: Colors.white,
+        borderRadius: AppTheme.borderRadiusXS,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
+      padding: const EdgeInsets.all(2), // Outer ring effect
       child: ClipRRect(
-        borderRadius: AppTheme.borderRadiusSM,
-        child: imageUrl.isNotEmpty
-            ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Icon(Icons.broken_image, color: AppTheme.lightGray),
-              )
-            : Icon(Icons.image_not_supported, color: AppTheme.lightGray),
+        borderRadius: AppTheme.borderRadiusXS,
+        child: Container(
+          color: AppTheme.offWhite,
+          child: imageUrl.isNotEmpty
+              ? Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.broken_image,
+                    size: 20,
+                    color: AppTheme.lightGray,
+                  ),
+                )
+              : Icon(Icons.category, size: 24, color: AppTheme.lightGray),
+        ),
       ),
     );
   }
@@ -131,11 +166,19 @@ class _ManageCategoriesScreenState
   String _getItemTitle(model.Category item) => item.name;
 
   Widget? _buildSubtitle(model.Category item) {
-    return Text(
-      item.description,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: AppTheme.bodySmall,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          item.description,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTheme.bodySmall.copyWith(
+            height: 1.2,
+            color: Colors.black54,
+          ),
+        ),
+      ],
     );
   }
 
@@ -149,14 +192,33 @@ class _ManageCategoriesScreenState
       itemBuilder: (context, index) {
         if (index < items.length) {
           final item = items[index];
-          return AdminListItem(
-            leading: _buildLeadingWidget(item),
-            title: _getItemTitle(item),
-            subtitle: _buildSubtitle(item),
-            onEdit: () => navigateToEdit(item),
-            onDelete: () => handleDelete(item),
-            editTooltip: 'Edit Category',
-            deleteTooltip: 'Delete Category',
+
+          final animation = CurvedAnimation(
+            parent: _animationController,
+            curve: Interval(
+              (index * 0.1).clamp(0, 1.0),
+              ((index * 0.1) + 0.5).clamp(0, 1.0),
+              curve: Curves.easeOutCubic,
+            ),
+          );
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.2),
+                end: Offset.zero,
+              ).animate(animation),
+              child: AdminListItem(
+                leading: _buildLeadingWidget(item),
+                title: _getItemTitle(item),
+                subtitle: _buildSubtitle(item),
+                onEdit: () => navigateToEdit(item),
+                onDelete: () => handleDelete(item),
+                editTooltip: 'Edit Category',
+                deleteTooltip: 'Delete Category',
+              ),
+            ),
           );
         } else {
           return const Padding(

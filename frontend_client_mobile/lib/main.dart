@@ -6,6 +6,7 @@ import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/providers/voucher_provider.dart';
+import 'package:frontend_client_mobile/providers/order_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
@@ -45,6 +46,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => WishlistProvider()),
         ChangeNotifierProvider(create: (context) => FilterProvider()),
         ChangeNotifierProvider(create: (context) => VoucherProvider()),
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
       ],
       child: const MyApp(),
     ),
@@ -58,7 +60,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/categories',
+      initialRoute: '/dashboard',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
