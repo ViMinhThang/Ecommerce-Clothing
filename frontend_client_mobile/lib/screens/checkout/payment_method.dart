@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
@@ -161,9 +162,9 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Payment Section
-                  const Text(
+                  Text(
                     'Payment',
-                    style: TextStyle(
+                    style: GoogleFonts.lora(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,

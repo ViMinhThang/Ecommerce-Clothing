@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/providers/cart_provider.dart';
-import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
 import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
@@ -55,63 +52,33 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
 
-      bottomNavigationBar: Consumer2<WishlistProvider, CartProvider>(
-        builder: (context, wishlistProvider, cartProvider, child) {
-          final cartItemCount = cartProvider.cart?.items.length ?? 0;
-          
-          return BottomNavigationBar(
-            items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
-              BottomNavigationBarItem(
-                icon: Badge(
-                  isLabelVisible: wishlistProvider.itemCount > 0,
-                  label: Text(
-                    wishlistProvider.itemCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  backgroundColor: Colors.black,
-                  child: const Icon(Icons.favorite_border),
-                ),
-                label: 'Wishlist',
-              ),
-              BottomNavigationBarItem(
-                icon: Badge(
-                  isLabelVisible: cartItemCount > 0,
-                  label: Text(
-                    cartItemCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  backgroundColor: Colors.black,
-                  child: const Icon(Icons.shopping_bag_outlined),
-                ),
-                label: 'Cart',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.person_outline),
-                label: 'Profile',
-              ),
-            ],
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Wishlist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag_outlined),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
 
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
 
-            // --- Styling to match e-commerce app common practices ---
-            selectedItemColor: Colors.black,
-            unselectedItemColor: Colors.grey,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            type: BottomNavigationBarType.fixed,
-          );
-        },
+        // --- Styling to match e-commerce app common practices ---
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed, // Essential for 5 items
       ),
     );
   }
@@ -124,56 +91,140 @@ class _ProfilePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: Text(
-          'Profile',
-          style: GoogleFonts.lora(
-            color: Colors.black,
-            fontWeight: FontWeight.normal,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.grey,
-              child: Icon(Icons.person, size: 50, color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Guest User',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Sign in to access your profile',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Navigate to login screen
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              // Header
+              Text(
+                'My Profile',
+                style: GoogleFonts.lora(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
                 ),
               ),
-              child: const Text('Sign In'),
-            ),
-          ],
+              const Spacer(),
+              // Fashion Icon Container
+              Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.grey.shade100,
+                      Colors.grey.shade200,
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  size: 70,
+                  color: Colors.grey.shade400,
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Welcome Text
+              Text(
+                'Welcome to Shop',
+                style: GoogleFonts.lora(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Sign in to track orders, save favorites,\nand get personalized recommendations',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
+              ),
+              const Spacer(),
+              // Sign In Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to login screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Sign In',
+                    style: GoogleFonts.lora(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Create Account Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: () {
+                    // TODO: Navigate to register screen
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.black, width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Create Account',
+                    style: GoogleFonts.lora(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Continue as Guest
+              TextButton(
+                onPressed: () {
+                  // Continue browsing
+                },
+                child: Text(
+                  'Continue as Guest',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
