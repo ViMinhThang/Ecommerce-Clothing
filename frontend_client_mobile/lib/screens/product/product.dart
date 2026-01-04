@@ -35,12 +35,11 @@ class _ProductDetailContent extends StatefulWidget {
 }
 
 class _ProductDetailContentState extends State<_ProductDetailContent> {
-  int _selectedNavIndex = 1; // Catalog selected (coming from catalog)
+  int _selectedNavIndex = 1; // Catalog selected by default
 
   void _onNavItemTapped(int index) {
     if (index == _selectedNavIndex) return;
     
-    // Navigate to MainScreen with selected tab
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
