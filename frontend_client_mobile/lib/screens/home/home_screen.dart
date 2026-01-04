@@ -10,8 +10,6 @@ import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
-import 'package:frontend_client_mobile/models/product.dart';
-import 'package:frontend_client_mobile/models/category.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,7 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Initial Fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).initialize();
+      final productProvider = Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      );
+      productProvider.prepareForCategory(0);
+      productProvider.fetchProductsByCategory(0, refresh: true);
       Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
     });
 
@@ -40,12 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _scrollController.position.maxScrollExtent - 200;
       final provider = Provider.of<ProductProvider>(context, listen: false);
       if (isScrollAtBottom && !provider.isMoreLoading && provider.hasMore) {
-        provider.loadMore();
-      }
-      if (isScrollAtBottom &&
-          provider.hasMore &&
-          !provider.isMoreLoading &&
-          _selectedCategoryIndex > 0) {
         provider.loadMoreByCategory(_selectedCategoryId);
       }
     });
@@ -115,7 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: RefreshIndicator(
             onRefresh: () async {
-              await productProvider.fetchProducts(refresh: true);
+              await productProvider.fetchProductsByCategory(
+                _selectedCategoryId,
+                refresh: true,
+              );
             },
             child: CustomScrollView(
               controller: _scrollController,
@@ -199,7 +199,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                             .prepareForCategory(0);
                                         context
                                             .read<ProductProvider>()
-                                            .fetchProducts(refresh: true);
+                                            .fetchProductsByCategory(
+                                              0,
+                                              refresh: true,
+                                            );
                                       },
                                     ),
                                   ),
@@ -237,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 if (productProvider.isLoading &&
-                    productProvider.products.isEmpty)
+                    productProvider.productViews.isEmpty)
                   SliverPadding(
                     padding: const EdgeInsets.all(8.0),
                     sliver: SliverGrid.count(
@@ -252,80 +255,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                if (_selectedCategoryIndex == 0)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.58,
-                            mainAxisSpacing: 24,
-                            crossAxisSpacing: 16,
-                          ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final product = productProvider.products[index];
-                        return ProductCard(
-                          product: product,
-                          isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
-                          onFavoriteToggle: () {
-                            wishlistProvider.toggleWishlist(
-                              productId: product.id,
-                            );
-                          },
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetailScreen(productId: product.id),
-                              ),
-                            );
-                          },
-                        );
-                      }, childCount: productProvider.products.length),
-                    ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
-                if (_selectedCategoryIndex != 0)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.58,
-                            mainAxisSpacing: 24,
-                            crossAxisSpacing: 16,
-                          ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final product = productProvider.productViews[index];
-                        return ProductViewCard(
-                          product: product,
-                          isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
-                          onFavoriteToggle: () {
-                            wishlistProvider.toggleWishlist(
-                              productId: product.id,
-                            );
-                          },
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetailScreen(productId: product.id),
-                              ),
-                            );
-                          },
-                        );
-                      }, childCount: productProvider.productViews.length),
-                    ),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.58,
+                          mainAxisSpacing: 24,
+                          crossAxisSpacing: 16,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final product = productProvider.productViews[index];
+                      return ProductViewCard(
+                        product: product,
+                        isFavorite: wishlistProvider.isProductInWishlistLocal(
+                          product.id,
+                        ),
+                        onFavoriteToggle: () {
+                          wishlistProvider.toggleWishlist(
+                            productId: product.id,
+                          );
+                        },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailScreen(productId: product.id),
+                            ),
+                          );
+                        },
+                      );
+                    }, childCount: productProvider.productViews.length),
                   ),
+                ),
 
                 if (productProvider.isMoreLoading)
                   const SliverToBoxAdapter(
