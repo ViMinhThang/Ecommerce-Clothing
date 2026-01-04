@@ -44,9 +44,4 @@ public interface ProductService {
     List<ProductSearchView> searchByNameAndCategory(String name, long categoryId);
 
     List<ProductVariantView> getProductVariants(Long productId);
-
-    List<ProductView> getAll();
-    List<ProductView> getByListId(List<Long> ids);
-
-
 }

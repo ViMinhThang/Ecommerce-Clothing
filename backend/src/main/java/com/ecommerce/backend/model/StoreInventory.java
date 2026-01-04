@@ -25,7 +25,7 @@ public class StoreInventory {
     @ManyToOne
     private Store store;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private ProductVariants product;
 
     private int amount;
@@ -40,12 +40,12 @@ public class StoreInventory {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "created_by")
     @CreatedBy
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
     private User updatedBy;

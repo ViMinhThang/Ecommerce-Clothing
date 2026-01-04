@@ -23,7 +23,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -31,6 +31,15 @@ public class Order {
     private List<OrderItem> orderItems;
 
     private double totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
+
+    private double discountAmount;
+
+    private double finalPrice;
+
     private String status;
 
     @Column(nullable = false, updatable = false)
@@ -41,7 +50,7 @@ public class Order {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
     private User updatedBy;

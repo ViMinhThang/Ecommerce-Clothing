@@ -5,6 +5,7 @@ import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
 import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:frontend_client_mobile/providers/voucher_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
@@ -12,6 +13,7 @@ import 'package:frontend_client_mobile/screens/admin/products/manage_products_sc
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
+import 'package:frontend_client_mobile/screens/admin/vouchers/manage_vouchers_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
@@ -42,6 +44,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => FavoriteProvider()),
         ChangeNotifierProvider(create: (context) => WishlistProvider()),
         ChangeNotifierProvider(create: (context) => FilterProvider()),
+        ChangeNotifierProvider(create: (context) => VoucherProvider()),
       ],
       child: const MyApp(),
     ),
@@ -55,7 +58,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/categories',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
@@ -72,6 +75,7 @@ class MyApp extends StatelessWidget {
         '/orders': (context) => const ManageOrdersScreen(),
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
+        '/vouchers': (context) => const ManageVouchersScreen(),
         '/cart': (context) => const CartScreen(),
         '/checkout': (context) => const CheckoutScreen(),
         '/favorite': (context) => const FavoriteScreen(),

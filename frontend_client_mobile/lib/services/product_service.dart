@@ -76,7 +76,4 @@ class ProductService {
   Future<Null> filterProduct(int categoryId) async {
     return null;
   }
-  Future<List<ProductView>> getSimilarProduct(int productId) async {
-    return await _apiService.getSimilarProduct(productId);
-  }
 }
