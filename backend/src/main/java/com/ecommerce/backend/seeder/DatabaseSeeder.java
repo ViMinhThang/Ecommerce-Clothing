@@ -38,7 +38,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         System.out.println("Starting seeding...");
-
+        System.out.println("oke abc");
         User admin = initUsers();
         Map<String, Category> categoryMap = initCategories();
         Map<String, Color> colorMap = initColors();
