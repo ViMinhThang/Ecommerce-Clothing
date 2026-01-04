@@ -10,7 +10,7 @@ class AuthService {
   AuthService({AuthApiService? apiService})
     : _apiService = apiService ?? ApiClient.getAuthApiService();
 
-  Future<void> login({
+  Future<List<String>> login({
     required String username,
     required String password,
   }) async {
@@ -26,6 +26,7 @@ class AuthService {
         final access =
             data['accessToken'] ?? data['access_token'] ?? data['token'];
         final refresh = data['refreshToken'] ?? data['refresh_token'];
+        final roles = data['roles'] as List<dynamic>? ?? [];
 
         if (access == null) throw Exception('No access token returned');
 
@@ -33,6 +34,11 @@ class AuthService {
         if (refresh != null) {
           await _storage.saveRefreshToken(refresh.toString());
         }
+        
+        final rolesList = roles.map((r) => r.toString()).toList();
+        await _storage.saveRoles(rolesList);
+        
+        return rolesList;
       } else {
         throw Exception('Login failed with status: ${res.statusCode}');
       }
