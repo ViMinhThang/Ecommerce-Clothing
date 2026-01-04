@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/screens/product/product.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -147,7 +148,12 @@ class CatalogDetailScreen extends StatelessWidget {
                         );
                       },
                       onTap: () {
-                        // Navigate to detail if needed, currently not implemented in original code
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(productId: product.id),
+                          ),
+                        );
                       },
                     );
                   }, childCount: filterProvider.productViews.length),
