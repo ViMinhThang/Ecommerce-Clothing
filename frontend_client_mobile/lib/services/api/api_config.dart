@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-  static const String LOCAL_NETWORK_IP = "10.0.125.15";
+  static const String LOCAL_NETWORK_IP = "10.0.2.2";
 
   static String get baseUrl {
     if (kIsWeb) {

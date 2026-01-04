@@ -47,7 +47,11 @@ class ProductDetailProvider with ChangeNotifier {
       _isLoadingProduct = true;
       notifyListeners();
 
+      print('ProductDetailProvider: Fetching product with ID: $productId');
       _product = await ApiClient.getProductApiService().getProduct(productId);
+      print('ProductDetailProvider: Product loaded: ${_product?.name}');
+      print('ProductDetailProvider: Product variants count: ${_product?.variants.length}');
+      print('ProductDetailProvider: Product images count: ${_product?.images.length}');
 
       if (_product != null &&
           _product!.variants.isNotEmpty &&
@@ -59,9 +63,11 @@ class ProductDetailProvider with ChangeNotifier {
       }
 
       _isLoadingProduct = false;
-    } catch (e) {
+    } catch (e, stack) {
       _isLoadingProduct = false;
       _errorMessage = 'Failed to load product: $e';
+      print('ProductDetailProvider ERROR: $e');
+      print('Stack: $stack');
     }
     notifyListeners();
   }

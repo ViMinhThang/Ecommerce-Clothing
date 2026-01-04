@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/order_detail_view.dart';
 import 'package:frontend_client_mobile/models/order_statistics.dart';
 import 'package:frontend_client_mobile/models/order_view.dart';
 import 'package:retrofit/retrofit.dart';
@@ -18,8 +19,12 @@ abstract class OrderApiService {
     @Query("page") int page,
     @Query("size") int size,
   );
+  
   @GET("/api/orders/{id}")
   Future<OrderView> getOrder(@Path("id") int? id);
+  
+  @GET("/api/orders/{id}")
+  Future<OrderDetailView> getOrderDetail(@Path("id") int id);
   
   @POST("/api/orders")
   Future<OrderView> createOrder(@Body() OrderView order);
