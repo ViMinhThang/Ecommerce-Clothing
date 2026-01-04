@@ -179,6 +179,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         MaterialPageRoute(
           builder: (context) => StatusCheckoutScreen(
             orderNumber: response.id.toString(),
+            orderId: response.id,
           ),
         ),
       );

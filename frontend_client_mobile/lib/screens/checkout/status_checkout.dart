@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/profile/order_detail_screen.dart';
 
 class StatusCheckoutScreen extends StatelessWidget {
   final String orderNumber;
+  final int? orderId;
 
   const StatusCheckoutScreen({
     Key? key,
     this.orderNumber = '245877456333248',
+    this.orderId,
   }) : super(key: key);
 
   @override
@@ -86,12 +89,21 @@ class StatusCheckoutScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to home screen
-                    Navigator.pushNamedAndRemoveUntil(
-                      context, 
-                      '/home', 
-                      (route) => false,
-                    );
+                    if (orderId != null) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderDetailScreen(orderId: orderId!),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context, 
+                        '/home', 
+                        (route) => false,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -119,3 +131,4 @@ class StatusCheckoutScreen extends StatelessWidget {
     );
   }
 }
+

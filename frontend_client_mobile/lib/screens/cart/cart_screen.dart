@@ -233,7 +233,7 @@ class _CartScreenState extends State<CartScreen> {
         ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Checkbox
           SizedBox(

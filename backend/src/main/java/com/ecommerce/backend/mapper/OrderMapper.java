@@ -16,6 +16,7 @@ public class OrderMapper {
                 .buyerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
+                .createdDate(order.getCreatedDate())
                 .build();
     }
 
@@ -24,7 +25,11 @@ public class OrderMapper {
                 .id(order.getId())
                 .buyerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
                 .totalPrice(order.getTotalPrice())
+                .discountAmount(order.getDiscountAmount())
+                .finalPrice(order.getFinalPrice())
                 .status(order.getStatus())
+                .createdDate(order.getCreatedDate())
+                .voucherCode(order.getVoucher() != null ? order.getVoucher().getCode() : null)
                 .items(order.getOrderItems().stream()
                         .map(OrderMapper::toOrderItemView)
                         .collect(Collectors.toList()))

@@ -3,10 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/screens/auth/blank_form.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
 import 'package:frontend_client_mobile/screens/home/home_screen.dart';
+import 'package:frontend_client_mobile/screens/profile/account_screen.dart';
 import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialTab;
@@ -19,11 +22,22 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _selectedIndex;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialTab;
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final token = await TokenStorage().readAccessToken();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = token != null && token.isNotEmpty;
+      });
+    }
   }
 
   @override
@@ -34,14 +48,15 @@ class _MainScreenState extends State<MainScreen> {
         _selectedIndex = widget.initialTab;
       });
     }
+    _checkLoginStatus();
   }
 
-  final List<Widget> _screens = [
+  List<Widget> get _screens => [
     const HomeScreen(),
     const CatalogNavigator(),
     const WishListScreen(),
     const CartScreen(),
-    const _ProfilePlaceholder(),
+    _isLoggedIn ? const AccountScreen() : const _ProfilePlaceholder(),
   ];
 
   void _onItemTapped(int index) {
@@ -196,7 +211,7 @@ class _ProfilePlaceholder extends StatelessWidget {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Navigate to login screen
+                    Navigator.pushNamed(context, '/login');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -222,7 +237,12 @@ class _ProfilePlaceholder extends StatelessWidget {
                 height: 52,
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Navigate to register screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BlankFormScreen(),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.black,
