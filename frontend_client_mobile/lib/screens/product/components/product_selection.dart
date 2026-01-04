@@ -33,7 +33,9 @@ class ProductSelection extends StatelessWidget {
                 'No colors available',
                 style: TextStyle(color: Colors.grey),
               )
-            : Row(
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
                 children: provider.availableColors.map((colorName) {
                   final isSelected = provider.selectedColorName == colorName;
                   final isAvailable =
@@ -84,6 +86,7 @@ class ProductSelection extends StatelessWidget {
                     ),
                   );
                 }).toList(),
+              ),
               ),
 
         const SizedBox(height: 32),

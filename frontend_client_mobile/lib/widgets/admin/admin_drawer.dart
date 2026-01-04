@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/services/auth_service.dart';
 import '../../config/theme_config.dart';
 
 class AdminDrawer extends StatefulWidget {
@@ -149,22 +150,21 @@ class _AdminDrawerState extends State<AdminDrawer>
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      height: 220,
       decoration: BoxDecoration(
         color: AppTheme.primaryBlack,
         boxShadow: AppTheme.shadowMD,
       ),
       child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spaceLG),
+          padding: const EdgeInsets.all(AppTheme.spaceMD),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Avatar with elegant white border
               Container(
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.primaryWhite, width: 2),
@@ -181,30 +181,27 @@ class _AdminDrawerState extends State<AdminDrawer>
                     color: AppTheme.primaryWhite,
                     child: const Icon(
                       Icons.person,
-                      size: 32,
+                      size: 28,
                       color: AppTheme.primaryBlack,
                     ),
                   ),
                 ),
               ),
-              // Admin name
+              const SizedBox(height: 8),
               const Text(
                 'Admin Panel',
                 style: TextStyle(
                   color: AppTheme.primaryWhite,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
                 ),
               ),
-
-              const SizedBox(height: AppTheme.spaceXS),
-
-              // Role badge
+              const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceSM,
-                  vertical: AppTheme.spaceXS,
+                  horizontal: 8,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -217,7 +214,7 @@ class _AdminDrawerState extends State<AdminDrawer>
                   'Super Admin',
                   style: TextStyle(
                     color: AppTheme.primaryWhite,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -290,9 +287,12 @@ class _AdminDrawerState extends State<AdminDrawer>
             const SizedBox(height: AppTheme.spaceMD),
             // Logout button
             InkWell(
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                // TODO: implement logout
+                await AuthService().logout();
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                }
               },
               borderRadius: AppTheme.borderRadiusSM,
               child: Container(

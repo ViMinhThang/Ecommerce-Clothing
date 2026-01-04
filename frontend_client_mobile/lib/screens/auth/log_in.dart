@@ -27,14 +27,20 @@ class _LoginScreenState extends State<LoginScreen> {
     debugPrint('Login attempt started: ${_username.text.trim()}');
     setState(() => _loading = true);
     try {
-      await _authService.login(
+      final roles = await _authService.login(
         username: _username.text.trim(),
         password: _password.text,
       );
-      debugPrint('Login service call successful');
+      debugPrint('Login successful. Roles: $roles');
       if (!mounted) return;
-      debugPrint('Navigating to /home');
-      Navigator.pushReplacementNamed(context, '/home');
+      
+      if (roles.contains('ROLE_ADMIN')) {
+        debugPrint('Admin user - navigating to /dashboard');
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        debugPrint('Regular user - navigating to /home');
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
       debugPrint('Login error: $e');
       final msg = e.toString().replaceFirst('Exception: ', '');
