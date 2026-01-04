@@ -37,12 +37,12 @@ public class Role {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     @CreatedBy
     private User createdBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
     private User updatedBy;

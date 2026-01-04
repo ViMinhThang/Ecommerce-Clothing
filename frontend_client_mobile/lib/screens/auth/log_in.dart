@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const Text('Username: '),
                         SelectableText(
-                          'john.doe',
+                          'sys.admin',
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const Text('Password: '),
                         SelectableText(
-                          'password',
+                          '123456',
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ],
