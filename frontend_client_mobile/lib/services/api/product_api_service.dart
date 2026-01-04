@@ -20,6 +20,9 @@ abstract class ProductApiService {
   @GET("api/products/{id}")
   Future<Product> getProduct(@Path("id") int id);
 
+  @GET("api/products/getSimilar/{id}")
+  Future<List<ProductView>> getSimilarProduct(@Path("id") int id);
+
   @POST("api/products")
   @MultiPart()
   Future<Product> createProduct(

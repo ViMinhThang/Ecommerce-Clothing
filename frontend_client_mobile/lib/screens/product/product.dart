@@ -22,13 +22,15 @@ class ProductDetailScreen extends StatelessWidget {
       create: (_) =>
           ProductDetailProvider(productId: productId)
             ..fetchProductAndVariants(),
-      child: const _ProductDetailContent(),
+      child: _ProductDetailContent(productId: productId),
     );
   }
 }
 
 class _ProductDetailContent extends StatefulWidget {
-  const _ProductDetailContent();
+  final int productId;
+
+  const _ProductDetailContent({required this.productId});
 
   @override
   State<_ProductDetailContent> createState() => _ProductDetailContentState();
@@ -39,13 +41,11 @@ class _ProductDetailContentState extends State<_ProductDetailContent> {
 
   void _onNavItemTapped(int index) {
     if (index == _selectedNavIndex) return;
-    
+
     // Navigate to MainScreen with selected tab
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => MainScreen(initialTab: index),
-      ),
+      MaterialPageRoute(builder: (context) => MainScreen(initialTab: index)),
       (route) => false,
     );
   }
@@ -73,7 +73,7 @@ class _ProductDetailContentState extends State<_ProductDetailContent> {
                     SizedBox(height: 24),
                     ProductInfoTabs(),
                     SizedBox(height: 24),
-                    RelatedProducts(),
+                    RelatedProducts(productId: widget.productId),
                     SizedBox(height: 24),
                   ],
                 ),
