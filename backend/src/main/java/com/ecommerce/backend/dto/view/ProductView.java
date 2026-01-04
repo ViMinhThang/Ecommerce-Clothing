@@ -11,10 +11,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductView implements Serializable {
-    private long Id;
+    private long id;
     private String name;
     private String imageUrl; // Primary image URL
-    private List<String> imageUrls; // All image URLs
     private double basePrice;
     private double salePrice;
     private String description;
