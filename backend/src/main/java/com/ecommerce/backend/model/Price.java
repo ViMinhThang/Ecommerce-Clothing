@@ -41,13 +41,13 @@ public class Price {
     @JsonIgnore
     private LocalDateTime updatedDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "created_by")
     @JsonIgnore
     @CreatedBy
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "updated_by")
     @JsonIgnore
     @LastModifiedBy

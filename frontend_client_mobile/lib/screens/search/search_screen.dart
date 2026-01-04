@@ -6,8 +6,7 @@ import 'package:frontend_client_mobile/models/category_search_result.dart';
 import 'package:frontend_client_mobile/models/product_search_result.dart';
 import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_detail_screen.dart';
-import 'package:frontend_client_mobile/screens/product/product.dart';
-
+import 'package:frontend_client_mobile/screens/product_layout.dart';
 import 'package:frontend_client_mobile/utils/file_utils.dart';
 import 'package:provider/provider.dart';
 
@@ -70,9 +69,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onProductTap(ProductSearchResult product) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProductDetailScreen(productId: product.id),
-      ),
+      MaterialPageRoute(builder: (_) => const ProductPage()),
     );
   }
 

@@ -5,7 +5,6 @@ import com.ecommerce.backend.dto.view.ProductSearchView;
 import com.ecommerce.backend.dto.view.ProductView;
 import com.ecommerce.backend.dto.view.ProductVariantView;
 import com.ecommerce.backend.model.Product;
-import com.ecommerce.backend.service.AiRecommentService;
 import com.ecommerce.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -27,7 +25,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final AiRecommentService aiRecommentService;
+
     @GetMapping
     public Page<Product> getAllProducts(@RequestParam(required = false) String name, Pageable pageable) {
         if (name != null && !name.isEmpty()) {
@@ -97,10 +95,7 @@ public class ProductController {
         List<ProductVariantView> variants = productService.getProductVariants(id);
         return ResponseEntity.ok(variants);
     }
-    @GetMapping("/getSimilar/{id}")
-    public ResponseEntity<List<ProductView>> getSimilarProduct(@PathVariable Long id) {
-        return ResponseEntity.ok(aiRecommentService.getSimilarProducts(id));
-    }
+
     private ResponseEntity<Page<ProductView>> response(Page<ProductView> res) {
         if (res.isEmpty()) {
             return ResponseEntity.badRequest().build();
