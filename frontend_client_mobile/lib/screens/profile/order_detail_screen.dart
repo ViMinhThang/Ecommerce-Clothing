@@ -7,6 +7,8 @@ import 'package:frontend_client_mobile/services/api/api_config.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/providers/review_provider.dart';
+import 'package:frontend_client_mobile/screens/review/write_review_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -44,6 +46,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _order = order;
         _isLoading = false;
       });
+      if (order.status.toUpperCase() == 'DELIVERED') {
+        Provider.of<ReviewProvider>(context, listen: false)
+            .loadReviewedOrderItemIds(widget.orderId);
+      }
     } catch (e) {
       setState(() {
         _error = 'Failed to load order details';
@@ -518,6 +524,64 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ],
                 ),
+                if (_order!.status.toUpperCase() == 'DELIVERED')
+                  Consumer<ReviewProvider>(
+                    builder: (context, reviewProvider, _) {
+                      final isReviewed = reviewProvider.isOrderItemReviewed(item.id);
+                      if (isReviewed) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Reviewed',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.green.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: SizedBox(
+                          height: 32,
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => WriteReviewScreen(
+                                    orderItemId: item.id,
+                                    productName: item.productName ?? 'Product',
+                                    productImageUrl: _getImageUrl(item.imageUrl),
+                                  ),
+                                ),
+                              );
+                              if (result == true) {
+                                reviewProvider.loadReviewedOrderItemIds(widget.orderId);
+                              }
+                            },
+                            icon: const Icon(Icons.rate_review, size: 16),
+                            label: const Text('Review'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.black87,
+                              side: const BorderSide(color: Colors.black87),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),
