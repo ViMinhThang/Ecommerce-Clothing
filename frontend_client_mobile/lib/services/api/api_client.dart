@@ -10,6 +10,7 @@ import 'package:frontend_client_mobile/services/api/dashboard_api_service.dart';
 import 'package:frontend_client_mobile/services/api/filter_api_service.dart';
 import 'package:frontend_client_mobile/services/api/order_api_service.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';
+import 'package:frontend_client_mobile/services/api/review_api_service.dart';
 import 'package:frontend_client_mobile/services/api/search_api_service.dart';
 import 'package:frontend_client_mobile/services/api/size_api_service.dart';
 import 'package:frontend_client_mobile/services/api/user_api_service.dart';
@@ -37,6 +38,7 @@ class ApiClient {
   static CartApiService? _cartApiService;
   static AuthApiService? _authApiService;
   static VoucherApiService? _voucherApiService;
+  static ReviewApiService? _reviewApiService;
   static Dio get dio => _dio;
 
   static ProductApiService getProductApiService() {
@@ -109,6 +111,12 @@ class ApiClient {
     _voucherApiService ??= VoucherApiService(_dio);
     configInterceptor();
     return _voucherApiService!;
+  }
+
+  static ReviewApiService getReviewApiService() {
+    _reviewApiService ??= ReviewApiService(_dio);
+    configInterceptor();
+    return _reviewApiService!;
   }
 
   static String? _extractMessage(dynamic data) {

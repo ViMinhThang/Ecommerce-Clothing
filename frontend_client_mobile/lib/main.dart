@@ -7,6 +7,7 @@ import 'package:frontend_client_mobile/providers/search_provider.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/providers/voucher_provider.dart';
 import 'package:frontend_client_mobile/providers/order_provider.dart';
+import 'package:frontend_client_mobile/providers/review_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
@@ -47,6 +48,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => FilterProvider()),
         ChangeNotifierProvider(create: (context) => VoucherProvider()),
         ChangeNotifierProvider(create: (context) => OrderProvider()),
+        ChangeNotifierProvider(create: (context) => ReviewProvider()),
       ],
       child: const MyApp(),
     ),

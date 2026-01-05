@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/screens/profile/orders_screen.dart';
+import 'package:frontend_client_mobile/screens/review/reviews_screen.dart';
 import 'package:frontend_client_mobile/services/auth_service.dart';
 import 'package:frontend_client_mobile/services/token_storage.dart';
 
@@ -80,7 +81,12 @@ class _AccountScreenState extends State<AccountScreen> {
                   );
                 }),
                 const SizedBox(width: 12),
-                _buildActivityChip(Icons.star_border, 'Reviews', () {}),
+                _buildActivityChip(Icons.star_border, 'Reviews', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ReviewsScreen()),
+                  );
+                }),
               ],
             ),
             const SizedBox(height: 36),
