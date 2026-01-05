@@ -20,4 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status = :status")
     double sumTotalPriceByStatus(@Param("status") String status);
+
+    List<Order> findByUserIdAndStatus(Long userId, String status);
 }

@@ -27,6 +27,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final MaterialRepository materialRepository;
         private final SeasonRepository seasonRepository;
         private final VoucherRepository voucherRepository;
+        private final OrderRepository orderRepository;
+        private final OrderItemRepository orderItemRepository;
         private final PasswordEncoder passwordEncoder;
 
         @Override
@@ -49,7 +51,70 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
 
+                // Create a delivered order for john.doe to enable review feature testing
+                initDeliveredOrderForJohnDoe();
+
                 System.out.println("Seeding completed.");
+        }
+
+        private void initDeliveredOrderForJohnDoe() {
+                Optional<User> johnDoeOpt = userRepository.findByUsername("john_doe");
+                if (johnDoeOpt.isEmpty()) {
+                        System.out.println("john_doe user not found, skipping delivered order creation.");
+                        return;
+                }
+
+                User johnDoe = johnDoeOpt.get();
+
+                // Check if john_doe already has a delivered order
+                if (orderRepository.findByUserIdAndStatus(johnDoe.getId(), "DELIVERED").size() > 0) {
+                        System.out.println("Delivered order for john_doe already exists. Skipping.");
+                        return;
+                }
+
+                // Get some product variants to add to the order
+                List<ProductVariants> variants = productVariantsRepository.findAll();
+                if (variants.isEmpty()) {
+                        System.out.println("No product variants found, skipping delivered order creation.");
+                        return;
+                }
+
+                // Create a delivered order
+                Order order = new Order();
+                order.setUser(johnDoe);
+                order.setStatus("DELIVERED");
+                order.setTotalPrice(0);
+                order.setDiscountAmount(0);
+                order.setFinalPrice(0);
+                order = orderRepository.save(order);
+
+                // Add 2 items to the order
+                double totalPrice = 0;
+                List<OrderItem> orderItems = new ArrayList<>();
+
+                for (int i = 0; i < Math.min(2, variants.size()); i++) {
+                        ProductVariants variant = variants.get(i);
+                        double salePrice = variant.getPrice().getSalePrice();
+                        double basePrice = variant.getPrice().getBasePrice();
+                        double price = salePrice > 0 ? salePrice : basePrice;
+
+                        OrderItem item = new OrderItem();
+                        item.setOrder(order);
+                        item.setProductVariants(variant);
+                        item.setQuantity(1);
+                        item.setPriceAtPurchase(price);
+                        item.setStatus("DELIVERED");
+                        orderItems.add(item);
+                        totalPrice += price;
+                }
+
+                orderItemRepository.saveAll(orderItems);
+
+                order.setTotalPrice(totalPrice);
+                order.setFinalPrice(totalPrice);
+                orderRepository.save(order);
+
+                System.out.println("Created delivered order for john_doe with " + orderItems.size() + " items.");
         }
 
         private void initVouchers() {
