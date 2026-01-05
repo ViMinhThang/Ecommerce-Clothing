@@ -1,6 +1,7 @@
 package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.view.ProductView;
+import com.ecommerce.backend.model.Product;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.List;
@@ -8,4 +9,6 @@ import java.util.List;
 public interface AiRecommentService {
     List<ProductView> getSimilarProducts(long productId);
     public void buildCache() throws JsonProcessingException;
+    public void addNewProductToPython(Product product);
+
 }
