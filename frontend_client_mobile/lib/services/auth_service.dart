@@ -27,6 +27,7 @@ class AuthService {
             data['accessToken'] ?? data['access_token'] ?? data['token'];
         final refresh = data['refreshToken'] ?? data['refresh_token'];
         final roles = data['roles'] as List<dynamic>? ?? [];
+        final userId = data['id'] ?? data['userId'] ?? data['user_id'];
 
         if (access == null) throw Exception('No access token returned');
 
@@ -37,6 +38,10 @@ class AuthService {
         
         final rolesList = roles.map((r) => r.toString()).toList();
         await _storage.saveRoles(rolesList);
+        
+        if (userId != null) {
+          await _storage.saveUserId(int.tryParse(userId.toString()) ?? 0);
+        }
         
         return rolesList;
       } else {
