@@ -1,15 +1,13 @@
 package com.ecommerce.backend.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
+import java.util.Map;
 
+@Setter
+@Getter
 public class AiResponse {
-    private List<List<Double>> vectors;
-
-    public List<List<Double>> getVectors() {
-        return vectors;
-    }
-
-    public void setVectors(List<List<Double>> vectors) {
-        this.vectors = vectors;
-    }
+    private Map<Long, List<Long>> result;
 }

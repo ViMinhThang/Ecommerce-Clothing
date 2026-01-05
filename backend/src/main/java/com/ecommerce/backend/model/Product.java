@@ -2,6 +2,7 @@ package com.ecommerce.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -91,5 +92,10 @@ public class Product {
         return images.stream()
                 .map(ProductImage::getImageUrl)
                 .toList();
+    }
+    public String toBodyForPython(){
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.createObjectNode().put("id", this.id)
+                .put("name", name).toString();
     }
 }

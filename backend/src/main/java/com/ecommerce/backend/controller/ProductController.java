@@ -48,6 +48,7 @@ public class ProductController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images) throws IOException {
         System.out.println(productRequest.toString());
         Product createdProduct = productService.createProduct(productRequest, images);
+        aiRecommentService.addNewProductToPython(createdProduct);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
