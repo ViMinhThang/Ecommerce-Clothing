@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
 
 class ProductActions extends StatelessWidget {
@@ -80,7 +81,7 @@ class ProductActions extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: Colors.white.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
@@ -109,29 +110,41 @@ class ProductActions extends StatelessWidget {
                                         '${provider.quantity} item${provider.quantity > 1 ? 's' : ''} added successfully',
                                         style: GoogleFonts.lora(
                                           fontSize: 12,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.8,
+                                          color: Colors.white.withOpacity(
+                                            0.8,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    'View',
-                                    style: GoogleFonts.lora(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
+                                GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const MainScreen(initialTab: 3),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'View',
+                                      style: GoogleFonts.lora(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
                                     ),
                                   ),
                                 ),
