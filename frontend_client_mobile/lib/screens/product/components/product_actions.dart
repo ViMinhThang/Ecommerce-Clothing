@@ -3,10 +3,40 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:provider/provider.dart';
 
 class ProductActions extends StatelessWidget {
   const ProductActions({super.key});
+
+  void _showLoginDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Login Required', style: GoogleFonts.lora(fontWeight: FontWeight.w600)),
+        content: const Text('Please login to add items to your cart.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const MainScreen(initialTab: 4)),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            child: const Text('Login', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +89,24 @@ class ProductActions extends StatelessWidget {
                       provider.selectedVariantId == null
                   ? null
                   : () async {
+                      final tokenStorage = TokenStorage();
+                      final isLoggedIn = await tokenStorage.isLoggedIn();
+                      
+                      if (!context.mounted) return;
+                      
+                      if (!isLoggedIn) {
+                        _showLoginDialog(context);
+                        return;
+                      }
+                      
+                      final userId = await tokenStorage.readUserId() ?? 1;
+                      
                       final cartProvider = Provider.of<CartProvider>(
                         context,
                         listen: false,
                       );
                       final success = await cartProvider.addToCart(
-                        userId: 1,
+                        userId: userId,
                         variantId: provider.selectedVariantId!,
                         quantity: provider.quantity,
                       );

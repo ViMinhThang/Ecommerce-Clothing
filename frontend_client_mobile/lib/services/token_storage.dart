@@ -6,6 +6,7 @@ class TokenStorage {
   static const _keyAccess = 'ACCESS_TOKEN';
   static const _keyRefresh = 'REFRESH_TOKEN';
   static const _keyRoles = 'USER_ROLES';
+  static const _keyUserId = 'USER_ID';
 
   Future<void> saveAccessToken(String token) async {
     try {
@@ -22,6 +23,12 @@ class TokenStorage {
   Future<void> saveRoles(List<String> roles) async {
     try {
       await _storage.write(key: _keyRoles, value: jsonEncode(roles));
+    } catch (_) {}
+  }
+
+  Future<void> saveUserId(int userId) async {
+    try {
+      await _storage.write(key: _keyUserId, value: userId.toString());
     } catch (_) {}
   }
 
@@ -52,6 +59,21 @@ class TokenStorage {
     return [];
   }
 
+  Future<int?> readUserId() async {
+    try {
+      final userIdStr = await _storage.read(key: _keyUserId);
+      if (userIdStr != null) {
+        return int.tryParse(userIdStr);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> isLoggedIn() async {
+    final token = await readAccessToken();
+    return token != null && token.isNotEmpty;
+  }
+
   Future<bool> isAdmin() async {
     final roles = await readRoles();
     return roles.contains('ROLE_ADMIN');
@@ -62,6 +84,8 @@ class TokenStorage {
       await _storage.delete(key: _keyAccess);
       await _storage.delete(key: _keyRefresh);
       await _storage.delete(key: _keyRoles);
+      await _storage.delete(key: _keyUserId);
     } catch (_) {}
   }
 }
+

@@ -4,6 +4,10 @@ import 'package:frontend_client_mobile/models/order_detail_view.dart';
 import 'package:frontend_client_mobile/models/order_item_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -85,6 +89,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return '${ApiConfig.baseUrl}$imageUrl';
   }
 
+  void _onNavItemTapped(int index) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => MainScreen(initialTab: index)),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,6 +125,55 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
       body: _buildBody(),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Consumer2<CartProvider, WishlistProvider>(
+      builder: (context, cartProvider, wishlistProvider, child) {
+        final cartItemCount = cartProvider.cart?.items.length ?? 0;
+        final wishlistItemCount = wishlistProvider.itemCount;
+
+        return BottomNavigationBar(
+          items: [
+            const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+            BottomNavigationBarItem(
+              icon: Badge(
+                isLabelVisible: wishlistItemCount > 0,
+                label: Text(
+                  wishlistItemCount.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.black,
+                child: const Icon(Icons.favorite_border),
+              ),
+              label: 'Wishlist',
+            ),
+            BottomNavigationBarItem(
+              icon: Badge(
+                isLabelVisible: cartItemCount > 0,
+                label: Text(
+                  cartItemCount.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.black,
+                child: const Icon(Icons.shopping_bag_outlined),
+              ),
+              label: 'Cart',
+            ),
+            const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+          ],
+          currentIndex: 4, // Profile tab since orders are accessed from profile
+          onTap: _onNavItemTapped,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.grey,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+        );
+      },
     );
   }
 
