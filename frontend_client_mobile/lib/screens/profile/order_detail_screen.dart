@@ -95,7 +95,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+            }
+          },
         ),
         title: Text(
           'Order #${widget.orderId}',
@@ -141,10 +147,91 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           _buildStatusCard(),
           const SizedBox(height: 12),
+          _buildShippingAddressCard(),
+          const SizedBox(height: 12),
           _buildItemsCard(),
           const SizedBox(height: 12),
           _buildPriceCard(),
           const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShippingAddressCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_shipping_outlined, size: 20, color: Colors.grey.shade700),
+              const SizedBox(width: 10),
+              Text(
+                'Shipping Address',
+                style: GoogleFonts.lora(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          // Placeholder content - replace when backend is ready
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.location_on_outlined, size: 24, color: Colors.grey.shade600),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Address not available',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Shipping address will be displayed here when available from backend.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
