@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../config/theme_config.dart';
 
 /// Utility class for common form input decorations
@@ -7,9 +8,11 @@ class FormDecorations {
   /// Standard input decoration for form fields
   static InputDecoration standard(String label) => InputDecoration(
     labelText: label,
-    labelStyle: AppTheme.bodyMedium.copyWith(
+    labelStyle: GoogleFonts.outfit(
       color: AppTheme.mediumGray,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w700,
+      fontSize: 10,
+      letterSpacing: 1.5,
     ),
     border: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,

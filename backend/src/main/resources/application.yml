@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/ecommercedb
     username: postgres
-    password: "204863"
+    password: 204863
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -11,8 +11,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 50
     defer-datasource-initialization: true
   sql:
     init:
       mode: always
       separator: ;;
+      data-locations: classpath:data.sql
+#      data-locations: classpath:data.sql, classpath:data_crawl.sql
+#  204863
+#  "230204"

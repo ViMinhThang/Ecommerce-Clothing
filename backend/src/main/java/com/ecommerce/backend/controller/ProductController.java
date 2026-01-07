@@ -3,7 +3,9 @@ package com.ecommerce.backend.controller;
 import com.ecommerce.backend.dto.ProductRequest;
 import com.ecommerce.backend.dto.view.ProductSearchView;
 import com.ecommerce.backend.dto.view.ProductView;
+import com.ecommerce.backend.dto.view.ProductVariantView;
 import com.ecommerce.backend.model.Product;
+import com.ecommerce.backend.service.AiRecommentService;
 import com.ecommerce.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -24,7 +27,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-
+    private final AiRecommentService aiRecommentService;
     @GetMapping
     public Page<Product> getAllProducts(@RequestParam(required = false) String name, Pageable pageable) {
         if (name != null && !name.isEmpty()) {
@@ -39,11 +42,13 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@ModelAttribute ProductRequest productRequest,
-            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> createProduct(
+            @ModelAttribute ProductRequest productRequest,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images) throws IOException {
         System.out.println(productRequest.toString());
-        Product createdProduct = productService.createProduct(productRequest, image);
+        Product createdProduct = productService.createProduct(productRequest, images);
+        aiRecommentService.addNewProductToPython(createdProduct);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
@@ -51,10 +56,11 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
             @ModelAttribute ProductRequest productRequest,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "existingImageIds", required = false) List<Long> existingImageIds) {
         try {
             System.out.println("Received request for product: " + id);
-            Product updatedProduct = productService.updateProduct(id, productRequest, image);
+            Product updatedProduct = productService.updateProduct(id, productRequest, images, existingImageIds);
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,6 +93,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.searchByNameAndCategory(name, categoryId));
     }
 
+    @GetMapping("/variants/{id}")
+    public ResponseEntity<List<ProductVariantView>> getProductVariants(@PathVariable Long id) {
+        List<ProductVariantView> variants = productService.getProductVariants(id);
+        return ResponseEntity.ok(variants);
+    }
+    @GetMapping("/getSimilar/{id}")
+    public ResponseEntity<List<ProductView>> getSimilarProduct(@PathVariable Long id) {
+        return ResponseEntity.ok(aiRecommentService.getSimilarProducts(id));
+    }
     private ResponseEntity<Page<ProductView>> response(Page<ProductView> res) {
         if (res.isEmpty()) {
             return ResponseEntity.badRequest().build();

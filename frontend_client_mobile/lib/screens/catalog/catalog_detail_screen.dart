@@ -4,6 +4,9 @@ import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/screens/product/product.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -20,6 +23,7 @@ class CatalogDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     final filterProvider = context.watch<FilterProvider>();
+    final wishlistProvider = context.watch<WishlistProvider>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final fp = context.read<FilterProvider>();
@@ -135,7 +139,22 @@ class CatalogDetailScreen extends StatelessWidget {
                 sliver: SliverGrid(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final product = filterProvider.productViews[index];
-                    return ProductViewCard(product: product);
+                    return ProductViewCard(
+                      product: product,
+                      isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
+                      onFavoriteToggle: () {
+                        wishlistProvider.toggleWishlist(
+                          productId: product.id,
+                        );
+                      },
+                      onTap: () {
+                        Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(productId: product.id),
+                          ),
+                        );
+                      },
+                    );
                   }, childCount: filterProvider.productViews.length),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -178,7 +197,7 @@ class _ChipButton extends StatelessWidget {
 
 /// Widget riêng cho sort chip, tự nó là Stateful nên screen chính vẫn Stateless
 class _SortChip extends StatefulWidget {
-  const _SortChip({super.key});
+  const _SortChip();
 
   @override
   State<_SortChip> createState() => _SortChipState();

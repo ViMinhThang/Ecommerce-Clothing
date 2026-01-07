@@ -18,7 +18,10 @@ class ProductService {
     return response.data;
   }
 
-  Future<Product> createProduct(Product product, {MultipartFile? image}) async {
+  Future<Product> createProduct(
+    Product product, {
+    List<MultipartFile>? images,
+  }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
@@ -27,14 +30,15 @@ class ProductService {
       product.description,
       product.category.id!,
       variantsJson,
-      image,
+      images ?? [],
     );
   }
 
   Future<Product> updateProduct(
     int id,
     Product product, {
-    MultipartFile? image,
+    List<MultipartFile>? images,
+    List<int>? existingImageIds,
   }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
@@ -46,7 +50,8 @@ class ProductService {
       product.description,
       product.category.id!,
       variantsJson,
-      image,
+      images ?? [],
+      existingImageIds ?? [],
     );
     return response;
   }
@@ -68,7 +73,10 @@ class ProductService {
     return response.data;
   }
 
-  Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
+  Future<Null> filterProduct(int categoryId) async {
     return null;
+  }
+  Future<List<ProductView>> getSimilarProduct(int productId) async {
+    return await _apiService.getSimilarProduct(productId);
   }
 }

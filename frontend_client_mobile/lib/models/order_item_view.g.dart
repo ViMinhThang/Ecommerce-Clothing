@@ -9,7 +9,7 @@ part of 'order_item_view.dart';
 OrderItemView _$OrderItemViewFromJson(Map<String, dynamic> json) =>
     OrderItemView(
       id: (json['id'] as num).toInt(),
-      productName: json['productName'] as String,
+      productName: json['productName'] as String?,
       size: json['size'] as String?,
       color: json['color'] as String?,
       material: json['material'] as String?,

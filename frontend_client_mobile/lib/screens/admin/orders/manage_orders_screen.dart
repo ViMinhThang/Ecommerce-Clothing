@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:google_fonts/google_fonts.dart';
 import '../../../config/theme_config.dart';
 import '../../../models/order_view.dart';
 import '../../../providers/order_provider.dart';
@@ -18,10 +19,12 @@ class ManageOrdersScreen extends BaseManageScreen<OrderView> {
 }
 
 class _ManageOrdersScreenState
-    extends BaseManageScreenState<OrderView, ManageOrdersScreen> {
+    extends BaseManageScreenState<OrderView, ManageOrdersScreen>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   String _selectedSort = _SortOption.defaults.first.id;
   String _selectedStatus = _StatusOption.defaults.first.id;
+  late AnimationController _animationController;
 
   OrderProvider get _orderProvider =>
       Provider.of<OrderProvider>(context, listen: false);
@@ -29,11 +32,16 @@ class _ManageOrdersScreenState
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _scrollController.addListener(_handleInfiniteScroll);
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _scrollController
       ..removeListener(_handleInfiniteScroll)
       ..dispose();
@@ -50,7 +58,7 @@ class _ManageOrdersScreenState
   String getEntityName() => 'order';
 
   @override
-  IconData getEmptyStateIcon() => Icons.shopping_bag_outlined;
+  IconData getEmptyStateIcon() => Icons.shopping_basket_outlined;
 
   @override
   String getSearchHint() => 'Search Order...';
@@ -59,13 +67,17 @@ class _ManageOrdersScreenState
   void fetchData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _orderProvider.initialize();
+      _orderProvider.initialize().then((_) {
+        _animationController.forward(from: 0);
+      });
     });
   }
 
   @override
   void refreshData() {
-    _orderProvider.refreshAll();
+    _orderProvider.refreshAll().then((_) {
+      _animationController.forward(from: 0);
+    });
   }
 
   @override
@@ -129,15 +141,15 @@ class _ManageOrdersScreenState
   Future<void> handleDelete(OrderView item) async {
     final confirmed = await showConfirmationDialog(
       context,
-      title: 'Delete Confirm',
-      message: 'Bạn có chắc muốn xóa đơn #${item.id}?',
+      title: 'CANCEL ORDER',
+      message: 'Are you sure you want to cancel order #${item.id}?',
     );
     if (confirmed && mounted) {
       await _orderProvider.deleteOrder(item.id);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Đã xóa đơn hàng #${item.id}')));
+        ).showSnackBar(SnackBar(content: Text('Cancelled order #${item.id}')));
       }
     }
   }
@@ -156,15 +168,43 @@ class _ManageOrdersScreenState
           controller: searchController,
           onChanged: onSearchChanged,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildStatusDropdown()),
+            Expanded(
+              child: _buildAnimatedMenu(
+                index: 0,
+                child: _buildStatusDropdown(),
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildSortDropdown()),
+            Expanded(
+              child: _buildAnimatedMenu(index: 1, child: _buildSortDropdown()),
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildAnimatedMenu({required int index, required Widget child}) {
+    final animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(
+        (0.1 + (index * 0.1)).clamp(0, 1.0),
+        (0.5 + (index * 0.1)).clamp(0, 1.0),
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.1),
+          end: Offset.zero,
+        ).animate(animation),
+        child: child,
+      ),
     );
   }
 
@@ -175,7 +215,7 @@ class _ManageOrdersScreenState
       return SliverFillRemaining(
         child: EmptyStateWidget(
           icon: getEmptyStateIcon(),
-          message: 'Không có đơn hàng nào',
+          message: 'No orders matched your criteria',
         ),
       );
     }
@@ -184,10 +224,28 @@ class _ManageOrdersScreenState
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return _OrderTile(
-          order: item,
-          onEdit: () => navigateToEdit(item),
-          onDelete: () => handleDelete(item),
+        final animation = CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            (0.1 + (index * 0.05)).clamp(0, 1.0),
+            (0.6 + (index * 0.05)).clamp(0, 1.0),
+            curve: Curves.easeOutQuart,
+          ),
+        );
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: _OrderTile(
+              order: item,
+              onEdit: () => navigateToEdit(item),
+              onDelete: () => handleDelete(item),
+            ),
+          ),
         );
       },
     );
@@ -200,43 +258,53 @@ class _ManageOrdersScreenState
 
     if (isLoading && stats == null) {
       return Container(
-        height: 120,
+        height: 140,
         decoration: BoxDecoration(
-          color: AppTheme.primaryWhite,
-          borderRadius: AppTheme.borderRadiusMD,
-          border: AppTheme.borderThin,
-          boxShadow: AppTheme.shadowSM,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black.withOpacity(0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: const Center(child: CircularProgressIndicator()),
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+        ),
       );
     }
 
     if (stats == null) {
       return Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        height: 140,
+        width: double.infinity,
         decoration: BoxDecoration(
-          color: AppTheme.primaryWhite,
-          borderRadius: AppTheme.borderRadiusMD,
-          border: AppTheme.borderThin,
-          boxShadow: AppTheme.shadowSM,
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Chưa có dữ liệu thống kê',
-              style: AppTheme.h4.copyWith(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Nhấn "Tải lại" để đồng bộ dữ liệu thống kê từ API.',
-              style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+              'REVENUE TRACKER UNAVAILABLE',
+              style: GoogleFonts.outfit(
+                color: Colors.white38,
+                fontSize: 10,
+                letterSpacing: 2,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: provider.fetchStatistics,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tải lại'),
+              icon: const Icon(Icons.refresh, color: Colors.white, size: 18),
+              label: Text(
+                'SYNC DATA',
+                style: GoogleFonts.outfit(color: Colors.white, fontSize: 12),
+              ),
             ),
           ],
         ),
@@ -245,92 +313,111 @@ class _ManageOrdersScreenState
 
     final cards = [
       _StatCardData(
-        title: 'Hôm nay',
-        periodLabel: 'Theo ngày',
+        title: 'DAILY',
+        periodLabel: 'TODAY',
         orders: stats.totalOrderByDay,
         revenue: stats.totalPriceByDay,
-        icon: Icons.today_outlined,
-        accent: const Color(0xFF1E88E5),
+        icon: Icons.flash_on_rounded,
+        accent: const Color(0xFF6366F1),
       ),
       _StatCardData(
-        title: 'Tuần này',
-        periodLabel: '7 ngày gần nhất',
+        title: 'WEEKLY',
+        periodLabel: '7D',
         orders: stats.totalOrderByWeek,
         revenue: stats.totalPriceByWeek,
-        icon: Icons.calendar_view_week,
-        accent: const Color(0xFF43A047),
+        icon: Icons.auto_graph_rounded,
+        accent: const Color(0xFF10B981),
       ),
       _StatCardData(
-        title: 'Tháng này',
-        periodLabel: '30 ngày gần nhất',
+        title: 'MONTHLY',
+        periodLabel: '30D',
         orders: stats.totalOrderByMonth,
         revenue: stats.totalPriceByMonth,
-        icon: Icons.calendar_today_outlined,
-        accent: const Color(0xFFFB8C00),
+        icon: Icons.account_balance_wallet_rounded,
+        accent: const Color(0xFFF59E0B),
       ),
     ];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusMD,
-        border: AppTheme.borderThin,
-        boxShadow: AppTheme.shadowSM,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMD),
-            child: Row(
-              children: [
-                Text(
-                  'Thống kê nhanh',
-                  style: AppTheme.h4.copyWith(fontSize: 16),
-                ),
-                const SizedBox(width: 8),
-                if (isLoading)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                const Spacer(),
-                IconButton(
-                  tooltip: 'Làm mới thống kê',
-                  splashRadius: 18,
-                  onPressed: provider.fetchStatistics,
-                  icon: const Icon(Icons.refresh, size: 18),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'LIVE ANALYTICS',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 2,
+                color: Colors.black,
+              ),
             ),
+            const Spacer(),
+            if (isLoading)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: Colors.black,
+                ),
+              )
+            else
+              GestureDetector(
+                onTap: provider.fetchStatistics,
+                child: const Icon(
+                  Icons.refresh,
+                  size: 16,
+                  color: Colors.black26,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            clipBehavior: Clip.none,
+            scrollDirection: Axis.horizontal,
+            itemCount: cards.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final animation = CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(
+                  (index * 0.1).clamp(0, 0.4),
+                  (0.4 + (index * 0.1)).clamp(0, 1.0),
+                  curve: Curves.easeOut,
+                ),
+              );
+              return ScaleTransition(
+                scale: animation,
+                child: _StatisticChip(data: cards[index]),
+              );
+            },
           ),
-          SizedBox(
-            height: 88,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMD),
-              scrollDirection: Axis.horizontal,
-              itemCount: cards.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) =>
-                  _StatisticChip(data: cards[index]),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildStatusDropdown() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedStatus,
-      decoration: _dropdownDecoration('Status'),
+      decoration: _dropdownDecoration('STATUS'),
+      icon: const Icon(Icons.tune_rounded, size: 18, color: Colors.black45),
       items: _StatusOption.defaults
           .map(
             (status) => DropdownMenuItem(
               value: status.id,
-              child: Text(status.label, style: AppTheme.bodyMedium),
+              child: Text(
+                status.label,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           )
           .toList(),
@@ -351,12 +438,20 @@ class _ManageOrdersScreenState
   Widget _buildSortDropdown() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedSort,
-      decoration: _dropdownDecoration('Sort'),
+      decoration: _dropdownDecoration('SORT'),
+      icon: const Icon(Icons.sort_rounded, size: 18, color: Colors.black45),
       items: _SortOption.defaults
           .map(
             (option) => DropdownMenuItem(
               value: option.id,
-              child: Text(option.label, style: AppTheme.bodyMedium),
+              child: Text(
+                option.label,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           )
           .toList(),
@@ -379,22 +474,27 @@ class _ManageOrdersScreenState
 
   InputDecoration _dropdownDecoration(String label) => InputDecoration(
     labelText: label,
-    labelStyle: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+    labelStyle: GoogleFonts.outfit(
+      color: Colors.black38,
+      fontSize: 10,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.5,
+    ),
     border: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: AppTheme.borderThin.top,
+      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: AppTheme.borderThin.top,
+      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: const BorderSide(color: AppTheme.mediumGray, width: 1.5),
+      borderSide: const BorderSide(color: Colors.black, width: 1),
     ),
     filled: true,
-    fillColor: AppTheme.primaryWhite,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
   );
 
   void _handleInfiniteScroll() {
@@ -406,21 +506,6 @@ class _ManageOrdersScreenState
     }
   }
 
-  static Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      case 'processing':
-        return Colors.blue;
-      default:
-        return AppTheme.mediumGray;
-    }
-  }
-
   static String _shortId(int id) {
     final value = id.toString();
     if (value.length <= 2) return value.padLeft(2, '0');
@@ -428,12 +513,13 @@ class _ManageOrdersScreenState
   }
 
   static String _formatCurrency(double value) {
+    if (value == 0) return '0';
     final digits = value.toInt().toString();
     final buffer = StringBuffer();
     for (int i = 0; i < digits.length; i++) {
       buffer.write(digits[i]);
       final remaining = digits.length - i - 1;
-      if (remaining > 0 && remaining % 3 == 0) buffer.write('.');
+      if (remaining > 0 && remaining % 3 == 0) buffer.write(',');
     }
     return buffer.toString();
   }
@@ -462,91 +548,113 @@ class _OrderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusMD,
-        border: AppTheme.borderThin,
-        boxShadow: AppTheme.shadowSM,
+        color: Colors.white,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryBlack,
-            shape: BoxShape.circle,
-            boxShadow: AppTheme.shadowSM,
-          ),
-          child: Center(
-            child: Text(
-              '#${_ManageOrdersScreenState._shortId(order.id)}',
-              style: AppTheme.h4.copyWith(
-                color: AppTheme.primaryWhite,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          order.buyerEmail.isEmpty ? 'Unknown Customer' : order.buyerEmail,
-          style: AppTheme.h4.copyWith(fontSize: 16),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '₫${_ManageOrdersScreenState._formatCurrency(order.totalPrice)} • ${_ManageOrdersScreenState._formatDate(order.createdDate)}',
-                style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _ManageOrdersScreenState._getStatusColor(
-                    order.status,
-                  ).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: _ManageOrdersScreenState._getStatusColor(
-                      order.status,
-                    ).withOpacity(0.5),
-                    width: 0.5,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: AppTheme.borderRadiusSM,
+          onTap: onEdit,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Minimalist ID Circle
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: AppTheme.borderRadiusXS,
                   ),
-                ),
-                child: Text(
-                  order.status.toUpperCase(),
-                  style: AppTheme.bodySmall.copyWith(
-                    color: _ManageOrdersScreenState._getStatusColor(
-                      order.status,
+                  child: Center(
+                    child: Text(
+                      _ManageOrdersScreenState._shortId(order.id),
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.buyerEmail.isEmpty
+                            ? 'ANONYMOUS_BUYER'
+                            : order.buyerEmail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_ManageOrdersScreenState._formatDate(order.createdDate)} • ORDER_ID: ${order.id}',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.black38,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₫${_ManageOrdersScreenState._formatCurrency(order.totalPrice)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _StatusBadge(status: order.status),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<String>(
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    color: Colors.black26,
+                  ),
+                  onSelected: (val) {
+                    if (val == 'delete') onDelete();
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Cancel Order',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
-              tooltip: 'Edit Order',
-              splashRadius: 20,
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Color(0xFFEF5350)),
-              tooltip: 'Delete Order',
-              splashRadius: 20,
-              onPressed: onDelete,
-            ),
-          ],
         ),
       ),
     );
@@ -641,22 +749,29 @@ class _StatisticChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: data.accent.withOpacity(0.06),
-        borderRadius: AppTheme.borderRadiusMD,
-        border: Border.all(color: data.accent.withOpacity(0.3), width: 0.8),
+        color: Colors.white,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: data.accent.withOpacity(0.15),
-              shape: BoxShape.circle,
+              color: data.accent.withOpacity(0.1),
+              borderRadius: AppTheme.borderRadiusXS,
             ),
-            child: Icon(data.icon, color: data.accent, size: 18),
+            child: Icon(data.icon, color: data.accent, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -666,18 +781,28 @@ class _StatisticChip extends StatelessWidget {
               children: [
                 Text(
                   data.title,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.mediumGray,
-                    fontWeight: FontWeight.w600,
+                  style: GoogleFonts.outfit(
+                    color: Colors.black38,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${data.orders} ORDERS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
                 Text(
-                  '${data.orders} đơn',
-                  style: AppTheme.h4.copyWith(fontSize: 16),
-                ),
-                Text(
                   '₫${_ManageOrdersScreenState._formatCurrency(data.revenue)}',
-                  style: AppTheme.bodySmall.copyWith(color: data.accent),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: data.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -685,5 +810,47 @@ class _StatisticChip extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _getStatusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: AppTheme.borderRadiusXS,
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: GoogleFonts.outfit(
+          color: color,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return const Color(0xFF10B981);
+      case 'pending':
+        return const Color(0xFFF59E0B);
+      case 'cancelled':
+        return const Color(0xFFEF4444);
+      case 'processing':
+        return const Color(0xFF6366F1);
+      default:
+        return Colors.grey;
+    }
   }
 }

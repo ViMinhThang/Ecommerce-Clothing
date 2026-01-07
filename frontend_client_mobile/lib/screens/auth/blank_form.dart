@@ -126,20 +126,17 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildSocialButton(
-                    icon: 'G',
-                    color: Colors.black,
+                    type: 'google',
                     onTap: () {},
                   ),
                   const SizedBox(width: 16),
                   _buildSocialButton(
-                    icon: 'F',
-                    color: Colors.blue,
+                    type: 'facebook',
                     onTap: () {},
                   ),
                   const SizedBox(width: 16),
                   _buildSocialButton(
-                    icon: 'A',
-                    color: Colors.black,
+                    type: 'apple',
                     onTap: () {},
                   ),
                 ],
@@ -252,8 +249,7 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
   }
 
   Widget _buildSocialButton({
-    required String icon,
-    required Color color,
+    required String type, // 'google', 'facebook', 'apple'
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -262,20 +258,66 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
         width: 80,
         height: 56,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          color: _getSocialButtonColor(type),
+          border: Border.all(
+            color: type == 'google' ? Colors.grey[300]! : Colors.transparent,
+          ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Center(
-          child: Text(
-            icon,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
+          child: _getSocialIcon(type),
         ),
       ),
     );
+  }
+
+  Color _getSocialButtonColor(String type) {
+    switch (type) {
+      case 'google':
+        return Colors.white;
+      case 'facebook':
+        return const Color(0xFF1877F2);
+      case 'apple':
+        return Colors.black;
+      default:
+        return Colors.white;
+    }
+  }
+
+  Widget _getSocialIcon(String type) {
+    switch (type) {
+      case 'google':
+        return ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [
+              Color(0xFF4285F4),
+              Color(0xFF34A853),
+              Color(0xFFFBBC05),
+              Color(0xFFEA4335),
+            ],
+          ).createShader(bounds),
+          child: const Text(
+            'G',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      case 'facebook':
+        return const Icon(Icons.facebook, color: Colors.white, size: 28);
+      case 'apple':
+        return const Icon(Icons.apple, color: Colors.white, size: 30);
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }

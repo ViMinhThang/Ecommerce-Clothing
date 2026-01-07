@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/color.dart' as model;
 import 'package:frontend_client_mobile/providers/color_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../config/theme_config.dart';
 import '../../../widgets/shared/admin_list_item.dart';
@@ -17,12 +18,30 @@ class ManageColorsScreen extends BaseManageScreen<model.Color> {
 }
 
 class _ManageColorsScreenState
-    extends BaseManageScreenState<model.Color, ManageColorsScreen> {
+    extends BaseManageScreenState<model.Color, ManageColorsScreen>
+    with SingleTickerProviderStateMixin {
   ColorProvider get _colorProvider =>
       Provider.of<ColorProvider>(context, listen: false);
 
+  late AnimationController _animationController;
+
   @override
-  String getScreenTitle() => 'Color Management';
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  String getScreenTitle() => 'Product Colors';
 
   @override
   int getSelectedIndex() => 6;
@@ -39,13 +58,17 @@ class _ManageColorsScreenState
   @override
   void fetchData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _colorProvider.fetchColors();
+      _colorProvider.fetchColors().then((_) {
+        if (mounted) _animationController.forward(from: 0);
+      });
     });
   }
 
   @override
   void refreshData() {
-    _colorProvider.fetchColors();
+    _colorProvider.fetchColors().then((_) {
+      if (mounted) _animationController.forward(from: 0);
+    });
   }
 
   @override
@@ -91,51 +114,105 @@ class _ManageColorsScreenState
       await _colorProvider.removeColor(item.id as int);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Deleted "${item.colorName}"')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted "${item.colorName}"'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.primaryBlack,
+          ),
+        );
       }
     }
   }
 
   Widget _buildLeadingWidget(model.Color item) {
+    Color? circleColor;
+    if (item.colorCode != null && item.colorCode!.isNotEmpty) {
+      try {
+        final hexString = item.colorCode!.replaceAll('#', '');
+        circleColor = Color(int.parse('FF$hexString', radix: 16));
+      } catch (e) {
+        circleColor = null;
+      }
+    }
+
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: AppTheme.offWhite,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFB0B0B0), width: 1),
+        color: circleColor ?? Colors.black,
+        borderRadius: AppTheme.borderRadiusXS,
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Icon(
-        Icons.palette_outlined,
-        color: AppTheme.primaryBlack,
-        size: 20,
-      ),
+      child: circleColor == null
+          ? const Center(
+              child: Icon(
+                Icons.palette_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
+            )
+          : null,
     );
   }
 
-  String _getItemTitle(model.Color item) => item.colorName;
+  String _getItemTitle(model.Color item) => item.colorName.toUpperCase();
 
   Widget? _buildSubtitle(model.Color item) {
-    return StatusBadge(label: item.status);
+    return Row(
+      children: [
+        StatusBadge(label: item.status),
+        const SizedBox(width: 8),
+        Text(
+          item.colorCode ?? '#??????',
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 11,
+            color: Colors.grey[500],
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget buildList() {
     final items = getItems();
+
     return SliverList.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return AdminListItem(
-          leading: _buildLeadingWidget(item),
-          title: _getItemTitle(item),
-          subtitle: _buildSubtitle(item),
-          onEdit: () => navigateToEdit(item),
-          onDelete: () => handleDelete(item),
-          editTooltip: 'Edit Color',
-          deleteTooltip: 'Delete Color',
+
+        final animation = CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            (index * 0.1).clamp(0, 1.0),
+            ((index * 0.1) + 0.5).clamp(0, 1.0),
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.2),
+              end: Offset.zero,
+            ).animate(animation),
+            child: AdminListItem(
+              leading: _buildLeadingWidget(item),
+              title: _getItemTitle(item),
+              subtitle: _buildSubtitle(item),
+              onEdit: () => navigateToEdit(item),
+              onDelete: () => handleDelete(item),
+              editTooltip: 'Edit Color',
+              deleteTooltip: 'Delete Color',
+            ),
+          ),
         );
       },
     );

@@ -1,4 +1,3 @@
-import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_variant.dart';
 
 class CartItem {

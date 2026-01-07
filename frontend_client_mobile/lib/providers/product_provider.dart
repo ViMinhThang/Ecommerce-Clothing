@@ -58,11 +58,12 @@ class ProductProvider with ChangeNotifier {
     await fetchProducts(refresh: true);
   }
 
-  Future<void> addProduct(Product product, {XFile? image}) async {
+  Future<void> addProduct(Product product, {List<XFile>? images}) async {
     try {
+      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
       final newProduct = await _productService.createProduct(
         product,
-        image: await FileUtils.convertXFileToMultipart(image),
+        images: multipartImages,
       );
       _products.add(newProduct);
       notifyListeners();
@@ -71,12 +72,18 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProduct(Product product, {XFile? image}) async {
+  Future<void> updateProduct(
+    Product product, {
+    List<XFile>? images,
+    List<int>? existingImageIds,
+  }) async {
     try {
+      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
       final updatedProduct = await _productService.updateProduct(
         product.id,
         product,
-        image: await FileUtils.convertXFileToMultipart(image),
+        images: multipartImages,
+        existingImageIds: existingImageIds,
       );
       final index = _products.indexWhere((p) => p.id == product.id);
       if (index != -1) {
@@ -102,18 +109,13 @@ class ProductProvider with ChangeNotifier {
     int categoryId, {
     bool refresh = false,
   }) async {
-    final isNewCategory = categoryId != _currentCategoryId;
-    final shouldRefresh = refresh || isNewCategory;
-
-    if (!_shouldProceedWithFetch(shouldRefresh)) return;
-
-    if (shouldRefresh) {
-      _resetPaginationState();
+    if (refresh || categoryId != _currentCategoryId) {
+      _currentPage = 0;
       _productViews = [];
       _currentCategoryId = categoryId;
     }
 
-    _updateLoadingState(true, isRefresh: shouldRefresh);
+    _updateLoadingState(true, isRefresh: refresh);
 
     try {
       final response = await _productService.getProductsByCategory(
@@ -122,11 +124,7 @@ class ProductProvider with ChangeNotifier {
         defaultPageSize,
       );
 
-      _handlePageResponse(
-        response,
-        isRefresh: shouldRefresh,
-        updateViews: true,
-      );
+      _handlePageResponse(response, isRefresh: refresh, updateViews: true);
     } catch (e, stack) {
       _logError('fetchProductsByCategory', e, stack);
     } finally {
@@ -136,8 +134,8 @@ class ProductProvider with ChangeNotifier {
 
   void loadMore() => fetchProducts(refresh: false);
 
-  void loadMoreByCategory(int categoryId) {
-    fetchProductsByCategory(categoryId, refresh: false);
+  void loadMoreByCategory(int selectedCategoryId) {
+    fetchProductsByCategory(selectedCategoryId, refresh: false);
   }
 
   void prepareForCategory(int categoryId) {

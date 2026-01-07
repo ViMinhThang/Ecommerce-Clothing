@@ -16,6 +16,7 @@ public class OrderMapper {
                 .buyerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
+                .createdDate(order.getCreatedDate())
                 .build();
     }
 
@@ -24,11 +25,14 @@ public class OrderMapper {
                 .id(order.getId())
                 .buyerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
                 .totalPrice(order.getTotalPrice())
+                .discountAmount(order.getDiscountAmount())
+                .finalPrice(order.getFinalPrice())
                 .status(order.getStatus())
+                .createdDate(order.getCreatedDate())
+                .voucherCode(order.getVoucher() != null ? order.getVoucher().getCode() : null)
                 .items(order.getOrderItems().stream()
                         .map(OrderMapper::toOrderItemView)
-                        .collect(Collectors.toList())
-                )
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -43,17 +47,17 @@ public class OrderMapper {
 
         if (pv != null) {
             if (pv.getProduct() != null) {
-                productName = pv.getProduct().getName();     // đổi thành field thật trong Product
-                imageUrl = pv.getProduct().getImageUrl();    // đổi thành field thật trong Product
+                productName = pv.getProduct().getName(); // đổi thành field thật trong Product
+                imageUrl = pv.getProduct().getPrimaryImageUrl(); // Changed to use primary image
             }
             if (pv.getSize() != null) {
-                size = pv.getSize().getSizeName();              // hoặc getValue(), tuỳ model Size
+                size = pv.getSize().getSizeName(); // hoặc getValue(), tuỳ model Size
             }
             if (pv.getColor() != null) {
-                color = pv.getColor().getColorName();            // tuỳ model Color
+                color = pv.getColor().getColorName(); // tuỳ model Color
             }
             if (pv.getMaterial() != null) {
-                material = pv.getMaterial().getMaterialName();      // tuỳ model Material
+                material = pv.getMaterial().getMaterialName(); // tuỳ model Material
             }
         }
 

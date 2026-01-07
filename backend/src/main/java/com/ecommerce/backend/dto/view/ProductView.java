@@ -5,14 +5,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @AllArgsConstructor
 @Getter
 @Setter
 public class ProductView implements Serializable {
-    private long Id;
+    private long id;
     private String name;
-    private String imageUrl;
+    private String imageUrl; // Primary image URL
     private double basePrice;
     private double salePrice;
     private String description;

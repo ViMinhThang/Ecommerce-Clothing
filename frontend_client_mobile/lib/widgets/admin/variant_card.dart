@@ -72,7 +72,7 @@ class VariantCard extends StatelessWidget {
   Widget _buildColorDropdown() {
     final hasColor = colors.contains(variant.color);
     return DropdownButtonFormField<models.Color>(
-      value: hasColor ? variant.color : null,
+      initialValue: hasColor ? variant.color : null,
       items: colors
           .map(
             (color) => DropdownMenuItem<models.Color>(
@@ -85,7 +85,7 @@ class VariantCard extends StatelessWidget {
           )
           .toList(),
       onChanged: (value) => onColorChanged(index, value!),
-      decoration: FormDecorations.standard('Color'),
+      decoration: FormDecorations.standard('CHROMATIC_INDEX'),
       isExpanded: true,
     );
   }
@@ -93,7 +93,7 @@ class VariantCard extends StatelessWidget {
   Widget _buildSizeDropdown() {
     final hasSize = sizes.contains(variant.size);
     return DropdownButtonFormField<models.Size>(
-      value: hasSize ? variant.size : null,
+      initialValue: hasSize ? variant.size : null,
       items: sizes
           .map(
             (size) => DropdownMenuItem<models.Size>(
@@ -103,7 +103,7 @@ class VariantCard extends StatelessWidget {
           )
           .toList(),
       onChanged: (value) => onSizeChanged(index, value!),
-      decoration: FormDecorations.standard('Size'),
+      decoration: FormDecorations.standard('DIMENSIONAL_SCALE'),
     );
   }
 
@@ -113,7 +113,7 @@ class VariantCard extends StatelessWidget {
         Expanded(
           child: TextFormField(
             initialValue: variant.price.basePrice.toString(),
-            decoration: FormDecorations.standard('Base Price'),
+            decoration: FormDecorations.standard('VALUATION_BASE'),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (value) => onBasePriceChanged(index, value),
             validator: (value) =>
@@ -124,7 +124,7 @@ class VariantCard extends StatelessWidget {
         Expanded(
           child: TextFormField(
             initialValue: variant.price.salePrice.toString(),
-            decoration: FormDecorations.standard('Sale Price'),
+            decoration: FormDecorations.standard('VALUATION_ADJUSTED'),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (value) => onSalePriceChanged(index, value),
             validator: (value) =>
@@ -139,11 +139,21 @@ class VariantCard extends StatelessWidget {
     return Positioned(
       top: 0,
       right: 0,
-      child: IconButton(
-        icon: const Icon(Icons.close, size: 18, color: Color(0xFFEF5350)),
-        splashRadius: 16,
-        tooltip: 'Remove variant',
-        onPressed: () => onRemove(index),
+      child: GestureDetector(
+        onTap: () => onRemove(index),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.red[900]!.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.only(
+              bottomLeft: const Radius.circular(4),
+              topRight: AppTheme.radiusSM == 2.0
+                  ? const Radius.circular(2)
+                  : Radius.circular(AppTheme.radiusSM),
+            ),
+          ),
+          child: Icon(Icons.close, size: 14, color: Colors.red[900]),
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 package com.ecommerce.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Product {
 
     @Id
@@ -30,14 +34,18 @@ public class Product {
 
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String imageUrl;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @OrderBy("displayOrder ASC")
+    private List<ProductImage> images = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductVariants> variants = new ArrayList<>();
@@ -46,20 +54,50 @@ public class Product {
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
+    @JsonIgnore
     private LocalDateTime createdDate;
 
     @Column(updatable = true, nullable = true)
     @LastModifiedDate
+    @JsonIgnore
     private LocalDateTime updatedDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     @CreatedBy
+    @JsonIgnore
     private User createdBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     @LastModifiedBy
+    @JsonIgnore
     private User updatedBy;
 
+    /**
+     * Get the primary image URL for this product.
+     * Returns the URL of the image marked as primary, or the first image if none is
+     * marked.
+     */
+    public String getPrimaryImageUrl() {
+        return images.stream()
+                .filter(ProductImage::getIsPrimary)
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElseGet(() -> images.isEmpty() ? null : images.get(0).getImageUrl());
+    }
+
+    /**
+     * Get all image URLs for this product in display order.
+     */
+    public List<String> getImageUrls() {
+        return images.stream()
+                .map(ProductImage::getImageUrl)
+                .toList();
+    }
+    public String toBodyForPython(){
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.createObjectNode().put("id", this.id)
+                .put("name", name).toString();
+    }
 }

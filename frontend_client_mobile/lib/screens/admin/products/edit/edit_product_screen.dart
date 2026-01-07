@@ -112,7 +112,7 @@ class _EditProductScreenState
                 ),
               ],
             ),
-            child: const ActionButtonsSection(),
+            child: ActionButtonsSection(formKey: _formKey),
           ),
         ),
       ),

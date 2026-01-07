@@ -4,7 +4,7 @@ part 'order_item_view.g.dart';
 @JsonSerializable()
 class OrderItemView {
   final int id;
-  final String productName;
+  final String? productName;
   final String? size;
   final String? color;
   final String? material;
@@ -14,7 +14,7 @@ class OrderItemView {
 
   OrderItemView({
     required this.id,
-    required this.productName,
+    this.productName,
     this.size,
     this.color,
     this.material,
@@ -25,8 +25,8 @@ class OrderItemView {
 
   factory OrderItemView.fromJson(Map<String, dynamic> json) {
     return OrderItemView(
-      id: json['id'],
-      productName: json['productName'] ?? '',
+      id: json['id'] ?? 0,
+      productName: json['productName'],
       size: json['size'],
       color: json['color'],
       material: json['material'],
@@ -35,4 +35,6 @@ class OrderItemView {
       quantity: json['quantity'] ?? 0,
     );
   }
+
+  Map<String, dynamic> toJson() => _$OrderItemViewToJson(this);
 }

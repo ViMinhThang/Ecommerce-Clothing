@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/theme_config.dart';
 
 /// Reusable search bar widget for admin screens
@@ -22,23 +23,25 @@ class AdminSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryWhite,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: AppTheme.borderRadiusXS,
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.1),
+          width: 0.5,
+        ),
       ),
       child: TextField(
         controller: controller,
         focusNode: focusNode,
-        style: AppTheme.bodyMedium,
+        style: GoogleFonts.inter(fontSize: 13, color: AppTheme.primaryBlack),
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
-          hintText: hintText,
-          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+          prefixIcon: const Icon(Icons.search, size: 18, color: Colors.black38),
+          hintText: hintText.toUpperCase(),
+          hintStyle: GoogleFonts.outfit(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.black26,
+            letterSpacing: 1.5,
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,

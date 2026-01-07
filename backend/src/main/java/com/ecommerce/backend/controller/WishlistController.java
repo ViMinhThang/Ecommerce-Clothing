@@ -1,43 +1,57 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.WishlistDTO;
+
+import com.ecommerce.backend.dto.view.WishlistItemView;
+
 import com.ecommerce.backend.service.WishlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/wishlists")
+@RequestMapping("/api/wishlist")
 @RequiredArgsConstructor
 public class WishlistController {
+
     private final WishlistService wishlistService;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<WishlistDTO> getWishlist(@PathVariable Long userId) {
-        return ResponseEntity.ok(wishlistService.getWishlist(userId));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<WishlistItemView>> getWishlist(@PathVariable Long userId) {
+        List<WishlistItemView> wishlist = wishlistService.getWishlistByUserId(userId);
+        return ResponseEntity.ok(wishlist);
     }
 
-    @PostMapping("/{userId}/items/{productId}")
-    public ResponseEntity<WishlistDTO> addToWishlist(@PathVariable Long userId, @PathVariable Long productId) {
-        return new ResponseEntity<>(wishlistService.addToWishlist(userId, productId), HttpStatus.CREATED);
+    @PostMapping("/add")
+    public ResponseEntity<WishlistItemView> addToWishlist(@RequestBody Map<String, Long> request) {
+        Long userId = request.get("userId");
+        Long productId = request.get("productId");
+
+        if (userId == null || productId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        WishlistItemView item = wishlistService.addToWishlist(userId, productId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(item);
     }
 
-    @DeleteMapping("/{userId}/items/{productId}")
-    public ResponseEntity<WishlistDTO> removeFromWishlist(@PathVariable Long userId, @PathVariable Long productId) {
-        return ResponseEntity.ok(wishlistService.removeFromWishlist(userId, productId));
-    }
-
-    @DeleteMapping("/{userId}/clear")
-    public ResponseEntity<Void> clearWishlist(@PathVariable Long userId) {
-        wishlistService.clearWishlist(userId);
+    @DeleteMapping("/user/{userId}/product/{productId}")
+    public ResponseEntity<Void> removeFromWishlist(
+            @PathVariable Long userId,
+            @PathVariable Long productId) {
+        wishlistService.removeFromWishlist(userId, productId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{userId}/check/{productId}")
-    public ResponseEntity<Boolean> isFavorite(@PathVariable Long userId, @PathVariable Long productId) {
-        return ResponseEntity.ok(wishlistService.isFavorite(userId, productId));
+    @GetMapping("/user/{userId}/product/{productId}/check")
+    public ResponseEntity<Map<String, Boolean>> isInWishlist(
+            @PathVariable Long userId,
+            @PathVariable Long productId) {
+        boolean isInWishlist = wishlistService.isProductInWishlist(userId, productId);
+        return ResponseEntity.ok(Map.of("isInWishlist", isInWishlist));
+
     }
 }

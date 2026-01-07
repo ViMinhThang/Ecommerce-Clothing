@@ -1,6 +1,7 @@
 package com.ecommerce.backend.exception;
 
 import com.ecommerce.backend.response.APIResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -31,6 +32,20 @@ public class MyGlobalExceptionHandler {
         String message = e.getMessage();
         APIResponse<String> apiResponse = new APIResponse<>(message, e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<APIResponse<String>> myEntityNotFoundException(EntityNotFoundException e) {
+        String message = e.getMessage();
+        APIResponse<String> apiResponse = new APIResponse<>(message, e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<APIResponse<String>> myIllegalArgumentException(IllegalArgumentException e) {
+        String message = e.getMessage();
+        APIResponse<String> apiResponse = new APIResponse<>(message, e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(APIException.class)

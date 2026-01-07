@@ -14,7 +14,12 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByCreatedDateBetween(LocalDateTime startOfMonth, LocalDateTime endOfMonth);
-    Page<Order> findAllByStatus(String status, Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE UPPER(o.status) = UPPER(:status)")
+    Page<Order> findAllByStatus(@Param("status") String status, Pageable pageable);
+
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status = :status")
     double sumTotalPriceByStatus(@Param("status") String status);
+
+    List<Order> findByUserIdAndStatus(Long userId, String status);
 }

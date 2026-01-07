@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
 import '../../../../../config/theme_config.dart';
 
 class ActionButtonsSection extends StatelessWidget {
-  const ActionButtonsSection({super.key});
+  final GlobalKey<FormState>? formKey;
+
+  const ActionButtonsSection({super.key, this.formKey});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class ActionButtonsSection extends StatelessWidget {
                 disabledForegroundColor: AppTheme.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppTheme.borderRadiusXS,
                 ),
                 elevation: 0,
               ),
@@ -39,12 +42,14 @@ class ActionButtonsSection extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      viewModel.isEditing ? 'SAVE CHANGES' : 'CREATE PRODUCT',
-                      style: AppTheme.button.copyWith(
+                      viewModel.isEditing
+                          ? 'COMMIT_CHANGES'
+                          : 'INITIALIZE_PRODUCT',
+                      style: GoogleFonts.outfit(
                         color: AppTheme.primaryWhite,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
                       ),
                     ),
             ),
@@ -60,16 +65,16 @@ class ActionButtonsSection extends StatelessWidget {
                 side: const BorderSide(color: AppTheme.primaryBlack, width: 1),
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppTheme.borderRadiusXS,
                 ),
               ),
               child: Text(
-                'CANCEL',
-                style: AppTheme.button.copyWith(
+                'ABORT',
+                style: GoogleFonts.outfit(
                   color: AppTheme.primaryBlack,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
                 ),
               ),
             ),
@@ -82,11 +87,13 @@ class ActionButtonsSection extends StatelessWidget {
   Future<void> _handleSave(BuildContext context) async {
     final viewModel = Provider.of<EditProductViewModel>(context, listen: false);
     try {
-      final formKey = Form.of(context).widget.key as GlobalKey<FormState>;
-      if (!viewModel.validateForm(formKey)) return;
+      // Use the passed formKey if available, otherwise validate through viewModel
+      if (formKey != null) {
+        if (!viewModel.validateForm(formKey!)) return;
+      }
 
       await viewModel.saveProduct();
-      if (Form.of(context).mounted) {
+      if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -112,7 +119,7 @@ class ActionButtonsSection extends StatelessWidget {
         );
       }
     } catch (e) {
-      if (Form.of(context).mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

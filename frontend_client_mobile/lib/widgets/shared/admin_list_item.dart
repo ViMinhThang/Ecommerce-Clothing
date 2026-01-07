@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/theme_config.dart';
 
 class AdminListItem extends StatelessWidget {
@@ -26,20 +27,35 @@ class AdminListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusMD,
-        border: AppTheme.borderThin,
-        boxShadow: AppTheme.shadowSM,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
         leading: leading,
-        title: Text(title, style: AppTheme.h4.copyWith(fontSize: 16)),
+        title: Text(
+          title,
+          style: GoogleFonts.outfit(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
+            color: Colors.black,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: subtitle != null
-            ? Padding(padding: const EdgeInsets.only(top: 4), child: subtitle)
+            ? Padding(padding: const EdgeInsets.only(top: 6), child: subtitle)
             : null,
         trailing: _buildActions(),
       ),

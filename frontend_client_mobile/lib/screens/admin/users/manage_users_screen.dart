@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/user_item_view.dart';
 import 'package:frontend_client_mobile/models/user_search_result.dart';
 import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../config/theme_config.dart';
@@ -24,16 +25,22 @@ class ManageUsersScreen extends BaseManageScreen<UserItemView> {
 }
 
 class _ManageUsersScreenState
-    extends BaseManageScreenState<UserItemView, ManageUsersScreen> {
+    extends BaseManageScreenState<UserItemView, ManageUsersScreen>
+    with SingleTickerProviderStateMixin {
   String _searchQuery = '';
   bool _showSuggestions = false;
   late FocusNode _searchFocusNode;
   Timer? _searchDebounce;
+  late AnimationController _animationController;
 
   @override
   void initState() {
     _searchFocusNode = FocusNode();
     _searchFocusNode.addListener(_handleFocusChange);
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
     super.initState();
   }
 
@@ -42,6 +49,7 @@ class _ManageUsersScreenState
     _searchDebounce?.cancel();
     _searchFocusNode.removeListener(_handleFocusChange);
     _searchFocusNode.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -64,13 +72,17 @@ class _ManageUsersScreenState
   void fetchData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<UserProvider>().initialize();
+      context.read<UserProvider>().initialize().then((_) {
+        if (mounted) _animationController.forward(from: 0);
+      });
     });
   }
 
   @override
   void refreshData() {
-    context.read<UserProvider>().refreshUsers();
+    context.read<UserProvider>().refreshUsers().then((_) {
+      if (mounted) _animationController.forward(from: 0);
+    });
   }
 
   @override
@@ -138,12 +150,36 @@ class _ManageUsersScreenState
   }
 
   Widget _buildLeadingWidget(UserItemView item) {
-    return CircleAvatar(
-      backgroundColor: AppTheme.offWhite,
-      radius: 24,
+    // Generate a consistent color based on the user's name
+    final nameHash = item.name.hashCode;
+    final primaryColor = Colors.primaries[nameHash % Colors.primaries.length];
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        borderRadius: AppTheme.borderRadiusXS,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primaryColor.withValues(alpha: 0.8), primaryColor],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
       child: Text(
         item.name.substring(0, 1).toUpperCase(),
-        style: AppTheme.h4.copyWith(fontSize: 18),
+        style: GoogleFonts.outfit(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -155,17 +191,21 @@ class _ManageUsersScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          item.email ?? '—',
-          style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+          item.email ?? 'NO EMAIL',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: Colors.black45,
+            fontWeight: FontWeight.w400,
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Row(
           children: [
             StatusBadge(
-              label: item.roles.isEmpty ? 'N/A' : item.roles.first,
+              label: item.roles.isEmpty ? 'USER' : item.roles.first,
               type: StatusBadgeType.userRole,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             StatusBadge(
               label: item.status,
               type: StatusBadgeType.activeInactive,
@@ -183,15 +223,34 @@ class _ManageUsersScreenState
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return AdminListItem(
-          leading: _buildLeadingWidget(item),
-          title: _getItemTitle(item),
-          subtitle: _buildSubtitle(item),
-          onTap: () => _openUserDetail(item.id, fallbackName: item.name),
-          onEdit: () => navigateToEdit(item),
-          onDelete: () => handleDelete(item),
-          editTooltip: 'Edit User',
-          deleteTooltip: 'Delete User',
+
+        final animation = CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            (index * 0.08).clamp(0, 1.0),
+            ((index * 0.08) + 0.4).clamp(0, 1.0),
+            curve: Curves.easeOutQuart,
+          ),
+        );
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: AdminListItem(
+              leading: _buildLeadingWidget(item),
+              title: _getItemTitle(item),
+              subtitle: _buildSubtitle(item),
+              onTap: () => _openUserDetail(item.id, fallbackName: item.name),
+              onEdit: () => navigateToEdit(item),
+              onDelete: () => handleDelete(item),
+              editTooltip: 'Edit User',
+              deleteTooltip: 'Delete User',
+            ),
+          ),
         );
       },
     );

@@ -3,18 +3,19 @@ import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/providers/dashboard_provider.dart';
 import 'package:frontend_client_mobile/providers/filter_provider.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
-import 'package:frontend_client_mobile/providers/order_provider.dart';
-import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/providers/search_provider.dart';
+import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:frontend_client_mobile/providers/voucher_provider.dart';
+import 'package:frontend_client_mobile/providers/order_provider.dart';
+import 'package:frontend_client_mobile/providers/review_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
-import 'package:frontend_client_mobile/screens/auth/auth_gate.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/products/manage_products_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.dart';
-
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
+import 'package:frontend_client_mobile/screens/admin/vouchers/manage_vouchers_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
@@ -25,8 +26,10 @@ import 'package:frontend_client_mobile/config/theme_config.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/checkout/checkout_screen.dart';
+import 'package:frontend_client_mobile/providers/favorite_provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
-import 'package:frontend_client_mobile/screens/wishlist/wishlist_screen.dart';
+import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(
@@ -36,13 +39,16 @@ void main() {
         ChangeNotifierProvider(create: (context) => CategoryProvider()),
         ChangeNotifierProvider(create: (context) => ColorProvider()),
         ChangeNotifierProvider(create: (context) => SizeProvider()),
-        ChangeNotifierProvider(create: (context) => FilterProvider()),
-        ChangeNotifierProvider(create: (context) => OrderProvider()),
         ChangeNotifierProvider(create: (context) => DashboardProvider()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => SearchProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => WishListProvider()),
+        ChangeNotifierProvider(create: (context) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (context) => WishlistProvider()),
+        ChangeNotifierProvider(create: (context) => FilterProvider()),
+        ChangeNotifierProvider(create: (context) => VoucherProvider()),
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
+        ChangeNotifierProvider(create: (context) => ReviewProvider()),
       ],
       child: const MyApp(),
     ),
@@ -55,28 +61,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'E-Commerce Admin',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/dashboard',
+      initialRoute: '/home',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
-        "/home": (context) => const MainScreen(),
-        '/dashboard': (context) =>
-            const AuthGate(child: DashboardScreen(), requireAdmin: true),
+        "/home": (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as int?;
+          return MainScreen(initialTab: args ?? 0);
+        },
+        // '/dashboard': (context) =>
+        //     const AuthGate(child: DashboardScreen(), requireAdmin: true),
+        '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
         '/categories': (context) => const ManageCategoriesScreen(),
         '/users': (context) => const ManageUsersScreen(),
         '/orders': (context) => const ManageOrdersScreen(),
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
+        '/vouchers': (context) => const ManageVouchersScreen(),
         '/cart': (context) => const CartScreen(),
         '/checkout': (context) => const CheckoutScreen(),
-        '/wishlist': (context) => const WishListScreen(),
+        '/favorite': (context) => const FavoriteScreen(),
       },
       theme: ThemeData(
         useMaterial3: false,
         brightness: Brightness.light,
+        textTheme: GoogleFonts.loraTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: AppTheme.background,
         primaryColor: AppTheme.primaryBlack,
         colorScheme: ColorScheme(

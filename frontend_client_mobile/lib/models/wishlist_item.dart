@@ -1,27 +1,33 @@
-import 'package:frontend_client_mobile/models/product.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-class WishListItem {
+part 'wishlist_item.g.dart';
+
+@JsonSerializable()
+class WishlistItem {
+  final int id;
   final int productId;
-  final String productName;
+  final String? productName;
+  final String? productDescription;
   final String? imageUrl;
-  final double price;
-  final Product product;
+  final double? basePrice;
+  final double? salePrice;
+  final String? categoryName;
+  final String? addedAt;
 
-  WishListItem({
+  WishlistItem({
+    required this.id,
     required this.productId,
-    required this.productName,
+    this.productName,
+    this.productDescription,
     this.imageUrl,
-    required this.price,
-    required this.product,
+    this.basePrice,
+    this.salePrice,
+    this.categoryName,
+    this.addedAt,
   });
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WishListItem &&
-          runtimeType == other.runtimeType &&
-          productId == other.productId;
+  factory WishlistItem.fromJson(Map<String, dynamic> json) =>
+      _$WishlistItemFromJson(json);
 
-  @override
-  int get hashCode => productId.hashCode;
+  Map<String, dynamic> toJson() => _$WishlistItemToJson(this);
 }
