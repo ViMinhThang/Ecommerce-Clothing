@@ -54,6 +54,9 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Cart cart;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Wishlist wishlist;
+
     @Column(nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdDate;
