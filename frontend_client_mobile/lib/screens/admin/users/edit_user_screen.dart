@@ -48,7 +48,7 @@ class _EditUserScreenState
   );
 
   @override
-  String getScreenTitle() => isEditing ? 'IDENTITY_REVISION' : 'NEW_IDENTITY';
+  String getScreenTitle() => isEditing ? 'Edit User' : 'New User';
 
   @override
   int getSelectedIndex() => 3;
@@ -174,7 +174,7 @@ class _EditUserScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'IDENTITY_MANIFESTO',
+                  'User Profile',
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontSize: 10,
@@ -184,7 +184,7 @@ class _EditUserScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isEditing ? 'REVISING_PROFILE' : 'INITIALIZING_ACCOUNT',
+                  isEditing ? 'Edit Profile' : 'New Account',
                   style: GoogleFonts.outfit(
                     color: Colors.white70,
                     fontSize: 24,
@@ -262,7 +262,7 @@ class _EditUserScreenState
             ),
             const SizedBox(height: 24),
             Text(
-              'SYNCHRONIZING_MANIFESTO...',
+              'Loading profile data...',
               style: GoogleFonts.outfit(
                 fontSize: 10,
                 letterSpacing: 2,
@@ -279,12 +279,12 @@ class _EditUserScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 40),
-        _buildSectionHeader('CORE IDENTITY BIOMETRICS'),
+        _buildSectionHeader('Personal Information'),
         _buildAnimatedField(
           index: 0,
           child: _buildTextField(
             controller: _fullNameController,
-            label: 'FULL LEGAL IDENTIFICATION',
+            label: 'Full Name',
             icon: Icons.badge_outlined,
             hint: 'ENTER FULL NAME',
             onChanged: (_) => setState(() {}),
@@ -295,7 +295,7 @@ class _EditUserScreenState
           index: 1,
           child: _buildTextField(
             controller: _emailController,
-            label: 'DIGITAL ADDRESS (EMAIL)',
+            label: 'Email Address',
             icon: Icons.alternate_email_rounded,
             hint: 'USER@DOMAIN.COM',
             keyboard: TextInputType.emailAddress,
@@ -306,7 +306,7 @@ class _EditUserScreenState
           index: 2,
           child: _buildTextField(
             controller: _birthDayController,
-            label: 'TEMPORAL ORIGIN (BIRTHDAY)',
+            label: 'Birthday',
             icon: Icons.cake_outlined,
             hint: 'YYYY-MM-DD',
             readOnly: true,
@@ -382,14 +382,14 @@ class _EditUserScreenState
             hintStyle: GoogleFonts.inter(color: Colors.black12, fontSize: 13),
             prefixIcon: Icon(icon, size: 18, color: Colors.black26),
             filled: true,
-            fillColor: Colors.black.withOpacity(0.02),
+            fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
+              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
+              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,

@@ -3,13 +3,13 @@ import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/products/edit/section/form_sections.dart';
-import 'package:frontend_client_mobile/screens/admin/products/edit/section/action_buttons_section.dart';
 import 'package:frontend_client_mobile/widgets/common/discard_dialog.dart';
 import 'package:frontend_client_mobile/widgets/common/loading_overlay.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/product.dart';
 import '../../../../providers/category_provider.dart';
 import '../../../../providers/product_provider.dart';
+import '../../../../features/admin/product/edit/sections/action_buttons_section.dart';
 import '../../../admin/base/base_edit_screen.dart';
 
 class EditProductScreen extends BaseEditScreen<Product> {
@@ -63,7 +63,12 @@ class _EditProductScreenState
 
   @override
   bool validateForm() {
-    return _viewModel.validateForm(_formKey);
+    final error = _viewModel.validateForm(_formKey);
+    if (error != null) {
+      showErrorMessage(error);
+      return false;
+    }
+    return true;
   }
 
   @override

@@ -77,8 +77,8 @@ class EditProductViewModel extends ChangeNotifier {
     selectedCategory = existingProduct?.category;
     if (existingProduct != null) {
       _variants = existingProduct!.variants.map((v) => v.copyWith()).toList();
-      // Initialize existing image IDs
       _existingImageIds = existingProduct!.images.map((img) => img.id).toList();
+      print("exsiting image ids " + _existingImageIds.toString());
     }
     await loadInitialData();
   }
@@ -192,11 +192,11 @@ class EditProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool validateForm(GlobalKey<FormState> formKey) {
-    if (!formKey.currentState!.validate()) return false;
-    if (selectedCategory == null) return false;
-    if (_variants.isEmpty) return false;
-    return true;
+  String? validateForm(GlobalKey<FormState> formKey) {
+    if (!formKey.currentState!.validate()) return 'Please fix form errors';
+    if (selectedCategory == null) return 'Please select a category';
+    if (_variants.isEmpty) return 'Please add at least one variant';
+    return null; // null means valid
   }
 
   Future<void> saveProduct() async {

@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/features/admin/product/edit/widgets/image_widgets.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:provider/provider.dart';
-
 import 'package:google_fonts/google_fonts.dart';
-import '../../../config/theme_config.dart';
-import '../../../models/role_view.dart';
-import '../../../models/user_request.dart';
-import '../../../providers/user_provider.dart';
-import '../../../services/role_service.dart';
-import '../../../utils/form_decorations.dart';
+import 'package:frontend_client_mobile/config/theme_config.dart';
+import 'package:frontend_client_mobile/models/role_view.dart';
+import 'package:frontend_client_mobile/models/user_request.dart';
+import 'package:frontend_client_mobile/providers/user_provider.dart';
+import 'package:frontend_client_mobile/services/role_service.dart';
+import 'package:frontend_client_mobile/features/admin/shared/widgets/admin_form_components.dart';
 import '../base/base_edit_screen.dart';
 
 class CreateUserScreen extends BaseEditScreen<void> {
@@ -36,6 +36,10 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
   String? _rolesError;
   late AnimationController _animationController;
 
+  static final _emailPattern = RegExp(
+    r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+  );
+
   @override
   void initState() {
     _animationController = AnimationController(
@@ -51,10 +55,6 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
     _animationController.dispose();
     super.dispose();
   }
-
-  final RegExp _emailPattern = RegExp(
-    r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
-  );
 
   @override
   String getScreenTitle() => 'ACCOUNT_INITIALIZATION';
@@ -112,7 +112,6 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       roles: List<String>.from(_selectedRoles),
       birthDay: _selectedBirthDay,
     );
-
     await context.read<UserProvider>().createUser(request);
   }
 
@@ -156,15 +155,12 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Background Pattern
           Positioned.fill(
             child: Opacity(
               opacity: 0.15,
-              child: CustomPaint(painter: _TechnicalPatternPainter()),
+              child: CustomPaint(painter: TechnicalPatternPainter()),
             ),
           ),
-
-          // Main Title
           Positioned(
             left: 24,
             top: 60,
@@ -193,8 +189,6 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
               ],
             ),
           ),
-
-          // Decorative Icon
           Positioned(
             right: 24,
             bottom: 40,
@@ -211,8 +205,6 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
               ),
             ),
           ),
-
-          // Decorative Lines at bottom
           Positioned(
             bottom: 40,
             left: 24,
@@ -230,10 +222,10 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 40),
-        _buildSectionHeader('ACCOUNT_CREDENTIALS'),
+        const AdminSectionHeader(title: 'Account Information'),
         _buildAnimatedField(
           index: 0,
-          child: _buildTextField(
+          child: AdminInputField(
             controller: _usernameController,
             label: 'UNIQUE_SYSTEM_ID (USERNAME)',
             icon: Icons.alternate_email_rounded,
@@ -246,32 +238,28 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
           child: Row(
             children: [
               Expanded(
-                child: _buildTextField(
+                child: AdminPasswordField(
                   controller: _passwordController,
                   label: 'ACCESS_PHRASE',
-                  icon: Icons.lock_outline_rounded,
                   hint: '********',
-                  obscure: true,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildTextField(
+                child: AdminPasswordField(
                   controller: _confirmPasswordController,
                   label: 'RE_VERIFY',
-                  icon: Icons.lock_reset_rounded,
                   hint: '********',
-                  obscure: true,
                 ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 48),
-        _buildSectionHeader('BIOMETRIC_PROFILE'),
+        const AdminSectionHeader(title: 'Personal Details'),
         _buildAnimatedField(
           index: 2,
-          child: _buildTextField(
+          child: AdminInputField(
             controller: _fullNameController,
             label: 'FULL LEGAL NAME',
             icon: Icons.badge_outlined,
@@ -281,18 +269,18 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
         const SizedBox(height: 24),
         _buildAnimatedField(
           index: 3,
-          child: _buildTextField(
+          child: AdminInputField(
             controller: _emailController,
             label: 'DIGITAL_ADDRESS',
             icon: Icons.email_outlined,
             hint: 'USER@DOMAIN.COM',
-            keyboard: TextInputType.emailAddress,
+            keyboardType: TextInputType.emailAddress,
           ),
         ),
         const SizedBox(height: 24),
         _buildAnimatedField(
           index: 4,
-          child: _buildTextField(
+          child: AdminInputField(
             controller: _birthDayController,
             label: 'TEMPORAL_ORIGIN',
             icon: Icons.cake_outlined,
@@ -302,104 +290,25 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
           ),
         ),
         const SizedBox(height: 48),
-        _buildSectionHeader('SYSTEM_PERMISSIONS'),
+        const AdminSectionHeader(title: 'Role & Permissions'),
         _buildAnimatedField(
           index: 5,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildRolePicker(),
+              RolePicker(
+                isLoading: _isLoadingRoles,
+                error: _rolesError,
+                roles: _availableRoles,
+                onRoleSelected: _handleRoleSelected,
+                onRetry: _loadRoles,
+              ),
               const SizedBox(height: 16),
-              _SelectedRolesList(roles: _selectedRoles, onRemove: _removeRole),
+              SelectedRolesList(roles: _selectedRoles, onRemove: _removeRole),
             ],
           ),
         ),
         const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Row(
-        children: [
-          Container(width: 4, height: 16, color: Colors.black),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(height: 1, color: Colors.black.withOpacity(0.05)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? hint,
-    TextInputType? keyboard,
-    VoidCallback? onTap,
-    bool readOnly = false,
-    bool obscure = false,
-    ValueChanged<String>? onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: Colors.black38,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboard,
-          readOnly: readOnly,
-          onTap: onTap,
-          onChanged: onChanged,
-          obscureText: obscure,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: Colors.black12, fontSize: 13),
-            prefixIcon: Icon(icon, size: 18, color: Colors.black26),
-            filled: true,
-            fillColor: Colors.black.withOpacity(0.02),
-            border: OutlineInputBorder(
-              borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: AppTheme.borderRadiusSM,
-              borderSide: const BorderSide(color: Colors.black, width: 1),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -413,7 +322,6 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
         curve: Curves.easeOutQuart,
       ),
     );
-
     return FadeTransition(
       opacity: animation,
       child: SlideTransition(
@@ -426,105 +334,33 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
     );
   }
 
-  Widget _buildRolePicker() {
-    if (_isLoadingRoles) {
-      return Row(
-        children: [
-          const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: AppTheme.spaceSM),
-          const Text('Đang tải danh sách role...'),
-        ],
-      );
-    }
-
-    if (_rolesError != null) {
-      return Row(
-        children: [
-          Expanded(
-            child: Text(
-              _rolesError!,
-              style: AppTheme.bodySmall.copyWith(color: Colors.redAccent),
-            ),
-          ),
-          TextButton(onPressed: _loadRoles, child: const Text('Thử lại')),
-        ],
-      );
-    }
-
-    if (_availableRoles.isEmpty) {
-      return Text(
-        'Không có role khả dụng',
-        style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
-      );
-    }
-
-    return DropdownButtonFormField<String>(
-      decoration: FormDecorations.standard(
-        'Available Roles',
-      ).copyWith(prefixIcon: const Icon(Icons.security_outlined, size: 20)),
-      icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.black54),
-      hint: Text(
-        'Choose a role to add',
-        style: GoogleFonts.inter(fontSize: 14),
-      ),
-      items: _availableRoles
-          .map(
-            (role) =>
-                DropdownMenuItem(value: role.name, child: Text(role.name)),
-          )
-          .toList(),
-      onChanged: _handleRoleSelected,
-    );
-  }
-
   String? _validateFields() {
     final username = _usernameController.text.trim();
-    if (username.length < 6 || username.length > 100) {
+    if (username.length < 6 || username.length > 100)
       return 'Username must be between 6-100 characters';
-    }
 
     final fullName = _fullNameController.text.trim();
-    if (fullName.length < 6 || fullName.length > 100) {
+    if (fullName.length < 6 || fullName.length > 100)
       return 'Name must be between 6-100 characters';
-    }
 
     final password = _passwordController.text;
-    if (password.length < 8) {
-      return 'Password tối thiểu 8 ký tự';
-    }
-    if (!RegExp(r'^[A-Z]').hasMatch(password)) {
+    if (password.length < 8) return 'Password tối thiểu 8 ký tự';
+    if (!RegExp(r'^[A-Z]').hasMatch(password))
       return 'Password must start with an uppercase letter';
-    }
-    if (!RegExp(r'\d').hasMatch(password)) {
+    if (!RegExp(r'\d').hasMatch(password))
       return 'Password must contain at least one digit';
-    }
 
     final confirm = _confirmPasswordController.text;
-    if (confirm.isEmpty) {
-      return 'Confirm password không được rỗng';
-    }
-    if (password != confirm) {
-      return 'Passwords do not match';
-    }
+    if (confirm.isEmpty) return 'Confirm password không được rỗng';
+    if (password != confirm) return 'Passwords do not match';
 
     final email = _emailController.text.trim();
-    if (email.isNotEmpty && !_emailPattern.hasMatch(email)) {
+    if (email.isNotEmpty && !_emailPattern.hasMatch(email))
       return 'Email không hợp lệ';
-    }
 
-    if (_isLoadingRoles) {
-      return 'Vui lòng chờ tải danh sách role';
-    }
-    if (_availableRoles.isEmpty) {
-      return 'Không có role khả dụng';
-    }
-    if (_selectedRoles.isEmpty) {
-      return 'Please select at least one role';
-    }
+    if (_isLoadingRoles) return 'Vui lòng chờ tải danh sách role';
+    if (_availableRoles.isEmpty) return 'Không có role khả dụng';
+    if (_selectedRoles.isEmpty) return 'Please select at least one role';
 
     return null;
   }
@@ -541,27 +377,19 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
     if (picked != null) {
       setState(() {
         _selectedBirthDay = picked;
-        _birthDayController.text = _formatDate(picked);
+        _birthDayController.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
     }
   }
 
-  String _formatDate(DateTime date) {
-    final year = date.year.toString().padLeft(4, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
-
   void _handleRoleSelected(String? roleName) {
-    if (roleName == null) return;
-    if (_selectedRoles.contains(roleName)) return;
+    if (roleName == null || _selectedRoles.contains(roleName)) return;
     setState(() => _selectedRoles.add(roleName));
   }
 
-  void _removeRole(String roleName) {
-    setState(() => _selectedRoles.remove(roleName));
-  }
+  void _removeRole(String roleName) =>
+      setState(() => _selectedRoles.remove(roleName));
 
   Future<void> _loadRoles() async {
     setState(() {
@@ -579,114 +407,5 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       if (!mounted) return;
       setState(() => _isLoadingRoles = false);
     }
-  }
-}
-
-class _TechnicalPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
-      ..strokeWidth = 0.5;
-
-    // Grid lines
-    for (var i = 0; i < size.width; i += 40) {
-      canvas.drawLine(
-        Offset(i.toDouble(), 0),
-        Offset(i.toDouble(), size.height),
-        paint,
-      );
-    }
-    for (var i = 0; i < size.height; i += 40) {
-      canvas.drawLine(
-        Offset(0, i.toDouble()),
-        Offset(size.width, i.toDouble()),
-        paint,
-      );
-    }
-
-    // Diagonal lines
-    paint.color = Colors.white.withOpacity(0.1);
-    for (var i = -size.height; i < size.width; i += 80) {
-      canvas.drawLine(
-        Offset(i.toDouble(), 0),
-        Offset(i + size.height, size.height),
-        paint,
-      );
-    }
-
-    // Technical Markings
-    paint.color = Colors.white.withOpacity(0.2);
-    canvas.drawRect(
-      Rect.fromLTWH(size.width - 60, 20, 40, 40),
-      paint..style = PaintingStyle.stroke,
-    );
-    canvas.drawLine(
-      Offset(size.width - 60, 20),
-      Offset(size.width - 20, 60),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _SelectedRolesList extends StatelessWidget {
-  final List<String> roles;
-  final ValueChanged<String> onRemove;
-
-  const _SelectedRolesList({required this.roles, required this.onRemove});
-
-  @override
-  Widget build(BuildContext context) {
-    if (roles.isEmpty) {
-      return Text(
-        'No roles assigned yet',
-        style: GoogleFonts.inter(
-          color: Colors.black26,
-          fontSize: 12,
-          fontStyle: FontStyle.italic,
-        ),
-      );
-    }
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: roles
-          .map(
-            (role) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: AppTheme.borderRadiusSM,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    role,
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => onRemove(role),
-                    child: const Icon(
-                      Icons.cancel,
-                      size: 16,
-                      color: Colors.white54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
   }
 }

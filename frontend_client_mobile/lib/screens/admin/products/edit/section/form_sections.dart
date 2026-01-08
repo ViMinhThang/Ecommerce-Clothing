@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/config/theme_config.dart';
-import 'basic_info_section.dart';
-import 'category_section.dart';
-import 'image_section.dart';
-import 'variants_section.dart';
+import '../../../../../features/admin/product/edit/sections/basic_info_section.dart';
+import '../../../../../features/admin/product/edit/sections/category_section.dart';
+import '../../../../../features/admin/product/edit/sections/image_section.dart';
+import '../../../../../features/admin/product/edit/sections/variants_section.dart';
 
 class ProductForm extends StatefulWidget {
   const ProductForm({super.key});
@@ -27,7 +27,6 @@ class _ProductFormState extends State<ProductForm>
       duration: const Duration(milliseconds: 1200),
     );
 
-    // Create staggered animations for each section
     _fadeAnimations = List.generate(3, (index) {
       final start = index * 0.2;
       final end = start + 0.4;
@@ -97,34 +96,26 @@ class _ProductFormState extends State<ProductForm>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Section 01: Basic Information
                   _buildAnimatedSection(
                     index: 0,
-                    title: 'CORE_PRODUCT_SPECIFICATION',
-                    subtitle: 'IDENTIFICATION & DESCRIPTION',
+                    title: 'Product Details',
+                    subtitle: 'Name, Description & Pricing',
                     child: const BasicInfoSection(),
                   ),
-
                   const SizedBox(height: 48),
-
-                  // Section 02: Category
                   _buildAnimatedSection(
                     index: 1,
-                    title: 'TAXONOMY_CLASSIFICATION',
-                    subtitle: 'CATEGORY & COLLECTIONS',
+                    title: 'Category & Collections',
+                    subtitle: 'Organize Your Product',
                     child: const CategorySection(),
                   ),
-
                   const SizedBox(height: 48),
-
-                  // Section 03: Variants
                   _buildAnimatedSection(
                     index: 2,
-                    title: 'LOGISTICS_&_INVENTORY',
-                    subtitle: 'VARIANTS, PRICING & STOCK',
+                    title: 'Inventory & Variants',
+                    subtitle: 'Colors, Sizes & Stock',
                     child: const VariantsSection(),
                   ),
-
                   const SizedBox(height: 60),
                 ],
               ),

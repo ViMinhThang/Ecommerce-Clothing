@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/models/edit_product_viewmodel.dart';
-import '../../../../../config/theme_config.dart';
+import 'package:frontend_client_mobile/config/theme_config.dart';
 
 class ActionButtonsSection extends StatelessWidget {
   final GlobalKey<FormState>? formKey;
@@ -42,9 +42,7 @@ class ActionButtonsSection extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      viewModel.isEditing
-                          ? 'COMMIT_CHANGES'
-                          : 'INITIALIZE_PRODUCT',
+                      viewModel.isEditing ? 'Save Changes' : 'Create Product',
                       style: GoogleFonts.outfit(
                         color: AppTheme.primaryWhite,
                         letterSpacing: 2,
@@ -69,7 +67,7 @@ class ActionButtonsSection extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'ABORT',
+                'Cancel',
                 style: GoogleFonts.outfit(
                   color: AppTheme.primaryBlack,
                   letterSpacing: 2,
@@ -87,9 +85,31 @@ class ActionButtonsSection extends StatelessWidget {
   Future<void> _handleSave(BuildContext context) async {
     final viewModel = Provider.of<EditProductViewModel>(context, listen: false);
     try {
-      // Use the passed formKey if available, otherwise validate through viewModel
       if (formKey != null) {
-        if (!viewModel.validateForm(formKey!)) return;
+        final validationError = viewModel.validateForm(formKey!);
+        if (validationError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppTheme.spaceSM),
+                  Expanded(child: Text(validationError)),
+                ],
+              ),
+              backgroundColor: AppTheme.darkGray,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: AppTheme.borderRadiusSM,
+              ),
+            ),
+          );
+          return;
+        }
       }
 
       await viewModel.saveProduct();
