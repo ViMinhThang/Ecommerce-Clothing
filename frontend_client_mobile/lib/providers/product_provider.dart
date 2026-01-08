@@ -69,6 +69,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     } catch (e, stack) {
       _logError('addProduct', e, stack);
+      rethrow;
     }
   }
 
@@ -92,6 +93,7 @@ class ProductProvider with ChangeNotifier {
       }
     } catch (e, stack) {
       _logError('updateProduct', e, stack);
+      rethrow;
     }
   }
 
@@ -102,6 +104,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     } catch (e, stack) {
       _logError('deleteProduct', e, stack);
+      rethrow;
     }
   }
 

@@ -40,7 +40,7 @@ class _EditOrderScreenState
   }
 
   @override
-  String getScreenTitle() => isEditing ? 'ORDER_REVISION' : 'NEW_MANIFESTO';
+  String getScreenTitle() => isEditing ? 'Edit Order' : 'New Order';
 
   @override
   int getSelectedIndex() => 5;
@@ -108,7 +108,7 @@ class _EditOrderScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'LOGISTICS_MANIFESTO',
+                  'Order Management',
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontSize: 10,
@@ -118,7 +118,7 @@ class _EditOrderScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isEditing ? 'REVISING_ORDER' : 'INITIALIZING_STREAM',
+                  isEditing ? 'Edit Order' : 'New Order',
                   style: GoogleFonts.outfit(
                     color: Colors.white70,
                     fontSize: 24,
@@ -169,7 +169,7 @@ class _EditOrderScreenState
         child: Column(
           children: [
             Text(
-              'ORDER_HEX',
+              'Order ID',
               style: GoogleFonts.outfit(
                 color: Colors.black38,
                 fontSize: 8,
@@ -197,14 +197,14 @@ class _EditOrderScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 40),
-        _buildSectionHeader('CORE ENTITY DETAILS'),
+        _buildSectionHeader('Order Details'),
         _buildAnimatedField(
           index: 0,
           child: _buildTextField(
             controller: _customerController,
-            label: 'BUYER IDENTIFICATION (EMAIL)',
+            label: 'Customer Email',
             icon: Icons.alternate_email_rounded,
-            hint: 'E.G. CUSTOMER@DOMAIN.COM',
+            hint: 'e.g. customer@example.com',
           ),
         ),
         const SizedBox(height: 24),
@@ -215,7 +215,7 @@ class _EditOrderScreenState
               Expanded(
                 child: _buildTextField(
                   controller: _totalController,
-                  label: 'VALUATION (₫)',
+                  label: 'Total Amount (₫)',
                   icon: Icons.payments_outlined,
                   keyboard: TextInputType.number,
                   hint: 'PRICE IN VND',
@@ -225,7 +225,7 @@ class _EditOrderScreenState
               Expanded(
                 child: _buildTextField(
                   controller: _dateController,
-                  label: 'TIMESTAMP',
+                  label: 'Order Date',
                   icon: Icons.event_note_rounded,
                   hint: 'YYYY-MM-DD',
                 ),
@@ -234,7 +234,7 @@ class _EditOrderScreenState
           ),
         ),
         const SizedBox(height: 40),
-        _buildSectionHeader('MANIFESTO STATUS'),
+        _buildSectionHeader('Order Status'),
         _buildAnimatedField(
           index: 2,
           child: _StatusSelector(
@@ -305,14 +305,14 @@ class _EditOrderScreenState
             hintStyle: GoogleFonts.inter(color: Colors.black12, fontSize: 13),
             prefixIcon: Icon(icon, size: 18, color: Colors.black26),
             filled: true,
-            fillColor: Colors.black.withOpacity(0.02),
+            fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
+              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
+              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,

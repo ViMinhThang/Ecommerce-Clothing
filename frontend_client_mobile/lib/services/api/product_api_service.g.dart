@@ -166,7 +166,7 @@ class _ProductApiService implements ProductApiService {
     int categoryId,
     String variants,
     List<MultipartFile> images,
-    List<int> existingImageIds,
+    List<String> existingImageIds,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -177,12 +177,9 @@ class _ProductApiService implements ProductApiService {
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
     _data.files.addAll(images.map((i) => MapEntry('images', i)));
-    _data.files.add(
-      MapEntry(
-        'existingImageIds',
-        MultipartFile.fromBytes(existingImageIds, filename: null),
-      ),
-    );
+    existingImageIds.forEach((i) {
+      _data.fields.add(MapEntry('existingImageIds', i));
+    });
     final _options = _setStreamType<Product>(
       Options(
             method: 'PUT',
