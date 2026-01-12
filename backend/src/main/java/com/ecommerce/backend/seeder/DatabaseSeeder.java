@@ -2,6 +2,8 @@ package com.ecommerce.backend.seeder;
 
 import com.ecommerce.backend.model.*;
 import com.ecommerce.backend.repository.*;
+import com.ecommerce.backend.service.AiRecommentService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -30,10 +32,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final OrderRepository orderRepository;
         private final OrderItemRepository orderItemRepository;
         private final PasswordEncoder passwordEncoder;
-
+        private final AiRecommentService aiRecommentService;
         @Override
         @Transactional
-        public void run(String... args) {
+        public void run(String... args) throws JsonProcessingException {
                 if (productRepository.count() > 0) {
                         System.out.println("Data already exists. Skipping seed.");
                         return;
@@ -50,7 +52,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 initVouchers();
 
                 seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
-
+                // Nó không chạy thì comment lại đừng xóa dùm cái
+                // aiRecommentService.buildCache();
                 // Create a delivered order for john.doe to enable review feature testing
                 initDeliveredOrderForJohnDoe();
 
