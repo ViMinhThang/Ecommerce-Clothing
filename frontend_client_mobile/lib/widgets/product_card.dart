@@ -59,8 +59,7 @@ class ProductCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                product
-                    .priceDisplayText,
+                product.priceDisplayText,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -68,8 +67,7 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {
-                },
+                onTap: () {},
                 child: const Icon(
                   Icons.favorite_border, // Outline heart like the image
                   size: 20,
@@ -101,8 +99,17 @@ class ProductCard extends StatelessWidget {
 class ProductViewCard extends StatelessWidget {
   final ProductView product;
   final VoidCallback? onTap;
+  final bool isFavorite;
+  final VoidCallback? onFavoriteToggle;
 
-  const ProductViewCard({super.key, required this.product, this.onTap});
+  const ProductViewCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.isFavorite = false,
+    this.onFavoriteToggle,
+  });
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -164,13 +171,11 @@ class ProductViewCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {
-                  // Handle wishlist toggle here
-                },
-                child: const Icon(
-                  Icons.favorite_border, // Outline heart like the image
+                onTap: onFavoriteToggle,
+                child: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
                   size: 20,
-                  color: Colors.black54,
+                  color: isFavorite ? Colors.red : Colors.black54,
                 ),
               ),
             ],

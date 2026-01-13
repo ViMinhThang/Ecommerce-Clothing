@@ -149,7 +149,6 @@ class CatalogDetailScreen extends StatelessWidget {
                           id: product.id,
                           name: product.name,
                           description: product.description,
-                          images: [],
                           category: Category(
                             id: 0,
                             name: 'General',

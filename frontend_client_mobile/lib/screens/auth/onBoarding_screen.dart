@@ -1,5 +1,6 @@
-
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/auth/log_in.dart';
 import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart'; // Assuming this import is correct
 
 void main() {

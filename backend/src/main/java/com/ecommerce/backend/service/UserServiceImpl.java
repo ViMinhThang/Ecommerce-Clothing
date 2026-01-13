@@ -56,7 +56,11 @@ public class UserServiceImpl implements UserService{
             throw new RuntimeException("Role is not exist");
 
         var user = userDTO.toUser();
-        user = userRepository.save(user);
+        if (user != null) {
+            user = userRepository.save(user);
+        } else {
+            throw new IllegalStateException("Failed to create user");
+        }
         List<UserRole> urs = new ArrayList<>();
         for(var r : roles){
             var ur = new UserRole();
@@ -71,7 +75,10 @@ public class UserServiceImpl implements UserService{
     public User updateUser(long id, UserUpdateDTO userDTO) throws BadAttributeValueExpException {
         var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         var res = userDTO.updateUser(user);
-        return userRepository.save(res);
+        if (res != null) {
+            return userRepository.save(res);
+        }
+        throw new IllegalStateException("Failed to update user");
     }
 
     @Override

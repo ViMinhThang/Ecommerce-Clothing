@@ -49,9 +49,10 @@ class UserService {
     return await _api.getUser(id);
   }
 
-  Future<User> updateUserAvatar(int id, User user) async {
-    // Renamed to avoid conflict
-    return await _api.updateUser(id, user);
+  Future<User> updateUserAvatar(int id, UserUpdateRequest request) async {
+    await _api.updateUser(id, request);
+    // Return the updated user
+    return await _api.getUser(id);
   }
 
   Future<User> uploadAvatar(int id, File avatar) async {

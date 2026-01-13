@@ -44,11 +44,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable cannot be null");
+        }
         return productRepository.findAll(pageable);
     }
 
     @Override
     public Product getProductById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         return findProductOrThrow(id);
     }
 
@@ -77,6 +83,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         productRepository.deleteById(id);
     }
 
@@ -88,6 +97,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> filterProduct(ProductFilter filter, Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable cannot be null");
+        }
         return productRepository.findAll(ProductSpecifications.build(filter), pageable)
                 .map(this::mapToProductView);
     }
@@ -128,6 +140,9 @@ public class ProductServiceImpl implements ProductService {
     // ==================== Private Helper Methods ====================
 
     private Product findProductOrThrow(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
@@ -173,6 +188,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Category findCategoryOrThrow(Long categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("Category ID cannot be null");
+        }
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
     }
@@ -254,6 +272,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Color findColorOrThrow(Long colorId) {
+        if (colorId == null) {
+            throw new IllegalArgumentException("Color ID cannot be null");
+        }
         return colorRepository.findById(colorId)
                 .orElseThrow(() -> new EntityNotFoundException("Color not found with id: " + colorId));
     }
@@ -266,6 +287,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Size findSizeOrThrow(Long sizeId) {
+        if (sizeId == null) {
+            throw new IllegalArgumentException("Size ID cannot be null");
+        }
         return sizeRepository.findById(sizeId)
                 .orElseThrow(() -> new EntityNotFoundException("Size not found with id: " + sizeId));
     }
@@ -276,8 +300,10 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Price price = buildPriceFromRequest(priceRequest);
-        Price savedPrice = priceRepository.save(price);
-        variant.setPrice(savedPrice);
+        if (price != null) {
+            Price savedPrice = priceRepository.save(price);
+            variant.setPrice(savedPrice);
+        }
     }
 
     private Price buildPriceFromRequest(PriceRequest request) {

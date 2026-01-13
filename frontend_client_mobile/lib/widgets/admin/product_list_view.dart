@@ -236,7 +236,7 @@ class _ProductCardState extends State<_ProductCard> {
             Text('•', style: TextStyle(color: AppTheme.lightGray)),
             const SizedBox(width: AppTheme.spaceSM),
             Text(
-              '${widget.product.variants.length ?? 0} variants',
+              '${widget.product.variants.length} variants',
               style: AppTheme.caption.copyWith(
                 fontSize: 11,
                 color: AppTheme.mediumGray,

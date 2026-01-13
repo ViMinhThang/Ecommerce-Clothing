@@ -29,6 +29,9 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(request.getUserId());
         if (cart == null) {
             cart = new Cart();
+            if (request.getUserId() == null) {
+                throw new IllegalArgumentException("User ID cannot be null");
+            }
             User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found"));
             cart.setUser(user);
@@ -37,6 +40,9 @@ public class CartServiceImpl implements CartService {
         }
 
         // Find product variant
+        if (request.getVariantId() == null) {
+            throw new IllegalArgumentException("Variant ID cannot be null");
+        }
         ProductVariants variant = productVariantsRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new EntityNotFoundException("Product variant not found"));
 
@@ -78,11 +84,17 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void removeFromCart(Long cartItemId) {
+        if (cartItemId == null) {
+            throw new IllegalArgumentException("Cart item ID cannot be null");
+        }
         cartItemRepository.deleteById(cartItemId);
     }
 
     @Override
     public void updateCartItemQuantity(Long cartItemId, int quantity) {
+        if (cartItemId == null) {
+            throw new IllegalArgumentException("Cart item ID cannot be null");
+        }
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart item not found"));
         cartItem.setQuantity(quantity);

@@ -69,7 +69,7 @@ class ProductService {
   }
 
   Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
-    // final response = await _apiService.filterProduct(categoryId);
-    return null;
+    // TODO: Implement filter product API call
+    throw UnimplementedError('filterProduct is not implemented yet');
   }
 }

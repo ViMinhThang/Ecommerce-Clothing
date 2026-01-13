@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/cart/cart_screen.dart';
 import 'package:frontend_client_mobile/screens/catalog/catalog_navigator.dart';
-import 'package:frontend_client_mobile/screens/home/home_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/catalog/catalog_navigator.dart';
-import 'package:frontend_client_mobile/thanh/screens/home_screen.dart';
-import 'package:frontend_client_mobile/thanh/screens/profile/profile_screen.dart';
 import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
+import 'package:frontend_client_mobile/screens/home/home_screen.dart';
+import 'package:frontend_client_mobile/thanh/screens/profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialTab;
+
+  const MainScreen({super.key, this.initialTab = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -16,12 +17,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _screens = <Widget>[
-    HomeScreen(),
-    CatalogNavigator(),
-    Placeholder(), // Favorite screen (to be implemented)
-    Placeholder(), // Shopping bag screen (to be implemented)
-    ProfileScreen(),
   @override
   void initState() {
     super.initState();
@@ -33,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     const CatalogNavigator(),
     const FavoriteScreen(),
     const CartScreen(),
-    const _ProfilePlaceholder(),
+    const ProfileScreen(),
   ];
   void _onItemTapped(int index) {
     setState(() {

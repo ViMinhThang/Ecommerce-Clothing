@@ -63,8 +63,18 @@ class ProductActions extends StatelessWidget {
                         listen: false,
                       );
                       final success = await cartProvider.addToCart(
-                        userId: 1,
+                        productId: provider.product!.id,
+                        productName: provider.product!.name,
                         variantId: provider.selectedVariantId!,
+                        variantName:
+                            '${provider.selectedColorName} - ${provider.selectedSizeName}',
+                        price: provider.variants
+                            .firstWhere(
+                              (v) => v.id == provider.selectedVariantId,
+                            )
+                            .price
+                            .basePrice,
+                        imageUrl: provider.product!.primaryImageUrl,
                         quantity: provider.quantity,
                       );
 

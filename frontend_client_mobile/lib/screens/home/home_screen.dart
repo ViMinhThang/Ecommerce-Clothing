@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
-import 'package:frontend_client_mobile/screens/product_layout.dart';
 import 'package:frontend_client_mobile/widgets/category_chip.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
+import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
@@ -11,7 +11,7 @@ import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.da
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 import 'package:frontend_client_mobile/providers/favorite_provider.dart';
 import 'package:frontend_client_mobile/models/favorite_item.dart';
-import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/models/product.dart' as model;
 import 'package:frontend_client_mobile/models/category.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -140,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                // Categories Section
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,42 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onTap: () => _onCategorySelected(
                                         index,
                                         category.id!,
-                                      label: "All",
-                                      isSelected: _selectedCategoryIndex == 0,
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedCategoryId = 0;
-                                          _selectedCategoryIndex = 0;
-                                        });
-                                        context
-                                            .read<ProductProvider>()
-                                            .prepareForCategory(0);
-                                        context
-                                            .read<ProductProvider>()
-                                            .fetchProducts(refresh: true);
-                                      },
-                                    ),
-                                  ),
-                                  ...categoryProvider.categories.map((
-                                    category,
-                                  ) {
-                                    final index =
-                                        categoryProvider.categories.indexOf(
-                                          category,
-                                        ) +
-                                        1;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 12.0,
-                                      ),
-                                      child: CategoryChip(
-                                        label: category.name,
-                                        isSelected:
-                                            _selectedCategoryIndex == index,
-                                        onTap: () => _onCategorySelected(
-                                          index,
-                                          category.id!,
-                                        ),
                                       ),
                                     ),
                                   );
@@ -297,25 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         final product = productProvider.products[index];
                         return ProductCard(
                           product: product,
-                          isFavorite: favoriteProvider.isFavorite(product.id),
-                          onFavoriteToggle: () {
-                            favoriteProvider.toggleFavorite(
-                              FavoriteItem(
-                                productId: product.id,
-                                productName: product.name,
-                                imageUrl: product.primaryImageUrl,
-                                price: product.variants.isNotEmpty
-                                    ? product.variants.first.price.basePrice
-                                    : 0,
-                                product: product,
-                              ),
-                            );
-                          },
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ProductPage(),
                                 builder: (context) =>
                                     ProductDetailScreen(productId: product.id),
                               ),
@@ -346,11 +296,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           isFavorite: favoriteProvider.isFavorite(product.id),
                           onFavoriteToggle: () {
                             // Creating a mock product for FavoriteItem as done before in ProductViewCard
-                            final mockProduct = Product(
+                            final mockProduct = model.Product(
                               id: product.id,
                               name: product.name,
                               description: product.description,
-                              images: [], // Can be improved if needed
                               category: Category(
                                 id: 0,
                                 name: 'General',
@@ -374,7 +323,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ProductPage(),
                                 builder: (context) =>
                                     ProductDetailScreen(productId: product.id),
                               ),

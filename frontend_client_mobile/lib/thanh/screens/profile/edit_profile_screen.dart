@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend_client_mobile/models/user.dart';
 import 'package:frontend_client_mobile/services/user_service.dart';
+import 'package:frontend_client_mobile/models/user_update_request.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -28,7 +29,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _usernameController = TextEditingController(text: widget.user.username);
     _emailController = TextEditingController(text: widget.user.email);
-    _fullNameController = TextEditingController(text: widget.user.fullName ?? '');
+    _fullNameController = TextEditingController(
+      text: widget.user.fullName ?? '',
+    );
     _phoneController = TextEditingController(text: widget.user.phone ?? '');
   }
 
@@ -71,14 +74,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       // Update user info
-      final updatedUser = widget.user.copyWith(
+      final updateRequest = UserUpdateRequest(
         username: _usernameController.text,
+        fullName: _fullNameController.text.isEmpty
+            ? 'User'
+            : _fullNameController.text,
         email: _emailController.text,
-        fullName: _fullNameController.text.isEmpty ? null : _fullNameController.text,
         phone: _phoneController.text.isEmpty ? null : _phoneController.text,
       );
 
-      await _userService.updateUser(widget.user.id, updatedUser);
+      await _userService.updateUser(widget.user.id, updateRequest);
 
       // Upload avatar if selected
       if (_selectedAvatar != null) {
@@ -93,9 +98,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
       }
     } finally {
       if (mounted) {
@@ -146,10 +151,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             backgroundImage: _selectedAvatar != null
                                 ? FileImage(_selectedAvatar!)
                                 : (widget.user.avatarUrl != null
-                                    ? NetworkImage(widget.user.avatarUrl!)
-                                    : null) as ImageProvider?,
-                            child: widget.user.avatarUrl == null && _selectedAvatar == null
-                                ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                                          ? NetworkImage(widget.user.avatarUrl!)
+                                          : null)
+                                      as ImageProvider?,
+                            child:
+                                widget.user.avatarUrl == null &&
+                                    _selectedAvatar == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.grey,
+                                  )
                                 : null,
                           ),
                           Positioned(
@@ -257,13 +269,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true,
         fillColor: Colors.white,
       ),
     );
   }
 }
-

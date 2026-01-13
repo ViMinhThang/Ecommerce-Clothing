@@ -46,6 +46,17 @@ class Product {
     }
   }
 
+  String? get primaryImageUrl {
+    return imageUrl;
+  }
+
+  List<String> get imageUrls {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return [imageUrl!];
+    }
+    return [];
+  }
+
   @override
   String toString() {
     return 'Product{id: $id, name: $name, description: $description, imageUrl: ${imageUrl ?? ''}, category: $category, variants: $variants}';

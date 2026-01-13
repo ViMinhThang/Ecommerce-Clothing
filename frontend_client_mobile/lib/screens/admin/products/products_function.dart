@@ -31,8 +31,8 @@ Future<bool> deleteProduct(
 ) async {
   final confirm = await showConfirmDialog(
     context,
-    title: 'Delete Confirm',
-    message: 'Are you sure you want to delete "${product['name']}"?',
+    'Delete Confirm',
+    'Are you sure you want to delete "${product['name']}"?',
   );
 
   if (confirm) {

@@ -39,8 +39,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         // 1. Seed roles
         seedRolesIfNotExists();
 
-        // 2. Seed admin user
-        User adminUser = seedAdminUserIfNotExists();
+        // 2. Seed admin user (not used but created for admin access)
+        seedAdminUserIfNotExists();
 
         // 3. Seed 2 user thường (giữ nguyên data bạn đã có)
         List<User> normalUsers = seedUsers();
@@ -376,7 +376,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (currentCount >= MIN_TOTAL_PRODUCTS)
             return;
 
-        int needToCreate = (int) Math.max(MIN_TOTAL_PRODUCTS - currentCount, DUMMY_PRODUCT_COUNT);
+        // int needToCreate = (int) Math.max(MIN_TOTAL_PRODUCTS - currentCount, DUMMY_PRODUCT_COUNT);
         int productToCreate = DUMMY_PRODUCT_COUNT;
 
         Random random = new Random();

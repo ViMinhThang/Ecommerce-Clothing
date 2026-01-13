@@ -444,8 +444,8 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   ) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: 'Delete Confirm',
-      message: 'Bạn có chắc muốn xóa đơn #${order.id}?',
+      'Delete Confirm',
+      'Bạn có chắc muốn xóa đơn #${order.id}?',
     );
     if (!confirmed) return;
 
