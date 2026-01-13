@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import '../../../config/theme_config.dart';
 import '../../../layouts/admin_layout.dart';
 import '../../../models/order_view.dart';
@@ -15,16 +15,22 @@ class ManageOrdersScreen extends StatefulWidget {
   State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
+class _ManageOrdersScreenState extends State<ManageOrdersScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  String _selectedSort = _SortOption.defaults.first.id;
-  String _selectedStatus = _StatusOption.defaults.first.id;
+  final ScrollController scrollController = ScrollController();
+  String selectedSort = _SortOption.defaults.first.id;
+  String selectedStatus = _StatusOption.defaults.first.id;
+  late AnimationController animationController;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_handleInfiniteScroll);
+    animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    scrollController.addListener(_handleInfiniteScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<OrderProvider>().initialize();
@@ -33,7 +39,8 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
 
   @override
   void dispose() {
-    _scrollController
+    animationController.dispose();
+    scrollController
       ..removeListener(_handleInfiniteScroll)
       ..dispose();
     _searchController.dispose();
@@ -98,127 +105,99 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     final stats = provider.statistics;
     final isLoading = provider.isLoadingStatistics;
 
-    if (isLoading && stats == null) {
-      return Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: AppTheme.primaryWhite,
-          borderRadius: AppTheme.borderRadiusMD,
-          border: AppTheme.borderThin,
-          boxShadow: AppTheme.shadowSM,
-        ),
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (stats == null) {
-      return Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryWhite,
-          borderRadius: AppTheme.borderRadiusMD,
-          border: AppTheme.borderThin,
-          boxShadow: AppTheme.shadowSM,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Chưa có dữ liệu thống kê',
-              style: AppTheme.h4.copyWith(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Nhấn "Tải lại" để đồng bộ dữ liệu thống kê từ API.',
-              style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: provider.fetchStatistics,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tải lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
     final cards = [
       _StatCardData(
-        title: 'Hôm nay',
-        periodLabel: 'Theo ngày',
-        orders: stats.totalOrderByDay,
-        revenue: stats.totalPriceByDay,
-        icon: Icons.today_outlined,
-        accent: const Color(0xFF1E88E5),
+        Icons.shopping_bag_outlined,
+        'Today Orders',
+        stats?.totalOrderByDay.toString() ?? '0',
+        const Color(0xFF6366F1),
       ),
       _StatCardData(
-        title: 'Tuần này',
-        periodLabel: '7 ngày gần nhất',
-        orders: stats.totalOrderByWeek,
-        revenue: stats.totalPriceByWeek,
-        icon: Icons.calendar_view_week,
-        accent: const Color(0xFF43A047),
+        Icons.attach_money_outlined,
+        'Today Revenue',
+        '\$${stats?.totalPriceByDay.toStringAsFixed(0) ?? '0'}',
+        const Color(0xFF10B981),
       ),
       _StatCardData(
-        title: 'Tháng này',
-        periodLabel: '30 ngày gần nhất',
-        orders: stats.totalOrderByMonth,
-        revenue: stats.totalPriceByMonth,
-        icon: Icons.calendar_today_outlined,
-        accent: const Color(0xFFFB8C00),
+        Icons.calendar_today_outlined,
+        'Week Orders',
+        stats?.totalOrderByWeek.toString() ?? '0',
+        const Color(0xFF3B82F6),
+      ),
+      _StatCardData(
+        Icons.trending_up_outlined,
+        'Week Revenue',
+        '\$${stats?.totalPriceByWeek.toStringAsFixed(0) ?? '0'}',
+        const Color(0xFFF59E0B),
+      ),
+      _StatCardData(
+        Icons.calendar_month_outlined,
+        'Month Orders',
+        stats?.totalOrderByMonth.toString() ?? '0',
+        const Color(0xFF8B5CF6),
       ),
     ];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
-        borderRadius: AppTheme.borderRadiusMD,
-        border: AppTheme.borderThin,
-        boxShadow: AppTheme.shadowSM,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMD),
-            child: Row(
-              children: [
-                Text(
-                  'Thống kê nhanh',
-                  style: AppTheme.h4.copyWith(fontSize: 16),
-                ),
-                const SizedBox(width: 8),
-                if (isLoading)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                const Spacer(),
-                IconButton(
-                  tooltip: 'Làm mới thống kê',
-                  splashRadius: 18,
-                  onPressed: provider.fetchStatistics,
-                  icon: const Icon(Icons.refresh, size: 18),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'LIVE ANALYTICS',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 2,
+                color: Colors.black,
+              ),
             ),
+            const Spacer(),
+            if (isLoading)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: Colors.black,
+                ),
+              )
+            else
+              GestureDetector(
+                onTap: provider.fetchStatistics,
+                child: const Icon(
+                  Icons.refresh,
+                  size: 16,
+                  color: Colors.black26,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            clipBehavior: Clip.none,
+            scrollDirection: Axis.horizontal,
+            itemCount: cards.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final animation = CurvedAnimation(
+                parent: animationController,
+                curve: Interval(
+                  (index * 0.1).clamp(0, 0.4),
+                  (0.4 + (index * 0.1)).clamp(0, 1.0),
+                  curve: Curves.easeOut,
+                ),
+              );
+              return ScaleTransition(
+                scale: animation,
+                child: _StatisticChip(data: cards[index]),
+              );
+            },
           ),
-          SizedBox(
-            height: 88,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMD),
-              scrollDirection: Axis.horizontal,
-              itemCount: cards.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) =>
-                  _StatisticChip(data: cards[index]),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -262,19 +241,20 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
 
   Widget _buildStatusDropdown(OrderProvider provider) {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedStatus,
-      decoration: _dropdownDecoration('Status'),
+      initialValue: selectedStatus,
+      decoration: _dropdownDecoration('STATUS'),
+      icon: const Icon(Icons.tune_rounded, size: 18, color: Colors.black45),
       items: _StatusOption.defaults
           .map(
             (status) => DropdownMenuItem(
               value: status.id,
-              child: Text(status.label, style: AppTheme.bodyMedium),
+              child: Text(status.label, style: const TextStyle(fontSize: 13)),
             ),
           )
           .toList(),
       onChanged: (value) {
         if (value == null) return;
-        setState(() => _selectedStatus = value);
+        setState(() => selectedStatus = value);
         final selected = _StatusOption.defaults.firstWhere(
           (element) => element.id == value,
         );
@@ -285,19 +265,20 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
 
   Widget _buildSortDropdown(OrderProvider provider) {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedSort,
-      decoration: _dropdownDecoration('Sort'),
+      initialValue: selectedSort,
+      decoration: _dropdownDecoration('SORT'),
+      icon: const Icon(Icons.sort_rounded, size: 18, color: Colors.black45),
       items: _SortOption.defaults
           .map(
             (option) => DropdownMenuItem(
               value: option.id,
-              child: Text(option.label, style: AppTheme.bodyMedium),
+              child: Text(option.label, style: const TextStyle(fontSize: 13)),
             ),
           )
           .toList(),
       onChanged: (value) {
         if (value == null) return;
-        setState(() => _selectedSort = value);
+        setState(() => selectedSort = value);
         final selected = _SortOption.defaults.firstWhere(
           (element) => element.id == value,
         );
@@ -311,22 +292,27 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
 
   InputDecoration _dropdownDecoration(String label) => InputDecoration(
     labelText: label,
-    labelStyle: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+    labelStyle: GoogleFonts.outfit(
+      color: Colors.black38,
+      fontSize: 10,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.5,
+    ),
     border: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: AppTheme.borderThin.top,
+      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: AppTheme.borderThin.top,
+      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: const BorderSide(color: AppTheme.mediumGray, width: 1.5),
+      borderSide: const BorderSide(color: Colors.black, width: 1),
     ),
     filled: true,
-    fillColor: AppTheme.primaryWhite,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
   );
 
   Widget _buildListView(OrderProvider provider, List<OrderView> data) {
@@ -338,7 +324,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
       return RefreshIndicator(
         onRefresh: provider.refreshAll,
         child: ListView(
-          controller: _scrollController,
+          controller: scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             Padding(
@@ -368,7 +354,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     return RefreshIndicator(
       onRefresh: provider.refreshAll,
       child: ListView.builder(
-        controller: _scrollController,
+        controller: scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 80),
         itemCount: data.length,
@@ -395,14 +381,14 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   }
 
   Future<void> _handleCreateOrder(OrderProvider provider) async {
-    final payload = await Navigator.push<Map<String, dynamic>?>(
+    final result = await Navigator.push<OrderView?>(
       context,
       MaterialPageRoute(builder: (_) => const EditOrderScreen()),
     );
-    if (payload == null) return;
+    if (result == null) return;
 
     try {
-      await provider.createOrder(_mapFormToOrder(payload));
+      await provider.createOrder(result);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã tạo đơn hàng thành công')),
@@ -418,9 +404,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   Future<void> _handleEditOrder(OrderProvider provider, OrderView order) async {
     final payload = await Navigator.push<Map<String, dynamic>?>(
       context,
-      MaterialPageRoute(
-        builder: (_) => EditOrderScreen(order: _mapOrderToForm(order)),
-      ),
+      MaterialPageRoute(builder: (_) => EditOrderScreen(entity: order)),
     );
     if (payload == null) return;
 
@@ -480,26 +464,11 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   );
 
   void _handleInfiniteScroll() {
-    if (!_scrollController.hasClients) return;
+    if (!scrollController.hasClients) return;
     final provider = context.read<OrderProvider>();
-    final trigger = _scrollController.position.extentAfter < 200;
+    final trigger = scrollController.position.extentAfter < 200;
     if (trigger && provider.hasMore && !provider.isLoading) {
       provider.fetchNextPage();
-    }
-  }
-
-  static Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      case 'processing':
-        return Colors.blue;
-      default:
-        return AppTheme.mediumGray;
     }
   }
 
@@ -510,12 +479,12 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   }
 
   static String _formatCurrency(double value) {
+    if (value == 0) return '0';
     final digits = value.toInt().toString();
     final buffer = StringBuffer();
     for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
       buffer.write(digits[i]);
-      final remaining = digits.length - i - 1;
-      if (remaining > 0 && remaining % 3 == 0) buffer.write('.');
     }
     return buffer.toString();
   }
@@ -524,116 +493,120 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
     final parsed = DateTime.tryParse(value);
     if (parsed == null) return value;
     String two(int v) => v.toString().padLeft(2, '0');
-    return '${parsed.year}-${two(parsed.month)}-${two(parsed.day)}';
+    return '${two(parsed.day)}/${two(parsed.month)}/${parsed.year}';
   }
 }
 
 class _OrderTile extends StatelessWidget {
+  final OrderView order;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
   const _OrderTile({
     required this.order,
     required this.onEdit,
     required this.onDelete,
   });
 
-  final OrderView order;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryWhite,
+        color: Colors.white,
         borderRadius: AppTheme.borderRadiusMD,
-        border: AppTheme.borderThin,
+        border: Border.all(color: const Color(0xFFE0E0E0)),
         boxShadow: AppTheme.shadowSM,
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryBlack,
-            shape: BoxShape.circle,
-            boxShadow: AppTheme.shadowSM,
-          ),
-          child: Center(
-            child: Text(
-              '#${_ManageOrdersScreenState._shortId(order.id)}',
-              style: AppTheme.h4.copyWith(
-                color: AppTheme.primaryWhite,
-                fontSize: 14,
-              ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '#${_ManageOrdersScreenState._shortId(order.id)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _StatusBadge(status: order.status),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  order.buyerEmail,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 11,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _ManageOrdersScreenState._formatDate(order.createdDate),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '\$${_ManageOrdersScreenState._formatCurrency(order.totalPrice)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ),
-        title: Text(
-          order.buyerEmail.isEmpty ? 'Unknown Customer' : order.buyerEmail,
-          style: AppTheme.h4.copyWith(fontSize: 16),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 12),
+          Column(
             children: [
-              Text(
-                '₫${_ManageOrdersScreenState._formatCurrency(order.totalPrice)} • ${_ManageOrdersScreenState._formatDate(order.createdDate)}',
-                style: AppTheme.bodySmall.copyWith(color: AppTheme.mediumGray),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                onPressed: onEdit,
+                tooltip: 'Edit',
+                color: Colors.blue[700],
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _ManageOrdersScreenState._getStatusColor(
-                    order.status,
-                  ).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: _ManageOrdersScreenState._getStatusColor(
-                      order.status,
-                    ).withOpacity(0.5),
-                    width: 0.5,
-                  ),
-                ),
-                child: Text(
-                  order.status.toUpperCase(),
-                  style: AppTheme.bodySmall.copyWith(
-                    color: _ManageOrdersScreenState._getStatusColor(
-                      order.status,
-                    ),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              const SizedBox(height: 8),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 18),
+                onPressed: onDelete,
+                tooltip: 'Delete',
+                color: Colors.red[700],
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: AppTheme.primaryBlack),
-              tooltip: 'Edit Order',
-              splashRadius: 20,
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Color(0xFFEF5350)),
-              tooltip: 'Delete Order',
-              splashRadius: 20,
-              onPressed: onDelete,
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
 class _SortOption {
+  final String id;
+  final String label;
+  final String sortBy;
+  final String direction;
+
   const _SortOption({
     required this.id,
     required this.label,
@@ -641,49 +614,44 @@ class _SortOption {
     required this.direction,
   });
 
-  final String id;
-  final String label;
-  final String sortBy;
-  final String direction;
-
   static const defaults = <_SortOption>[
     _SortOption(
       id: 'created_desc',
       label: 'Mới nhất',
       sortBy: 'createdDate',
-      direction: 'DESC',
+      direction: 'desc',
     ),
     _SortOption(
       id: 'created_asc',
       label: 'Cũ nhất',
       sortBy: 'createdDate',
-      direction: 'ASC',
+      direction: 'asc',
     ),
     _SortOption(
-      id: 'total_desc',
-      label: 'Giá cao → thấp',
+      id: 'price_desc',
+      label: 'Giá cao nhất',
       sortBy: 'totalPrice',
-      direction: 'DESC',
+      direction: 'desc',
     ),
     _SortOption(
-      id: 'total_asc',
-      label: 'Giá thấp → cao',
+      id: 'price_asc',
+      label: 'Giá thấp nhất',
       sortBy: 'totalPrice',
-      direction: 'ASC',
+      direction: 'asc',
     ),
   ];
 }
 
 class _StatusOption {
+  final String id;
+  final String label;
+  final String? status;
+
   const _StatusOption({
     required this.id,
     required this.label,
     required this.status,
   });
-
-  final String id;
-  final String label;
-  final String? status;
 
   static const defaults = <_StatusOption>[
     _StatusOption(id: 'all', label: 'Tất cả trạng thái', status: null),
@@ -695,75 +663,98 @@ class _StatusOption {
 }
 
 class _StatCardData {
-  const _StatCardData({
-    required this.title,
-    required this.periodLabel,
-    required this.orders,
-    required this.revenue,
-    required this.icon,
-    required this.accent,
-  });
-
-  final String title;
-  final String periodLabel;
-  final int orders;
-  final double revenue;
   final IconData icon;
-  final Color accent;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatCardData(this.icon, this.label, this.value, this.color);
 }
 
 class _StatisticChip extends StatelessWidget {
-  const _StatisticChip({required this.data});
-
   final _StatCardData data;
+
+  const _StatisticChip({required this.data});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      width: 140,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: data.accent.withOpacity(0.06),
-        borderRadius: AppTheme.borderRadiusMD,
-        border: Border.all(color: data.accent.withOpacity(0.3), width: 0.8),
+        color: data.color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: data.color.withOpacity(0.2), width: 1),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: data.accent.withOpacity(0.15),
-              shape: BoxShape.circle,
+          Icon(data.icon, size: 20, color: data.color),
+          const SizedBox(height: 8),
+          Text(
+            data.value,
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: data.color,
             ),
-            child: Icon(data.icon, color: data.accent, size: 18),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  data.title,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.mediumGray,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  '${data.orders} đơn',
-                  style: AppTheme.h4.copyWith(fontSize: 16),
-                ),
-                Text(
-                  '₫${_ManageOrdersScreenState._formatCurrency(data.revenue)}',
-                  style: AppTheme.bodySmall.copyWith(color: data.accent),
-                ),
-              ],
+          const SizedBox(height: 2),
+          Text(
+            data.label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+              letterSpacing: 0.3,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _getStatusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: AppTheme.borderRadiusXS,
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: GoogleFonts.outfit(
+          color: color,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return const Color(0xFF10B981);
+      case 'pending':
+        return const Color(0xFFF59E0B);
+      case 'cancelled':
+        return const Color(0xFFEF4444);
+      case 'processing':
+        return const Color(0xFF6366F1);
+      default:
+        return Colors.grey;
+    }
   }
 }

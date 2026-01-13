@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'components/product_images.dart';
@@ -20,13 +22,33 @@ class ProductDetailScreen extends StatelessWidget {
       create: (_) =>
           ProductDetailProvider(productId: productId)
             ..fetchProductAndVariants(),
-      child: const _ProductDetailContent(),
+      child: _ProductDetailContent(productId: productId),
     );
   }
 }
 
-class _ProductDetailContent extends StatelessWidget {
-  const _ProductDetailContent();
+class _ProductDetailContent extends StatefulWidget {
+  final int productId;
+
+  const _ProductDetailContent({required this.productId});
+
+  @override
+  State<_ProductDetailContent> createState() => _ProductDetailContentState();
+}
+
+class _ProductDetailContentState extends State<_ProductDetailContent> {
+  final int _selectedNavIndex = 1; // Catalog selected (coming from catalog)
+
+  void _onNavItemTapped(int index) {
+    if (index == _selectedNavIndex) return;
+
+    // Navigate to MainScreen with selected tab
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => MainScreen(initialTab: index)),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +73,7 @@ class _ProductDetailContent extends StatelessWidget {
                     SizedBox(height: 24),
                     ProductInfoTabs(),
                     SizedBox(height: 24),
-                    RelatedProducts(),
+                    RelatedProducts(productId: widget.productId),
                     SizedBox(height: 24),
                   ],
                 ),
@@ -60,60 +82,68 @@ class _ProductDetailContent extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const _ProductDetailBottomNav(),
-    );
-  }
-}
+      bottomNavigationBar: Consumer2<CartProvider, WishlistProvider>(
+        builder: (context, cartProvider, wishlistProvider, child) {
+          final cartItemCount = cartProvider.cart?.items.length ?? 0;
+          final wishlistItemCount = wishlistProvider.itemCount;
 
-class _ProductDetailBottomNav extends StatelessWidget {
-  const _ProductDetailBottomNav();
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_border),
-          label: 'Favorite',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_bag_outlined),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
-        ),
-      ],
-      currentIndex: 1,
-      onTap: (index) {
-        if (index == 1) {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MainScreen(initialTab: 1),
+          return BottomNavigationBar(
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
               ),
-            );
-          }
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainScreen(initialTab: index),
-            ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                label: 'Catalog',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: wishlistItemCount > 0,
+                  label: Text(
+                    wishlistItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.favorite_border),
+                ),
+                label: 'Wishlist',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: cartItemCount > 0,
+                  label: Text(
+                    cartItemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.shopping_bag_outlined),
+                ),
+                label: 'Cart',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                label: 'Profile',
+              ),
+            ],
+            currentIndex: _selectedNavIndex,
+            onTap: _onNavItemTapped,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
           );
-        }
-      },
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.grey,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      type: BottomNavigationBarType.fixed,
+        },
+      ),
     );
   }
 }

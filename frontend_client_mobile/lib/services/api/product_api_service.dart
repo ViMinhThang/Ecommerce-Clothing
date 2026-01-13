@@ -20,6 +20,9 @@ abstract class ProductApiService {
   @GET("api/products/{id}")
   Future<Product> getProduct(@Path("id") int id);
 
+  @GET("api/products/getSimilar/{id}")
+  Future<List<ProductView>> getSimilarProduct(@Path("id") int id);
+
   @POST("api/products")
   @MultiPart()
   Future<Product> createProduct(
@@ -27,7 +30,7 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") MultipartFile? image,
+    @Part(name: "images") List<MultipartFile> images,
   );
 
   @PUT("api/products/{id}")
@@ -38,7 +41,8 @@ abstract class ProductApiService {
     @Part(name: "description") String description,
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
-    @Part(name: "image") MultipartFile? image,
+    @Part(name: "images") List<MultipartFile> images,
+    @Part(name: "existingImageIds") List<String> existingImageIds,
   );
 
   @DELETE("api/products/{id}")
@@ -50,6 +54,4 @@ abstract class ProductApiService {
     @Path("pageIndex") int pageIndex,
     @Path("pageSize") int pageSize,
   );
-  // @GET("api/products//filter/{categoryId}")
-  // Future filterProduct(int categoryId) async {}
 }

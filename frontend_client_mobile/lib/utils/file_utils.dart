@@ -22,6 +22,23 @@ class FileUtils {
       return await MultipartFile.fromFile(file.path, filename: file.name);
     }
   }
+
+  /// Convert multiple XFiles to MultipartFiles
+  static Future<List<MultipartFile>> convertXFilesToMultipart(
+    List<XFile> files,
+  ) async {
+    final List<MultipartFile> multipartFiles = [];
+
+    for (final file in files) {
+      final multipart = await convertXFileToMultipart(file);
+      if (multipart != null) {
+        multipartFiles.add(multipart);
+      }
+    }
+
+    return multipartFiles;
+  }
+
   static String fixImgUrl(String url) {
     if (url.isEmpty) return "";
     // Nếu chạy Web và thấy IP của máy ảo -> Đổi thành localhost

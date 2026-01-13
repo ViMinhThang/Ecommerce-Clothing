@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:frontend_client_mobile/models/product_image.dart';
 import 'package:frontend_client_mobile/models/product_variant.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -16,6 +17,8 @@ class Product {
   final String? imageUrl;
   final Category category;
   final List<ProductVariant> variants;
+  @JsonKey(includeIfNull: false)
+  final List<ProductImage>? images;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   File? image;
@@ -27,6 +30,7 @@ class Product {
     this.imageUrl,
     required this.category,
     required this.variants,
+    this.images,
     this.image,
   });
 

@@ -1,84 +1,99 @@
-import 'package:frontend_client_mobile/models/auth_response.dart';
-import 'package:frontend_client_mobile/models/login_request.dart';
-import 'package:frontend_client_mobile/models/register_request.dart';
+import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/auth_api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 
 class AuthService {
-  AuthService({AuthApiService? api})
-    : _api = api ?? ApiClient.getAuthApiService();
+  final AuthApiService _apiService;
+  final TokenStorage _storage = TokenStorage();
 
-  final AuthApiService _api;
-  static const String _tokenKey = 'auth_token';
-  static const String _userIdKey = 'user_id';
-  static const String _usernameKey = 'username';
+  AuthService({AuthApiService? apiService})
+    : _apiService = apiService ?? ApiClient.getAuthApiService();
 
-  Future<AuthResponse> login(String username, String password) async {
-    final request = LoginRequest(username: username, password: password);
-    final response = await _api.login(request);
-
-    // Save token and user info
-    await saveToken(response.token);
-    await saveUserId(response.id);
-    await saveUsername(response.username);
-
-    return response;
-  }
-
-  Future<String> register(RegisterRequest request) async {
-    final response = await _api.register(request);
-    return response.data;
-  }
-
-  Future<bool> validateToken() async {
+  Future<List<String>> login({
+    required String username,
+    required String password,
+  }) async {
     try {
-      await _api.validateToken();
-      return true;
+      final response = await _apiService.login({
+        'username': username,
+        'password': password,
+      });
+
+      final res = response.response;
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = res.data;
+        final access =
+            data['accessToken'] ?? data['access_token'] ?? data['token'];
+        final refresh = data['refreshToken'] ?? data['refresh_token'];
+        final roles = data['roles'] as List<dynamic>? ?? [];
+        final userId = data['id'] ?? data['userId'] ?? data['user_id'];
+
+        if (access == null) throw Exception('No access token returned');
+
+        await _storage.saveAccessToken(access.toString());
+        if (refresh != null) {
+          await _storage.saveRefreshToken(refresh.toString());
+        }
+        
+        final rolesList = roles.map((r) => r.toString()).toList();
+        await _storage.saveRoles(rolesList);
+        
+        if (userId != null) {
+          await _storage.saveUserId(int.tryParse(userId.toString()) ?? 0);
+        }
+        
+        return rolesList;
+      } else {
+        throw Exception('Login failed with status: ${res.statusCode}');
+      }
+    } on DioException catch (e) {
+      String errorMessage = 'Connection error';
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMessage = data['message'];
+        } else if (data is Map && data.containsKey('error')) {
+          errorMessage = data['error'];
+        } else {
+          errorMessage = 'Server error: ${e.response?.statusCode}';
+        }
+      } else {
+        errorMessage = 'Network error: ${e.message}';
+      }
+      throw Exception(errorMessage);
     } catch (e) {
-      return false;
+      throw Exception('An unexpected error occurred: $e');
     }
   }
 
-  Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-  }
+  Future<bool> refreshToken() async {
+    final refresh = await _storage.readRefreshToken();
+    if (refresh == null) return false;
 
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
-  }
+    try {
+      final response = await _apiService.refresh({'refreshToken': refresh});
+      final res = response.response;
 
-  Future<void> saveUserId(int userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_userIdKey, userId);
-  }
+      if (res.statusCode == 200) {
+        final data = res.data;
+        final access =
+            data['accessToken'] ?? data['access_token'] ?? data['token'];
+        final newRefresh = data['refreshToken'] ?? data['refresh_token'];
 
-  Future<int?> getUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_userIdKey);
-  }
+        if (access == null) return false;
 
-  Future<void> saveUsername(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_usernameKey, username);
-  }
-
-  Future<String?> getUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_usernameKey);
-  }
-
-  Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null && token.isNotEmpty;
+        await _storage.saveAccessToken(access.toString());
+        if (newRefresh != null) {
+          await _storage.saveRefreshToken(newRefresh.toString());
+        }
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userIdKey);
-    await prefs.remove(_usernameKey);
+    await _storage.clear();
   }
 }

@@ -41,7 +41,6 @@ public class ProductServiceImpl implements ProductService {
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
-
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
         if (pageable == null) {
@@ -91,6 +90,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
+        if(categoryId == 0){
+            return productRepository.findAll(pageable).map(this::mapToProductView);
+        }
         return productRepository.findByCategoryIdAndStatus(categoryId, status, pageable)
                 .map(this::mapToProductView);
     }
@@ -135,6 +137,16 @@ public class ProductServiceImpl implements ProductService {
         return variants.stream()
                 .map(this::mapToProductVariantView)
                 .toList();
+    }
+
+    @Override
+    public List<ProductView> getAll() {
+        return productRepository.findAll().stream().map(this::mapToProductView).toList();
+    }
+
+    @Override
+    public List<ProductView> getByListId(List<Long> ids) {
+        return productRepository.findAllById(ids).stream().map(this::mapToProductView).toList();
     }
 
     // ==================== Private Helper Methods ====================
@@ -328,7 +340,6 @@ public class ProductServiceImpl implements ProductService {
                 product.getId(),
                 product.getName(),
                 product.getPrimaryImageUrl(),
-                product.getImageUrls(),
                 basePrice,
                 salePrice,
                 product.getDescription());
@@ -356,23 +367,25 @@ public class ProductServiceImpl implements ProductService {
         if (variant.getColor() != null) {
             ProductVariantView.ColorInfo colorInfo = new ProductVariantView.ColorInfo();
             colorInfo.setId(variant.getColor().getId());
-            colorInfo.setName(variant.getColor().getColorName());
-            colorInfo.setHexCode(variant.getColor().getColorCode());
+            colorInfo.setColorName(variant.getColor().getColorName());
+            colorInfo.setColorCode(variant.getColor().getColorCode());
+            colorInfo.setStatus(variant.getColor().getStatus());
             view.setColor(colorInfo);
         }
 
         if (variant.getSize() != null) {
             ProductVariantView.SizeInfo sizeInfo = new ProductVariantView.SizeInfo();
             sizeInfo.setId(variant.getSize().getId());
-            sizeInfo.setName(variant.getSize().getSizeName());
+            sizeInfo.setSizeName(variant.getSize().getSizeName());
+            sizeInfo.setStatus(variant.getSize().getStatus());
             view.setSize(sizeInfo);
         }
 
         if (variant.getPrice() != null) {
             ProductVariantView.PriceInfo priceInfo = new ProductVariantView.PriceInfo();
             priceInfo.setId(variant.getPrice().getId());
-            priceInfo.setOriginalPrice(variant.getPrice().getBasePrice());
-            priceInfo.setDiscountPrice(variant.getPrice().getSalePrice());
+            priceInfo.setBasePrice(variant.getPrice().getBasePrice());
+            priceInfo.setSalePrice(variant.getPrice().getSalePrice());
             view.setPrice(priceInfo);
         }
 

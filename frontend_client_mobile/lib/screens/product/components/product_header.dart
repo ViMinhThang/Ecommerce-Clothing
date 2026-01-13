@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/favorite_item.dart';
-import 'package:frontend_client_mobile/providers/favorite_provider.dart';
 import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -33,27 +34,72 @@ class ProductHeader extends StatelessWidget {
                       ),
                     ),
             ),
-            Consumer<FavoriteProvider>(
-              builder: (context, favorite, child) {
-                final isFav =
-                    product != null && favorite.isFavorite(product.id);
+            Consumer<WishlistProvider>(
+              builder: (context, wishlistProvider, child) {
+                final isFav = product != null && 
+                    wishlistProvider.isProductInWishlistLocal(product.id);
                 return IconButton(
                   icon: Icon(
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav ? Colors.red : Colors.black,
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (product != null) {
-                      final item = FavoriteItem(
+                      final tokenStorage = TokenStorage();
+                      final isLoggedIn = await tokenStorage.isLoggedIn();
+                      
+                      if (!context.mounted) return;
+                      
+                      if (!isLoggedIn) {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: Text('Login Required', style: GoogleFonts.lora(fontWeight: FontWeight.w600)),
+                            content: const Text('Please login to add items to your wishlist.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const MainScreen(initialTab: 4)),
+                                    (route) => false,
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                                child: const Text('Login', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+                      
+                      final userId = await tokenStorage.readUserId() ?? 1;
+                      final success = await wishlistProvider.toggleWishlist(
                         productId: product.id,
-                        productName: product.name,
-                        imageUrl: product.primaryImageUrl,
-                        price: provider.variants.isNotEmpty
-                            ? provider.variants.first.price.salePrice
-                            : 0,
-                        product: product,
+                        userId: userId,
                       );
-                      favorite.toggleFavorite(item);
+                      if (!context.mounted) return;
+                      if (success) {
+                        final isNowFavorite = wishlistProvider.isProductInWishlistLocal(product.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isNowFavorite 
+                                  ? 'Added to wishlist!' 
+                                  : 'Removed from wishlist',
+                            ),
+                            backgroundColor: isNowFavorite ? Colors.green : Colors.grey,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     }
                   },
                 );

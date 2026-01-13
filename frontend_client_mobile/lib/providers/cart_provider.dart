@@ -1,163 +1,237 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/models/cart_item.dart';
+import 'package:frontend_client_mobile/models/cart.dart';
+import 'package:frontend_client_mobile/models/order_view.dart';
+import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
+import 'package:frontend_client_mobile/services/order_service.dart';
 
-class CartItem {
-  final int productId;
-  final String productName;
-  final int variantId;
-  final String variantName;
-  final double price;
-  int quantity;
-  final String? imageUrl;
+class CartProvider extends ChangeNotifier {
+  CartView? _cartView;
+  final OrderService _orderService = OrderService();
+  final CartApiService _cartApiService = ApiClient.getCartApiService();
 
-  CartItem({
-    required this.productId,
-    required this.productName,
-    required this.variantId,
-    required this.variantName,
-    required this.price,
-    required this.quantity,
-    this.imageUrl,
-  });
-
-  double get totalPrice => price * quantity;
-}
-
-class CartProvider with ChangeNotifier {
-  final Map<String, CartItem> _items = {};
   String? _error;
+  bool _isLoading = false;
 
-  Map<String, CartItem> get items => {..._items};
-
-  int get itemCount => _items.length;
-
+  CartView? get cart => _cartView;
   String? get error => _error;
+  bool get isLoading => _isLoading;
 
-  double get totalAmount {
-    var total = 0.0;
-    _items.forEach((key, cartItem) {
-      total += cartItem.totalPrice;
-    });
-    return total;
+  double get totalPrice => _cartView?.totalPrice ?? 0.0;
+
+  void clear() {
+    _cartView = null;
+    notifyListeners();
   }
 
   Future<bool> addToCart({
-    required int productId,
-    required String productName,
+    required int userId,
     required int variantId,
-    required String variantName,
-    required double price,
-    String? imageUrl,
-    int quantity = 1,
+    required int quantity,
   }) async {
-    try {
-      _error = null;
-      final key = '${productId}_$variantId';
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
-      if (_items.containsKey(key)) {
-        _items.update(
-          key,
-          (existingCartItem) => CartItem(
-            productId: existingCartItem.productId,
-            productName: existingCartItem.productName,
-            variantId: existingCartItem.variantId,
-            variantName: existingCartItem.variantName,
-            price: existingCartItem.price,
-            quantity: existingCartItem.quantity + quantity,
-            imageUrl: existingCartItem.imageUrl,
-          ),
-        );
-      } else {
-        _items.putIfAbsent(
-          key,
-          () => CartItem(
-            productId: productId,
-            productName: productName,
-            variantId: variantId,
-            variantName: variantName,
-            price: price,
-            quantity: quantity,
-            imageUrl: imageUrl,
-          ),
-        );
+    try {
+      // ✅ VALIDATION: quantity check (frontend pre-validation)
+      if (quantity <= 0) {
+        _error = 'Quantity must be greater than 0';
+        _isLoading = false;
+        notifyListeners();
+        return false;
       }
+
+      final request = AddToCartRequest(
+        userId: userId,
+        variantId: variantId,
+        quantity: quantity,
+      );
+      
+      final response = await _cartApiService.addToCart(request);
+      
+      // ✅ Update local cart state with response
+      _cartView = response;
+      _error = null;
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // ✅ IMPROVED ERROR HANDLING: Extract meaningful error message
+      String errorMessage = _extractErrorMessage(e.toString());
+      _error = errorMessage;
+      _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  void addItem(
-    int productId,
-    String productName,
-    int variantId,
-    String variantName,
-    double price,
-    String? imageUrl,
-  ) {
-    final key = '${productId}_$variantId';
-    if (_items.containsKey(key)) {
-      _items.update(
-        key,
-        (existingCartItem) => CartItem(
-          productId: existingCartItem.productId,
-          productName: existingCartItem.productName,
-          variantId: existingCartItem.variantId,
-          variantName: existingCartItem.variantName,
-          price: existingCartItem.price,
-          quantity: existingCartItem.quantity + 1,
-          imageUrl: existingCartItem.imageUrl,
-        ),
-      );
-    } else {
-      _items.putIfAbsent(
-        key,
-        () => CartItem(
-          productId: productId,
-          productName: productName,
-          variantId: variantId,
-          variantName: variantName,
-          price: price,
-          quantity: 1,
-          imageUrl: imageUrl,
-        ),
-      );
+  // ✅ Helper method to extract readable error messages
+  String _extractErrorMessage(String error) {
+    // Handle DioException with backend error response
+    if (error.contains('Product variant is not available')) {
+      return 'This product is no longer available for purchase';
     }
-    notifyListeners();
+    if (error.contains('Quantity must be greater than 0')) {
+      return 'Please enter a valid quantity';
+    }
+    if (error.contains('Cannot add items to another user\'s cart')) {
+      return 'You can only add items to your own cart';
+    }
+    if (error.contains('User not found')) {
+      return 'User account not found';
+    }
+    if (error.contains('Product variant not found')) {
+      return 'Product not found';
+    }
+    if (error.contains('Connection')) {
+      return 'Network connection error. Please try again.';
+    }
+    
+    // Default error message
+    return 'Failed to add item to cart. Please try again.';
   }
 
-  void removeItem(String key) {
-    _items.remove(key);
+  Future<void> fetchCart(int userId) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      _cartView = await _cartApiService.getCartByUserId(userId);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void clear() {
-    _items.clear();
-    notifyListeners();
+  Future<void> updateQuantity(int cartItemId, int quantity, int userId) async {
+    try {
+      // Update local state immediately for smooth UI
+      if (_cartView != null) {
+        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        if (itemIndex >= 0) {
+          final updatedItem = _cartView!.items[itemIndex];
+          final oldQuantity = updatedItem.quantity;
+          final oldSubtotal = updatedItem.subtotal;
+          
+          // Create updated item with new quantity
+          final newItem = CartItemView(
+            id: updatedItem.id,
+            variantId: updatedItem.variantId,
+            productName: updatedItem.productName,
+            productImage: updatedItem.productImage,
+            colorName: updatedItem.colorName,
+            sizeName: updatedItem.sizeName,
+            quantity: quantity,
+            price: updatedItem.price,
+            subtotal: updatedItem.price * quantity,
+          );
+          
+          // Update list
+          _cartView!.items[itemIndex] = newItem;
+          
+          // Recalculate total
+          final priceDifference = (newItem.subtotal - oldSubtotal);
+          _cartView = CartView(
+            id: _cartView!.id,
+            userId: _cartView!.userId,
+            items: _cartView!.items,
+            totalPrice: _cartView!.totalPrice + priceDifference,
+          );
+          
+          notifyListeners();
+        }
+      }
+      
+      // Call API in background without blocking UI
+      await _cartApiService.updateQuantity(cartItemId, quantity);
+    } catch (e) {
+      _error = e.toString();
+      // Reload from server on error
+      await fetchCart(userId);
+    }
   }
 
-  void removeSingleItem(String key) {
-    if (!_items.containsKey(key)) {
-      return;
+  Future<void> removeItem(int cartItemId, int userId) async {
+    try {
+      // Update local state immediately
+      if (_cartView != null) {
+        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        if (itemIndex >= 0) {
+          final removedItem = _cartView!.items[itemIndex];
+          final newTotalPrice = _cartView!.totalPrice - removedItem.subtotal;
+          
+          _cartView!.items.removeAt(itemIndex);
+          _cartView = CartView(
+            id: _cartView!.id,
+            userId: _cartView!.userId,
+            items: _cartView!.items,
+            totalPrice: newTotalPrice,
+          );
+          
+          notifyListeners();
+        }
+      }
+      
+      // Call API in background
+      await _cartApiService.removeFromCart(cartItemId);
+    } catch (e) {
+      _error = e.toString();
+      // Reload from server on error
+      await fetchCart(userId);
     }
-    if (_items[key]!.quantity > 1) {
-      _items.update(
-        key,
-        (existingCartItem) => CartItem(
-          productId: existingCartItem.productId,
-          productName: existingCartItem.productName,
-          variantId: existingCartItem.variantId,
-          variantName: existingCartItem.variantName,
-          price: existingCartItem.price,
-          quantity: existingCartItem.quantity - 1,
-          imageUrl: existingCartItem.imageUrl,
-        ),
-      );
-    } else {
-      _items.remove(key);
+  }
+
+  Future<OrderView> checkout({required String buyerEmail}) async {
+    final order = OrderView(
+      id: 0,
+      buyerEmail: buyerEmail,
+      totalPrice: totalPrice,
+      createdDate: '',
+      status: 'PENDING',
+    );
+    final res = await _orderService.createOrder(order);
+    clear();
+    return res;
+  }
+
+  /// Remove only selected items from cart (for partial checkout)
+  Future<void> removeSelectedItems(List<int> itemIds, int userId) async {
+    try {
+      // Update local state immediately
+      if (_cartView != null) {
+        double removedTotal = 0;
+        _cartView!.items.removeWhere((item) {
+          if (itemIds.contains(item.id)) {
+            removedTotal += item.subtotal;
+            return true;
+          }
+          return false;
+        });
+        
+        _cartView = CartView(
+          id: _cartView!.id,
+          userId: _cartView!.userId,
+          items: _cartView!.items,
+          totalPrice: _cartView!.totalPrice - removedTotal,
+        );
+        
+        notifyListeners();
+      }
+      
+      // Call API to remove each item
+      for (final itemId in itemIds) {
+        await _cartApiService.removeFromCart(itemId);
+      }
+    } catch (e) {
+      _error = e.toString();
+      // Reload from server on error
+      await fetchCart(userId);
     }
-    notifyListeners();
   }
 }

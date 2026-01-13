@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/favorite_provider.dart';
 import 'package:frontend_client_mobile/models/favorite_item.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FavoriteScreen extends StatelessWidget {
   const FavoriteScreen({super.key});
@@ -13,7 +14,19 @@ class FavoriteScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Danh sách yêu thích'),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'Wishlist',
+          style: GoogleFonts.lora(
+            color: Colors.black,
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           if (favorite.items.isNotEmpty)
             TextButton(

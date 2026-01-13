@@ -18,27 +18,33 @@ class ProductService {
     return response.data;
   }
 
-  Future<Product> createProduct(Product product, {MultipartFile? image}) async {
+  Future<Product> createProduct(
+    Product product, {
+    List<MultipartFile>? images,
+  }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
+    print("Creating product with variants JSON: $variantsJson");
     return await _apiService.createProduct(
       product.name,
       product.description,
       product.category.id!,
       variantsJson,
-      image,
+      images ?? [],
     );
   }
 
   Future<Product> updateProduct(
     int id,
     Product product, {
-    MultipartFile? image,
+    List<MultipartFile>? images,
+    List<int>? existingImageIds,
   }) async {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
+    print("Sending variants JSON: $variantsJson");
 
     final response = await _apiService.updateProduct(
       id,
@@ -46,7 +52,8 @@ class ProductService {
       product.description,
       product.category.id!,
       variantsJson,
-      image,
+      images ?? [],
+      existingImageIds?.map((id) => id.toString()).toList() ?? [],
     );
     return response;
   }
@@ -68,8 +75,11 @@ class ProductService {
     return response.data;
   }
 
-  Future<PageResponse<ProductView>> filterProduct(int categoryId) async {
-    // TODO: Implement filter product API call
-    throw UnimplementedError('filterProduct is not implemented yet');
+  Future<Null> filterProduct(int categoryId) async {
+    return null;
+  }
+
+  Future<List<ProductView>> getSimilarProduct(int productId) async {
+    return await _apiService.getSimilarProduct(productId);
   }
 }

@@ -59,6 +59,7 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint('OrderProvider: Fetching orders with status: $_statusFilter, page: $page');
       final response = await _orderService.getOrders(
         status: _statusFilter,
         sortBy: _sortBy,
@@ -66,6 +67,8 @@ class OrderProvider with ChangeNotifier {
         page: page,
         size: _pageSize,
       );
+      debugPrint('OrderProvider: Got ${response.content.length} orders');
+
 
       _lastPage = response;
       if (reset) {

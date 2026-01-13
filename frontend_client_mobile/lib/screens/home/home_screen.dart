@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
+import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:frontend_client_mobile/widgets/category_chip.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
-import 'package:frontend_client_mobile/screens/product/product.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/product_provider.dart';
-import 'package:frontend_client_mobile/widgets/product_card.dart';
+import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
-import 'package:frontend_client_mobile/providers/favorite_provider.dart';
-import 'package:frontend_client_mobile/models/favorite_item.dart';
-import 'package:frontend_client_mobile/models/product.dart' as model;
-import 'package:frontend_client_mobile/models/category.dart';
+import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,7 +29,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Initial Fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).initialize();
+      final productProvider = Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      );
+      productProvider.prepareForCategory(0);
+      productProvider.fetchProductsByCategory(0, refresh: true);
       Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
     });
 
@@ -41,12 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _scrollController.position.maxScrollExtent - 200;
       final provider = Provider.of<ProductProvider>(context, listen: false);
       if (isScrollAtBottom && !provider.isMoreLoading && provider.hasMore) {
-        provider.loadMore();
-      }
-      if (isScrollAtBottom &&
-          provider.hasMore &&
-          !provider.isMoreLoading &&
-          _selectedCategoryIndex > 0) {
         provider.loadMoreByCategory(_selectedCategoryId);
       }
     });
@@ -70,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Clear và bật loading ngay để kích hoạt skeleton
     p.prepareForCategory(categoryId); // phương thức mới, xem dưới
-    p.fetchProductsByCategory(categoryId, isRefresh: true);
+    p.fetchProductsByCategory(categoryId, refresh: true);
 
     if (_scrollController.hasClients) _scrollController.jumpTo(0);
   }
@@ -78,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     // Using Consumer to listen to updates efficiently
-    final favoriteProvider = context.watch<FavoriteProvider>();
+    final wishlistProvider = context.watch<WishlistProvider>();
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
         return Scaffold(
@@ -88,9 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             title: Text(
               "Eleven",
-              style: const TextStyle(
-                fontWeight: FontWeight.normal,
+              style: GoogleFonts.lora(
                 color: Colors.black,
+                fontWeight: FontWeight.normal,
+                fontSize: 18,
               ),
             ),
             actions: [
@@ -115,7 +114,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: RefreshIndicator(
             onRefresh: () async {
-              await productProvider.fetchProducts(refresh: true);
+              await productProvider.fetchProductsByCategory(
+                _selectedCategoryId,
+                refresh: true,
+              );
             },
             child: CustomScrollView(
               controller: _scrollController,
@@ -140,7 +142,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                // Categories Section
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,8 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                      Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
@@ -169,12 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Consumer<CategoryProvider>(
                           builder: (context, categoryProvider, child) {
                             if (categoryProvider.isLoading) {
-                              // Hiển thị shimmer skeleton list
                               return SizedBox(
-                                height: 40, // Đúng chiều cao card category thật
+                                height: 40,
                                 child: ListView.separated(
+                                  shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: 6, // số skeleton bạn muốn
+                                  itemCount: 6,
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(width: 8),
                                   itemBuilder: (_, __) =>
@@ -182,47 +182,57 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             }
-                            return Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: CategoryChip(
-                                    label: "All",
-                                    isSelected: _selectedCategoryIndex == 0,
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedCategoryId = 0;
-                                        _selectedCategoryIndex = 0;
-                                      });
-                                      context
-                                          .read<ProductProvider>()
-                                          .prepareForCategory(0);
-                                      context
-                                          .read<ProductProvider>()
-                                          .fetchProducts(refresh: true);
-                                    },
-                                  ),
-                                ),
-                                ...categoryProvider.categories.map((category) {
-                                  final index =
-                                      categoryProvider.categories.indexOf(
-                                        category,
-                                      ) +
-                                      1;
-                                  return Padding(
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  Padding(
                                     padding: const EdgeInsets.only(right: 12.0),
                                     child: CategoryChip(
-                                      label: category.name,
-                                      isSelected:
-                                          _selectedCategoryIndex == index,
-                                      onTap: () => _onCategorySelected(
-                                        index,
-                                        category.id!,
-                                      ),
+                                      label: "All",
+                                      isSelected: _selectedCategoryIndex == 0,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedCategoryId = 0;
+                                          _selectedCategoryIndex = 0;
+                                        });
+                                        context
+                                            .read<ProductProvider>()
+                                            .prepareForCategory(0);
+                                        context
+                                            .read<ProductProvider>()
+                                            .fetchProductsByCategory(
+                                              0,
+                                              refresh: true,
+                                            );
+                                      },
                                     ),
-                                  );
-                                }),
-                              ],
+                                  ),
+                                  ...categoryProvider.categories.map((
+                                    category,
+                                  ) {
+                                    final index =
+                                        categoryProvider.categories.indexOf(
+                                          category,
+                                        ) +
+                                        1;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 12.0,
+                                      ),
+                                      child: CategoryChip(
+                                        label: category.name,
+                                        isSelected:
+                                            _selectedCategoryIndex == index,
+                                        onTap: () => _onCategorySelected(
+                                          index,
+                                          category.id!,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -232,106 +242,119 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 if (productProvider.isLoading &&
-                    productProvider.products.isEmpty)
-                  SliverGrid.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    children: List.generate(
-                      6,
-                      (index) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const ProductCardSkeleton(),
+                    productProvider.productViews.isEmpty)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(8.0),
+                    sliver: SliverGrid.count(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      children: List.generate(
+                        6,
+                        (index) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const ProductCardSkeleton(),
+                        ),
                       ),
                     ),
                   ),
-                if (_selectedCategoryIndex == 0)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.58,
-                            mainAxisSpacing: 24,
-                            crossAxisSpacing: 16,
-                          ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final product = productProvider.products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetailScreen(productId: product.id),
-                              ),
-                            );
-                          },
-                        );
-                      }, childCount: productProvider.products.length),
-                    ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
-                if (_selectedCategoryIndex != 0)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.58,
-                            mainAxisSpacing: 24,
-                            crossAxisSpacing: 16,
-                          ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final product = productProvider.productViews[index];
-                        return ProductViewCard(
-                          product: product,
-                          isFavorite: favoriteProvider.isFavorite(product.id),
-                          onFavoriteToggle: () {
-                            // Creating a mock product for FavoriteItem as done before in ProductViewCard
-                            final mockProduct = model.Product(
-                              id: product.id,
-                              name: product.name,
-                              description: product.description,
-                              category: Category(
-                                id: 0,
-                                name: 'General',
-                                description: '',
-                                imageUrl: '',
-                                status: 'ACTIVE',
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.58,
+                          mainAxisSpacing: 24,
+                          crossAxisSpacing: 16,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final product = productProvider.productViews[index];
+                      return ProductViewCard(
+                        product: product,
+                        isFavorite: wishlistProvider.isProductInWishlistLocal(
+                          product.id,
+                        ),
+                        onFavoriteToggle: () async {
+                          final tokenStorage = TokenStorage();
+                          final isLoggedIn = await tokenStorage.isLoggedIn();
+
+                          if (!context.mounted) return;
+
+                          if (!isLoggedIn) {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: Text(
+                                  'Login Required',
+                                  style: GoogleFonts.lora(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                content: const Text(
+                                  'Please login to add items to your wishlist.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: const Text(
+                                      'Cancel',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const MainScreen(initialTab: 4),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Login',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              variants: [],
                             );
-                            favoriteProvider.toggleFavorite(
-                              FavoriteItem(
-                                productId: product.id,
-                                productName: product.name,
-                                imageUrl: product.imageUrl,
-                                price: product.displayPrice,
-                                product: mockProduct,
-                              ),
-                            );
-                          },
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetailScreen(productId: product.id),
-                              ),
-                            );
-                          },
-                        );
-                      }, childCount: productProvider.productViews.length),
-                    ),
+                            return;
+                          }
+
+                          final userId = await tokenStorage.readUserId() ?? 1;
+                          wishlistProvider.toggleWishlist(
+                            productId: product.id,
+                            userId: userId,
+                          );
+                        },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailScreen(productId: product.id),
+                            ),
+                          );
+                        },
+                      );
+                    }, childCount: productProvider.productViews.length),
                   ),
+                ),
 
                 if (productProvider.isMoreLoading)
                   const SliverToBoxAdapter(

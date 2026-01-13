@@ -56,7 +56,7 @@ class StatusBadge extends StatelessWidget {
         color: isUserRole
             ? AppTheme.veryLightGray
             : badgeColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppTheme.borderRadiusXS,
         border: isUserRole
             ? null
             : Border.all(color: badgeColor.withValues(alpha: 0.5), width: 0.5),

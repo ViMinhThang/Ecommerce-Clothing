@@ -17,7 +17,9 @@ public class OrderDTO {
     @NotNull
     private List<Long> cartItemIds;
 
-    @AssertTrue(message = "Danh sách cart item cần mua không được rỗng")
+    private String voucherCode;
+
+    @AssertTrue(message = "Cart item list cannot be empty")
     public boolean isCartItemIdsNotEmpty() {
         return cartItemIds != null && !cartItemIds.isEmpty();
     }

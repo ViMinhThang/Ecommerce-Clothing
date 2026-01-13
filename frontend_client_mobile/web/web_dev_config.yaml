@@ -1,0 +1,5 @@
+flutter:
+  web:
+    browser-flags:
+      - --disable-web-security
+      - --user-data-dir=/tmp/flutter_dev_session

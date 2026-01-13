@@ -55,8 +55,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderDTO OrderDTO) { // Changed parameter to OrderDTO
-        Order createdOrder = orderService.createOrder(OrderDTO);
+    public ResponseEntity<OrderView> createOrder(@RequestBody OrderDTO orderDTO) {
+        OrderView createdOrder = orderService.createOrder(orderDTO);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 

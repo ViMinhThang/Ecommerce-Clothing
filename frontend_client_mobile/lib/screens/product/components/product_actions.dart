@@ -2,10 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/product_detail_provider.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:provider/provider.dart';
 
 class ProductActions extends StatelessWidget {
   const ProductActions({super.key});
+
+  void _showLoginDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Login Required', style: GoogleFonts.lora(fontWeight: FontWeight.w600)),
+        content: const Text('Please login to add items to your cart.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const MainScreen(initialTab: 4)),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            child: const Text('Login', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,44 +89,189 @@ class ProductActions extends StatelessWidget {
                       provider.selectedVariantId == null
                   ? null
                   : () async {
+                      final tokenStorage = TokenStorage();
+                      final isLoggedIn = await tokenStorage.isLoggedIn();
+                      
+                      if (!context.mounted) return;
+                      
+                      if (!isLoggedIn) {
+                        _showLoginDialog(context);
+                        return;
+                      }
+                      
+                      final userId = await tokenStorage.readUserId() ?? 1;
+                      
                       final cartProvider = Provider.of<CartProvider>(
                         context,
                         listen: false,
                       );
                       final success = await cartProvider.addToCart(
-                        productId: provider.product!.id,
-                        productName: provider.product!.name,
+                        userId: userId,
                         variantId: provider.selectedVariantId!,
-                        variantName:
-                            '${provider.selectedColorName} - ${provider.selectedSizeName}',
-                        price: provider.variants
-                            .firstWhere(
-                              (v) => v.id == provider.selectedVariantId,
-                            )
-                            .price
-                            .basePrice,
-                        imageUrl: provider.product!.primaryImageUrl,
                         quantity: provider.quantity,
                       );
 
                       if (!context.mounted) return;
                       final messenger = ScaffoldMessenger.of(context);
+                      messenger.hideCurrentSnackBar();
+
                       if (success) {
                         messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Added to cart successfully!'),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 2),
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Added to Cart',
+                                        style: GoogleFonts.lora(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${provider.quantity} item${provider.quantity > 1 ? 's' : ''} added successfully',
+                                        style: GoogleFonts.lora(
+                                          fontSize: 12,
+                                          color: Colors.white.withOpacity(
+                                            0.8,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const MainScreen(initialTab: 3),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'View',
+                                      style: GoogleFonts.lora(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.black,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            duration: const Duration(seconds: 3),
+                            elevation: 8,
                           ),
                         );
                       } else {
                         messenger.showSnackBar(
                           SnackBar(
-                            content: Text(
-                              cartProvider.error ?? 'Failed to add to cart',
+                            content: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.error_outline_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Oops! Something went wrong',
+                                        style: GoogleFonts.lora(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        cartProvider.error ??
+                                            'Failed to add to cart',
+                                        style: GoogleFonts.lora(
+                                          fontSize: 12,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 2),
+                            backgroundColor: const Color(0xFF2C2C2C),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(
+                                color: Colors.red.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            duration: const Duration(seconds: 3),
+                            elevation: 8,
                           ),
                         );
                       }

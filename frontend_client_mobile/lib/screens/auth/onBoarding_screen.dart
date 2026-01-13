@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/screens/auth/log_in.dart';
 import 'package:frontend_client_mobile/widgets/logo_and_text_widget.dart'; // Assuming this import is correct
 
 void main() {
@@ -18,13 +16,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 1), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
-    });
+    // Timer(const Duration(seconds: 1), () {
+    //   if (mounted) {
+    //     Navigator.of(context).pushReplacement(
+    //       MaterialPageRoute(builder: (context) => const LoginScreen()),
+    //     );
+    //   }
+    // });
   }
 
   @override

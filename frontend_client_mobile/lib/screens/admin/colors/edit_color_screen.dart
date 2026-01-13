@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/color.dart' as model;
 import 'package:provider/provider.dart';
+import '../../../features/admin/color/edit/sections/color_form_section.dart';
 import '../../../providers/color_provider.dart';
-import '../../../config/theme_config.dart';
-import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditColorScreen extends BaseEditScreen<model.Color> {
@@ -16,6 +15,7 @@ class EditColorScreen extends BaseEditScreen<model.Color> {
 class _EditColorScreenState
     extends BaseEditScreenState<model.Color, EditColorScreen> {
   late final TextEditingController _nameController;
+  late final TextEditingController _codeController;
   String _status = 'active';
 
   @override
@@ -35,12 +35,16 @@ class _EditColorScreenState
     _nameController = TextEditingController(
       text: widget.entity?.colorName ?? '',
     );
+    _codeController = TextEditingController(
+      text: widget.entity?.colorCode ?? '',
+    );
     _status = widget.entity?.status ?? 'active';
   }
 
   @override
   void disposeControllers() {
     _nameController.dispose();
+    _codeController.dispose();
   }
 
   @override
@@ -55,6 +59,7 @@ class _EditColorScreenState
     final color = model.Color(
       id: widget.entity?.id,
       colorName: _nameController.text.trim(),
+      colorCode: _codeController.text.trim(),
       status: _status,
     );
 
@@ -67,24 +72,12 @@ class _EditColorScreenState
 
   @override
   Widget buildFormFields() {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _nameController,
-          decoration: FormDecorations.standard('Color Name'),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: AppTheme.spaceMD),
-        DropdownButtonFormField<String>(
-          initialValue: _status,
-          decoration: FormDecorations.standard('Status'),
-          items: const [
-            DropdownMenuItem(value: 'active', child: Text('Active')),
-            DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-          ],
-          onChanged: (val) => setState(() => _status = val!),
-        ),
-      ],
+    return ColorFormSection(
+      nameController: _nameController,
+      codeController: _codeController,
+      status: _status,
+      onStatusChanged: (val) => setState(() => _status = val),
+      onCodeChanged: () => setState(() {}),
     );
   }
 }

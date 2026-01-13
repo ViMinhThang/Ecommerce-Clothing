@@ -7,6 +7,7 @@ import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.mapper.OrderMapper;
 import com.ecommerce.backend.model.Order;
 import com.ecommerce.backend.model.OrderItem;
+import com.ecommerce.backend.model.Voucher;
 import com.ecommerce.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,26 +26,29 @@ import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @Service
-public class OrderServiceImpl implements OrderService{
+public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
+    private final VoucherService voucherService;
 
     @Override
     public Page<OrderView> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(PageRequest.of(pageable.getPageNumber()
-                , pageable.getPageSize(), Sort.by("createdDate").descending())).map(OrderMapper::toOrderView);
+        return orderRepository.findAll(
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("createdDate").descending()))
+                .map(OrderMapper::toOrderView);
     }
 
     @Override
     public OrderDetailView getOrderById(long id) {
-        return orderRepository.findById(id).map(OrderMapper::toOrderDetailView).orElseThrow(() -> new RuntimeException("Not found"));
+        return orderRepository.findById(id).map(OrderMapper::toOrderDetailView)
+                .orElseThrow(() -> new RuntimeException("Not found"));
     }
 
     @Override
     @Transactional
-    public Order createOrder(OrderDTO orderDTO) {
-        var user = userRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("Khong tim thay user"));
+    public OrderView createOrder(OrderDTO orderDTO) {
+        var user = userRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("User not found"));
         var cartItems = cartItemRepository.findByIdInAndCart(orderDTO.getCartItemIds(), user.getCart());
         var orderItems = new ArrayList<OrderItem>();
 
@@ -53,7 +57,7 @@ public class OrderServiceImpl implements OrderService{
         order.setUser(user);
 
         var sum = 0.0;
-        for (var ct: cartItems){
+        for (var ct : cartItems) {
             var productVariants = ct.getProductVariants();
             var orderItem = new OrderItem();
             var quantity = ct.getQuantity();
@@ -64,13 +68,33 @@ public class OrderServiceImpl implements OrderService{
             orderItem.setQuantity(quantity);
             orderItem.setPriceAtPurchase(price);
             orderItems.add(orderItem);
-            sum += (quantity*price);
+            sum += (quantity * price);
         }
 
         order.setOrderItems(orderItems);
         order.setTotalPrice(sum);
 
-        return orderRepository.save(order);
+        double discountAmount = 0;
+        double finalPrice = sum;
+
+        if (orderDTO.getVoucherCode() != null && !orderDTO.getVoucherCode().trim().isEmpty()) {
+            Voucher voucher = voucherService.applyVoucher(orderDTO.getVoucherCode(), sum);
+            if (voucher != null) {
+                discountAmount = ((VoucherServiceImpl) voucherService).calculateDiscount(voucher, sum);
+                finalPrice = sum - discountAmount;
+                order.setVoucher(voucher);
+                voucherService.incrementUsedCount(voucher.getId());
+            }
+        }
+
+        order.setDiscountAmount(discountAmount);
+        order.setFinalPrice(finalPrice);
+
+        Order savedOrder = orderRepository.save(order);
+
+        cartItemRepository.deleteAll(cartItems);
+
+        return OrderMapper.toOrderView(savedOrder);
     }
 
     @Override
@@ -91,20 +115,20 @@ public class OrderServiceImpl implements OrderService{
         LocalDate today = LocalDate.now();
 
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);
-        LocalDate lastDayOfMonth  = today.withDayOfMonth(today.lengthOfMonth());
+        LocalDate lastDayOfMonth = today.withDayOfMonth(today.lengthOfMonth());
         LocalDateTime startOfMonth = firstDayOfMonth.atStartOfDay();
-        LocalDateTime endOfMonth   = lastDayOfMonth.atTime(23, 59, 59, 999_999_999);
+        LocalDateTime endOfMonth = lastDayOfMonth.atTime(23, 59, 59, 999_999_999);
 
         LocalDate startDayOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endDayOfWeek   = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        LocalDate endDayOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         LocalDateTime startOfWeek = startDayOfWeek.atStartOfDay();
-        LocalDateTime endOfWeek   = endDayOfWeek.atTime(23, 59, 59, 999_999_999);
+        LocalDateTime endOfWeek = endDayOfWeek.atTime(23, 59, 59, 999_999_999);
 
         LocalDateTime startOfToday = today.atStartOfDay();
-        LocalDateTime endOfToday   = today.atTime(23, 59, 59, 999_999_999);
+        LocalDateTime endOfToday = today.atTime(23, 59, 59, 999_999_999);
 
         var orders = orderRepository.findByCreatedDateBetween(startOfMonth, endOfMonth);
-        // ----------- khai báo  ------------
+        // ----------- khai báo ------------
         int totalOrderByDay = 0;
         double totalPriceOrderByDay = 0.0;
         int totalOrderByWeek = 0;
@@ -135,12 +159,11 @@ public class OrderServiceImpl implements OrderService{
         return new OrderStatistics(
                 totalOrderByDay, totalPriceOrderByDay,
                 totalOrderByWeek, totalPriceOrderByWeek,
-                totalOrderByMonth, totalPriceOrderByMonth
-        );
+                totalOrderByMonth, totalPriceOrderByMonth);
     }
 
     @Override
     public Page<OrderView> getAllOrdersByStatus(String status, Pageable pageable) {
-        return orderRepository.findAllByStatus(status,pageable).map(OrderMapper::toOrderView);
+        return orderRepository.findAllByStatus(status, pageable).map(OrderMapper::toOrderView);
     }
 }

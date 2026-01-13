@@ -57,12 +57,12 @@ class AppTheme {
   );
 
   // Border Radius
-  static const double radiusXS = 4.0;
-  static const double radiusSM = 8.0;
-  static const double radiusMD = 12.0;
-  static const double radiusLG = 16.0;
-  static const double radiusXL = 24.0;
-  static const double radius2XL = 32.0;
+  static const double radiusXS = 2.0;
+  static const double radiusSM = 2.0;
+  static const double radiusMD = 4.0;
+  static const double radiusLG = 4.0;
+  static const double radiusXL = 8.0;
+  static const double radius2XL = 12.0;
 
   static BorderRadius borderRadiusXS = BorderRadius.circular(radiusXS);
   static BorderRadius borderRadiusSM = BorderRadius.circular(radiusSM);

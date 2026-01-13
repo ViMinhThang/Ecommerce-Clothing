@@ -87,25 +87,51 @@ class _ProductApiService implements ProductApiService {
   }
 
   @override
+  Future<List<ProductView>> getSimilarProduct(int id) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<ProductView>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'api/products/getSimilar/${id}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<ProductView> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => ProductView.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<Product> createProduct(
     String name,
     String description,
     int categoryId,
     String variants,
-    MultipartFile? image,
+    List<MultipartFile> images,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.fields.add(MapEntry('name', name));
     _data.fields.add(MapEntry('description', description));
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
-    if (image != null) {
-      _data.files.add(MapEntry('image', image));
-    }
+    _data.files.addAll(images.map((i) => MapEntry('images', i)));
     final _options = _setStreamType<Product>(
       Options(
             method: 'POST',
@@ -139,20 +165,21 @@ class _ProductApiService implements ProductApiService {
     String description,
     int categoryId,
     String variants,
-    MultipartFile? image,
+    List<MultipartFile> images,
+    List<String> existingImageIds,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.fields.add(MapEntry('name', name));
     _data.fields.add(MapEntry('description', description));
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
-    if (image != null) {
-      _data.files.add(MapEntry('image', image));
-    }
+    _data.files.addAll(images.map((i) => MapEntry('images', i)));
+    existingImageIds.forEach((i) {
+      _data.fields.add(MapEntry('existingImageIds', i));
+    });
     final _options = _setStreamType<Product>(
       Options(
             method: 'PUT',

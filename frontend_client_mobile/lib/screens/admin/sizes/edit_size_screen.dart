@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/models/size.dart' as model;
 import 'package:provider/provider.dart';
+import '../../../features/admin/size/edit/sections/size_form_section.dart';
 import '../../../providers/size_provider.dart';
-import '../../../config/theme_config.dart';
-import '../../../utils/form_decorations.dart';
 import '../base/base_edit_screen.dart';
 
 class EditSizeScreen extends BaseEditScreen<model.Size> {
@@ -67,24 +66,10 @@ class _EditSizeScreenState
 
   @override
   Widget buildFormFields() {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _nameController,
-          decoration: FormDecorations.standard('Size Name'),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: AppTheme.spaceMD),
-        DropdownButtonFormField<String>(
-          initialValue: _status,
-          decoration: FormDecorations.standard('Status'),
-          items: const [
-            DropdownMenuItem(value: 'active', child: Text('Active')),
-            DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-          ],
-          onChanged: (val) => setState(() => _status = val!),
-        ),
-      ],
+    return SizeFormSection(
+      nameController: _nameController,
+      status: _status,
+      onStatusChanged: (val) => setState(() => _status = val),
     );
   }
 }

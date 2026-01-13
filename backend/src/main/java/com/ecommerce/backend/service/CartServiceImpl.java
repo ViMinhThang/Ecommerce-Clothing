@@ -25,6 +25,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartView addToCart(AddToCartRequest request) {
+        // ✅ VALIDATION 1: Check quantity is valid
+        if (request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+
         // Find or create cart for user
         Cart cart = cartRepository.findByUserId(request.getUserId());
         if (cart == null) {
@@ -45,6 +50,11 @@ public class CartServiceImpl implements CartService {
         }
         ProductVariants variant = productVariantsRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new EntityNotFoundException("Product variant not found"));
+
+        // ✅ VALIDATION 2: Check variant status is active
+        if (variant.getStatus() == null || !variant.getStatus().equalsIgnoreCase("active")) {
+            throw new IllegalArgumentException("Product variant is not available for purchase");
+        }
 
         // Check if item already exists in cart
         CartItem existingItem = cart.getCartItems().stream()

@@ -23,12 +23,24 @@ class ProductVariant {
       _$ProductVariantFromJson(json);
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
       'price': price.toJson(),
       'sizeId': size.id,
       'colorId': color.id,
     };
+    if (id != 0) {
+      data['id'] = id;
+    }
+    return data;
+  }
+
+  ProductVariant copyWith({int? id, Price? price, Size? size, Color? color}) {
+    return ProductVariant(
+      id: id ?? this.id,
+      price: price ?? this.price,
+      size: size ?? this.size,
+      color: color ?? this.color,
+    );
   }
 
   @override
