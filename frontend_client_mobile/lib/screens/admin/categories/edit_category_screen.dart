@@ -141,9 +141,9 @@ class _EditCategoryScreenState
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.4),
+                  Colors.black.withValues(alpha: 0.4),
                   Colors.transparent,
-                  Colors.black.withOpacity(0.7),
+                  Colors.black.withValues(alpha: 0.7),
                 ],
               ),
             ),
@@ -191,7 +191,7 @@ class _EditCategoryScreenState
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: AppTheme.borderRadiusXS,
                   border: Border.all(color: Colors.white24),
                 ),
@@ -230,7 +230,7 @@ class _TechnicalPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
+      ..color = Colors.white.withValues(alpha: 0.2)
       ..strokeWidth = 0.5;
 
     for (var i = 0; i < size.width; i += 40) {
@@ -248,7 +248,7 @@ class _TechnicalPatternPainter extends CustomPainter {
       );
     }
 
-    paint.color = Colors.white.withOpacity(0.1);
+    paint.color = Colors.white.withValues(alpha: 0.1);
     for (var i = -size.height; i < size.width; i += 80) {
       canvas.drawLine(
         Offset(i.toDouble(), 0),
@@ -288,7 +288,7 @@ class _CollectionPreview extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),

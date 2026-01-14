@@ -3,7 +3,6 @@ import 'package:frontend_client_mobile/screens/auth/blank_form.dart';
 import 'package:frontend_client_mobile/widgets/common/logo_and_text_widget.dart';
 import 'package:frontend_client_mobile/widgets/common/mxh_fields_widget.dart';
 import 'package:frontend_client_mobile/services/auth_service.dart';
-import 'package:frontend_client_mobile/services/token_storage.dart';
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen()));
@@ -20,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final AuthService _authService = AuthService();
-  final TokenStorage _tokenStorage = TokenStorage();
   bool _loading = false;
 
   Future<void> _doLogin() async {
@@ -33,10 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       debugPrint('Login successful. Roles: $roles');
       if (!mounted) return;
-      
+
       if (roles.contains('ROLE_ADMIN')) {
         debugPrint('Admin user - navigating to /dashboard');
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         debugPrint('Regular user - navigating to /home');
         Navigator.pushReplacementNamed(context, '/home');
@@ -85,9 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   children: [
@@ -139,20 +137,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 12),
-              SocialWidget(
-                type: "google",
-                text: "Sign in with Google",
-              ),
+              SocialWidget(type: "google", text: "Sign in with Google"),
               const SizedBox(height: 12),
-              SocialWidget(
-                type: "facebook",
-                text: "Sign in with Facebook",
-              ),
+              SocialWidget(type: "facebook", text: "Sign in with Facebook"),
               const SizedBox(height: 12),
-              SocialWidget(
-                type: "apple",
-                text: "Sign in with Apple",
-              ),
+              SocialWidget(type: "apple", text: "Sign in with Apple"),
 
               const SizedBox(height: 18),
               Row(

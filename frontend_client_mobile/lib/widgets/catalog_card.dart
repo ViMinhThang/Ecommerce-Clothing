@@ -21,7 +21,7 @@ class CatalogCard extends StatelessWidget {
               color: Colors.grey.shade100,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -35,7 +35,7 @@ class CatalogCard extends StatelessWidget {
                   Image.network(
                     FileUtils.fixImgUrl(category.imageUrl),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
+                    errorBuilder: (_, _, _) {
                       return const Center(
                         child: Icon(
                           Icons.image_not_supported,

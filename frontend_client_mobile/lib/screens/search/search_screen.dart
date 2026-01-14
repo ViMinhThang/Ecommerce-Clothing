@@ -97,13 +97,13 @@ class _SearchScreenState extends State<SearchScreen> {
     return ChangeNotifierProvider.value(
       value: _searchProvider,
       child: Scaffold(
-        backgroundColor: Colors.black.withOpacity(0.45),
+        backgroundColor: Colors.black.withValues(alpha: 0.45),
         body: Stack(
           children: [
             Positioned.fill(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                child: Container(color: Colors.black.withOpacity(0.1)),
+                child: Container(color: Colors.black.withValues(alpha: 0.1)),
               ),
             ),
             Positioned.fill(

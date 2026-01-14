@@ -1,5 +1,4 @@
 package com.ecommerce.backend.service;
-
 import com.ecommerce.backend.dto.view.WishlistItemView;
 
 import java.util.List;

@@ -24,7 +24,7 @@ class ColorProvider with ChangeNotifier {
       );
     } catch (e) {
       // Handle error
-      print('Error fetching colors: $e');
+      debugPrint('Error fetching colors: $e');
     }
     notifyListeners();
   }
@@ -41,7 +41,7 @@ class ColorProvider with ChangeNotifier {
       _colors.add(newColor);
       notifyListeners();
     } catch (e) {
-      print('Error adding color: $e');
+      debugPrint('Error adding color: $e');
     }
   }
 
@@ -57,7 +57,7 @@ class ColorProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating color: $e');
+      debugPrint('Error updating color: $e');
     }
   }
 
@@ -67,7 +67,7 @@ class ColorProvider with ChangeNotifier {
       _colors.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting color: $e');
+      debugPrint('Error deleting color: $e');
     }
   }
 }

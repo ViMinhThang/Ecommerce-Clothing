@@ -46,6 +46,5 @@ class LogoTextWidget extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  // TODO: implement preferredSize
-  Size get preferredSize => throw UnimplementedError();
+  Size get preferredSize => Size.fromHeight(imgHeight + 10 + textSize + 20);
 }

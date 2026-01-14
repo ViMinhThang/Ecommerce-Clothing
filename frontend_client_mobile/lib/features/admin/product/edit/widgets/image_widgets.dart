@@ -40,7 +40,7 @@ class ImageBackground extends StatelessWidget {
       return Image.network(
         ImageHelper.getFullImageUrl(existingImages.first.imageUrl),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const ImagePlaceholder(),
+        errorBuilder: (_, _, _) => const ImagePlaceholder(),
       );
     }
     return const ImagePlaceholder();

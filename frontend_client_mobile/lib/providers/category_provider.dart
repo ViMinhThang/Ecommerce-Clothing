@@ -47,7 +47,7 @@ class CategoryProvider with ChangeNotifier {
       notifyListeners();
       return newCategory;
     } catch (e) {
-      print('Error adding category: $e');
+      debugPrint('Error adding category: $e');
       rethrow;
     }
   }

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/models/voucher.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/providers/voucher_provider.dart';
-import 'package:frontend_client_mobile/screens/checkout/status_checkout.dart';
-import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:provider/provider.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final List<int> selectedItemIds;
   final double selectedTotal;
-  
+
   const PaymentMethodScreen({
-    Key? key,
+    super.key,
     required this.selectedItemIds,
     required this.selectedTotal,
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
@@ -26,8 +26,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   String selectedPayment = 'cod';
   bool showCardNumber = false;
   bool _isLoading = false;
-  int _selectedNavIndex = 3;
-  
+  final int _selectedNavIndex = 3;
+
   final _voucherController = TextEditingController();
   bool _isValidatingVoucher = false;
   ValidateVoucherResponse? _voucherResponse;
@@ -39,7 +39,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     _voucherController.dispose();
     super.dispose();
   }
-  
+
   double get _discountAmount => _voucherResponse?.discountAmount ?? 0;
   double get _finalPrice => widget.selectedTotal - _discountAmount;
 
@@ -49,18 +49,18 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       setState(() => _voucherError = 'Please enter a voucher code');
       return;
     }
-    
+
     setState(() {
       _isValidatingVoucher = true;
       _voucherError = null;
     });
-    
+
     try {
       final response = await context.read<VoucherProvider>().validateVoucher(
         code,
         widget.selectedTotal,
       );
-      
+
       setState(() {
         _isValidatingVoucher = false;
         if (response != null && response.valid) {
@@ -80,7 +80,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       });
     }
   }
-  
+
   void _removeVoucher() {
     setState(() {
       _voucherResponse = null;
@@ -92,7 +92,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
   void _onNavItemTapped(int index) {
     if (index == _selectedNavIndex) return;
-    
+
     switch (index) {
       case 0: // Home
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -133,6 +133,21 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Future<void> _handleOrder() async {
+    // Check if user is authenticated
+    final tokenStorage = TokenStorage();
+    final token = await tokenStorage.readAccessToken();
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please login to place an order'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      Navigator.pushNamed(context, '/login');
+      return;
+    }
+
     // Only process COD for now
     if (selectedPayment != 'cod') {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -161,7 +176,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
       // Use selected item IDs passed from cart screen
       final cartItemIds = widget.selectedItemIds;
-      
+
       final orderApiService = ApiClient.getOrderApiService();
       final response = await orderApiService.createOrderFromCart({
         'cartItemIds': cartItemIds,
@@ -273,7 +288,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   if (_appliedVoucherCode != null) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -284,7 +299,11 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle, color: Colors.green[700], size: 24),
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green[700],
+                            size: 24,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -300,7 +319,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                                 ),
                                 Text(
                                   '-\$${_discountAmount.toStringAsFixed(2)}',
-                                  style: TextStyle(color: Colors.green[600], fontSize: 14),
+                                  style: TextStyle(
+                                    color: Colors.green[600],
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ],
                             ),
@@ -324,7 +346,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
                               errorText: _voucherError,
                             ),
                           ),
@@ -333,18 +358,28 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _isValidatingVoucher ? null : _validateVoucher,
+                            onPressed: _isValidatingVoucher
+                                ? null
+                                : _validateVoucher,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                             child: _isValidatingVoucher
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
-                                : const Text('Apply', style: TextStyle(color: Colors.white)),
+                                : const Text(
+                                    'Apply',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                           ),
                         ),
                       ],
@@ -438,10 +473,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         onPressed: () {},
                         child: const Text(
                           'Edit',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ),
                     ],
@@ -449,26 +481,17 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Dmitriy Divnov',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Brest, Belarus',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '+375 (29) 749-19-24',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 24),
 
@@ -477,10 +500,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     children: [
                       const Text(
                         'Subtotal',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       Text(
                         '\$${widget.selectedTotal.toStringAsFixed(2)}',
@@ -582,11 +602,17 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           Consumer<CartProvider>(
             builder: (context, cartProvider, child) {
               final cartItemCount = cartProvider.cart?.items.length ?? 0;
-              
+
               return BottomNavigationBar(
                 items: [
-                  const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                  const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.menu),
+                    label: 'Catalog',
+                  ),
                   const BottomNavigationBarItem(
                     icon: Icon(Icons.favorite_border),
                     label: 'Wishlist',
@@ -680,11 +706,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 color: isSelected ? Colors.black : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(
-                Icons.circle,
-                size: 12,
-                color: Colors.white,
-              )
+                  ? const Icon(Icons.circle, size: 12, color: Colors.white)
                   : null,
             ),
           ],

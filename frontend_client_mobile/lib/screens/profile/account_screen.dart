@@ -14,7 +14,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final TokenStorage _tokenStorage = TokenStorage();
-  String _username = '';
+  bool _isAdmin = false;
   bool _isLoading = false;
 
   @override
@@ -25,9 +25,11 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserInfo() async {
     final roles = await _tokenStorage.readRoles();
-    setState(() {
-      _username = roles.contains('ROLE_ADMIN') ? 'Admin User' : 'User';
-    });
+    if (mounted) {
+      setState(() {
+        _isAdmin = roles.contains('ROLE_ADMIN');
+      });
+    }
   }
 
   Future<void> _logout() async {
@@ -72,7 +74,15 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 20),
             Row(
               children: [
-                _buildActivityChip(Icons.person_outline, 'Details', () {}),
+                _buildActivityChip(Icons.person_outline, 'Details', () async {
+                  final userId = await _tokenStorage.readUserId();
+                  if (!mounted) return;
+                  if (userId == null) {
+                    Navigator.pushNamed(context, '/login');
+                    return;
+                  }
+                  Navigator.pushNamed(context, '/profile', arguments: userId);
+                }),
                 const SizedBox(width: 12),
                 _buildActivityChip(Icons.shopping_bag_outlined, 'Orders', () {
                   Navigator.push(
@@ -92,21 +102,46 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 36),
             _buildSectionTitle('Community'),
             const SizedBox(height: 20),
-            _buildMenuItem(Icons.supervisor_account_outlined, 'Community influencer program'),
+            _buildMenuItem(
+              Icons.supervisor_account_outlined,
+              'Community influencer program',
+            ),
+            if (_isAdmin) ...[
+              const SizedBox(height: 36),
+              _buildSectionTitle('Management'),
+              const SizedBox(height: 20),
+              _buildMenuItem(
+                Icons.admin_panel_settings_outlined,
+                'Admin Dashboard',
+                onTap: () => Navigator.pushNamed(context, '/dashboard'),
+              ),
+            ],
             const SizedBox(height: 36),
             _buildSectionTitle('Support'),
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(child: _buildSupportItem(Icons.help_outline, 'FAQ')),
-                Expanded(child: _buildSupportItem(Icons.chat_bubble_outline, 'Chat with us')),
+                Expanded(
+                  child: _buildSupportItem(
+                    Icons.chat_bubble_outline,
+                    'Chat with us',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildSupportItem(Icons.verified_user_outlined, 'Privacy policy')),
-                Expanded(child: _buildSupportItem(Icons.info_outline, 'About us')),
+                Expanded(
+                  child: _buildSupportItem(
+                    Icons.verified_user_outlined,
+                    'Privacy policy',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSupportItem(Icons.info_outline, 'About us'),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -192,23 +227,26 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title) {
+  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             Icon(icon, color: Colors.black87, size: 24),
             const SizedBox(width: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.black87,
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black87,
+                ),
               ),
             ),
+            const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
           ],
         ),
       ),

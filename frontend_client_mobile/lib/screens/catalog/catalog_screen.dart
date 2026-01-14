@@ -40,8 +40,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   opaque: false,
                   barrierDismissible: true,
                   barrierColor: Colors.transparent,
-                  pageBuilder: (_, __, ___) => const SearchScreen.categories(),
-                  transitionsBuilder: (_, animation, __, child) {
+                  pageBuilder: (_, _, _) => const SearchScreen.categories(),
+                  transitionsBuilder: (_, animation, _, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
                 ),
@@ -56,14 +56,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
           if (provider.isLoading) {
             return SliverGrid.count(
               crossAxisCount: 2,
-              childAspectRatio: 0.7,
-              children: List.generate(
-                6,
-                (index) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: const CategorySkeleton(),
-                ),
-              ),
+              childAspectRatio: 0.8,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              children: List.generate(6, (index) => const CategorySkeleton()),
             );
           }
           if (provider.categories.isEmpty) {

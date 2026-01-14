@@ -135,7 +135,10 @@ class AdminSectionHeader extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Container(height: 1, color: Colors.black.withOpacity(0.05)),
+            child: Container(
+              height: 1,
+              color: Colors.black.withValues(alpha: 0.05),
+            ),
           ),
         ],
       ),

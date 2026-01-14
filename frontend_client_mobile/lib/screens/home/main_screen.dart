@@ -77,8 +77,14 @@ class _MainScreenState extends State<MainScreen> {
 
           return BottomNavigationBar(
             items: [
-              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                label: 'Catalog',
+              ),
               BottomNavigationBarItem(
                 icon: Badge(
                   isLabelVisible: wishlistItemCount > 0,
@@ -164,15 +170,12 @@ class _ProfilePlaceholder extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Colors.grey.shade100,
-                      Colors.grey.shade200,
-                    ],
+                    colors: [Colors.grey.shade100, Colors.grey.shade200],
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),

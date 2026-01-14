@@ -48,7 +48,7 @@ class ImageThumbnailStrip extends StatelessWidget {
               child: Image.network(
                 ImageHelper.getFullImageUrl(img.imageUrl),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const BrokenImagePlaceholder(),
+                errorBuilder: (_, _, _) => const BrokenImagePlaceholder(),
               ),
             );
           }),

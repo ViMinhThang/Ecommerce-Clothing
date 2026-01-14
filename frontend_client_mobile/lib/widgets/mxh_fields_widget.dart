@@ -39,7 +39,7 @@ class SocialWidget extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -69,17 +69,9 @@ class SocialWidget extends StatelessWidget {
       case 'google':
         return _buildGoogleIcon();
       case 'facebook':
-        return const Icon(
-          Icons.facebook,
-          color: Colors.white,
-          size: 24,
-        );
+        return const Icon(Icons.facebook, color: Colors.white, size: 24);
       case 'apple':
-        return const Icon(
-          Icons.apple,
-          color: Colors.white,
-          size: 26,
-        );
+        return const Icon(Icons.apple, color: Colors.white, size: 26);
       default:
         return const SizedBox.shrink();
     }

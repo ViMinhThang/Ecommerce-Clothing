@@ -11,7 +11,7 @@ class SizeProvider with ChangeNotifier {
   List<Size> get sizes => _sizes;
   bool get isLoading => _isLoading;
   SizeProvider() {
-    print('🧩 SizeProvider created at ${DateTime.now()}');
+    debugPrint('🧩 SizeProvider created at ${DateTime.now()}');
   }
   Future<void> initialize() async {
     if (_isLoading) return;
@@ -26,7 +26,7 @@ class SizeProvider with ChangeNotifier {
       );
     } catch (e) {
       // Handle error
-      print('Error fetching sizes: $e');
+      debugPrint('Error fetching sizes: $e');
     }
     notifyListeners();
   }
@@ -39,14 +39,14 @@ class SizeProvider with ChangeNotifier {
 
   // In your SizeProvider
   Future<void> addSize(Size size) async {
-    print('API call started at: ${DateTime.now()}'); // Debug log
+    debugPrint('API call started at: ${DateTime.now()}'); // Debug log
     try {
       final newSize = await _sizeService.createSize(size);
-      print('API call completed: ${newSize.id}'); // Debug log
+      debugPrint('API call completed: ${newSize.id}'); // Debug log
       _sizes.add(newSize);
       notifyListeners();
     } catch (e) {
-      print('Error adding size: $e');
+      debugPrint('Error adding size: $e');
     }
   }
 
@@ -59,7 +59,7 @@ class SizeProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating size: $e');
+      debugPrint('Error updating size: $e');
     }
   }
 
@@ -69,7 +69,7 @@ class SizeProvider with ChangeNotifier {
       _sizes.removeWhere((s) => s.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting size: $e');
+      debugPrint('Error deleting size: $e');
     }
   }
 }

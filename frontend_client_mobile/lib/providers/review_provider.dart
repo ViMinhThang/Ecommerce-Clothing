@@ -29,7 +29,9 @@ class ReviewProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _reviewService.getProductReviews(productId: productId);
+      final response = await _reviewService.getProductReviews(
+        productId: productId,
+      );
       _productReviews = response.content;
       _productSummary = await _reviewService.getProductReviewSummary(productId);
     } catch (e) {
@@ -67,7 +69,10 @@ class ReviewProvider extends ChangeNotifier {
   }
 
   Future<bool> canReview(int userId, int orderItemId) async {
-    return await _reviewService.canReview(userId: userId, orderItemId: orderItemId);
+    return await _reviewService.canReview(
+      userId: userId,
+      orderItemId: orderItemId,
+    );
   }
 
   Future<Review?> createReview({

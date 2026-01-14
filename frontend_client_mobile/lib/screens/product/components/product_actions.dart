@@ -14,7 +14,10 @@ class ProductActions extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Login Required', style: GoogleFonts.lora(fontWeight: FontWeight.w600)),
+        title: Text(
+          'Login Required',
+          style: GoogleFonts.lora(fontWeight: FontWeight.w600),
+        ),
         content: const Text('Please login to add items to your cart.'),
         actions: [
           TextButton(
@@ -26,11 +29,18 @@ class ProductActions extends StatelessWidget {
               Navigator.pop(ctx);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const MainScreen(initialTab: 4)),
+                MaterialPageRoute(
+                  builder: (_) => const MainScreen(initialTab: 4),
+                ),
                 (route) => false,
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             child: const Text('Login', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -44,7 +54,6 @@ class ProductActions extends StatelessWidget {
 
     return Row(
       children: [
-        // Quantity Selector
         Container(
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -91,16 +100,17 @@ class ProductActions extends StatelessWidget {
                   : () async {
                       final tokenStorage = TokenStorage();
                       final isLoggedIn = await tokenStorage.isLoggedIn();
-                      
+
                       if (!context.mounted) return;
-                      
+
                       if (!isLoggedIn) {
                         _showLoginDialog(context);
                         return;
                       }
-                      
+
                       final userId = await tokenStorage.readUserId() ?? 1;
-                      
+                      if (!context.mounted) return;
+
                       final cartProvider = Provider.of<CartProvider>(
                         context,
                         listen: false,
@@ -123,7 +133,7 @@ class ProductActions extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
@@ -152,8 +162,8 @@ class ProductActions extends StatelessWidget {
                                         '${provider.quantity} item${provider.quantity > 1 ? 's' : ''} added successfully',
                                         style: GoogleFonts.lora(
                                           fontSize: 12,
-                                          color: Colors.white.withOpacity(
-                                            0.8,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
                                           ),
                                         ),
                                       ),
@@ -162,11 +172,14 @@ class ProductActions extends StatelessWidget {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).hideCurrentSnackBar();
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const MainScreen(initialTab: 3),
+                                        builder: (_) =>
+                                            const MainScreen(initialTab: 3),
                                       ),
                                       (route) => false,
                                     );

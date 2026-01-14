@@ -3,6 +3,7 @@ import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
 import 'package:frontend_client_mobile/screens/checkout/payment_method.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -14,9 +15,9 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  static const int _currentUserId = 1;
+  int _currentUserId = 1;
   final Map<int, bool> _loadingItems = {};
-  final Set<int> _selectedItems = {}; // Track selected item IDs
+  final Set<int> _selectedItems = {};
   bool _selectAll = false;
 
   @override
@@ -28,10 +29,18 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _loadCart() async {
+    final userId = await TokenStorage().readUserId();
+    if (userId != null) {
+      _currentUserId = userId;
+    }
+
+    if (!mounted) return;
+
     await Provider.of<CartProvider>(
       context,
       listen: false,
     ).fetchCart(_currentUserId);
+    if (!mounted) return;
     // Select all items by default
     final cart = Provider.of<CartProvider>(context, listen: false).cart;
     if (cart != null) {
@@ -152,7 +161,10 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               // Select All Header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
                   border: Border(
@@ -195,7 +207,10 @@ class _CartScreenState extends State<CartScreen> {
               Expanded(
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
@@ -211,9 +226,13 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(CartItemView item, CartProvider cartProvider, List<CartItemView> items) {
+  Widget _buildCartItem(
+    CartItemView item,
+    CartProvider cartProvider,
+    List<CartItemView> items,
+  ) {
     final isSelected = _selectedItems.contains(item.id);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -355,7 +374,7 @@ class _CartScreenState extends State<CartScreen> {
     CartProvider cartProvider,
   ) {
     final isLoading = _loadingItems[item.id] ?? false;
-    
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -383,7 +402,11 @@ class _CartScreenState extends State<CartScreen> {
                 : null,
             child: Padding(
               padding: const EdgeInsets.all(6),
-              child: Icon(Icons.remove, size: 16, color: item.quantity > 1 ? Colors.black : Colors.grey),
+              child: Icon(
+                Icons.remove,
+                size: 16,
+                color: item.quantity > 1 ? Colors.black : Colors.grey,
+              ),
             ),
           ),
           Padding(
@@ -394,12 +417,17 @@ class _CartScreenState extends State<CartScreen> {
                     height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.grey.shade600,
+                      ),
                     ),
                   )
                 : Text(
                     "${item.quantity}",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
           ),
           InkWell(
@@ -429,10 +457,14 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildPriceSummary(CartView cart, CartProvider cartProvider, List<CartItemView> items) {
+  Widget _buildPriceSummary(
+    CartView cart,
+    CartProvider cartProvider,
+    List<CartItemView> items,
+  ) {
     final selectedTotal = _calculateSelectedTotal(items);
     final selectedCount = _selectedItems.length;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -457,10 +489,7 @@ class _CartScreenState extends State<CartScreen> {
                 children: [
                   Text(
                     'Total ($selectedCount items)',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 4),
                   Text(

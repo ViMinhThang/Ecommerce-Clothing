@@ -13,7 +13,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _email = TextEditingController();
   bool _loading = false;
-  int _selectedNavIndex = 3; // Cart is selected by default
+  final int _selectedNavIndex = 3;
 
   @override
   void dispose() {
@@ -81,14 +81,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _loading = true);
     try {
       final order = await cart.checkout(buyerEmail: _email.text.trim());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tạo đơn #${order.id} thành công')),
-      );
-      Navigator.pushReplacementNamed(context, '/home');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tạo đơn #${order.id} thành công')),
+        );
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi khi tạo đơn: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi tạo đơn: $e')));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

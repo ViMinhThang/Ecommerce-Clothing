@@ -105,35 +105,90 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
     final stats = provider.statistics;
     final isLoading = provider.isLoadingStatistics;
 
+    if (isLoading && stats == null) {
+      return Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+        ),
+      );
+    }
+
+    if (stats == null) {
+      return Container(
+        height: 140,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'REVENUE TRACKER UNAVAILABLE',
+              style: GoogleFonts.outfit(
+                color: Colors.white38,
+                fontSize: 10,
+                letterSpacing: 2,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: provider.fetchStatistics,
+              icon: const Icon(Icons.refresh, color: Colors.white, size: 18),
+              label: Text(
+                'SYNC DATA',
+                style: GoogleFonts.outfit(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final cards = [
       _StatCardData(
         Icons.shopping_bag_outlined,
         'Today Orders',
-        stats?.totalOrderByDay.toString() ?? '0',
+        stats.totalOrderByDay.toString() ?? '0',
         const Color(0xFF6366F1),
       ),
       _StatCardData(
         Icons.attach_money_outlined,
         'Today Revenue',
-        '\$${stats?.totalPriceByDay.toStringAsFixed(0) ?? '0'}',
+        '\$${stats.totalPriceByDay.toStringAsFixed(0) ?? '0'}',
         const Color(0xFF10B981),
       ),
       _StatCardData(
         Icons.calendar_today_outlined,
         'Week Orders',
-        stats?.totalOrderByWeek.toString() ?? '0',
+        stats.totalOrderByWeek.toString() ?? '0',
         const Color(0xFF3B82F6),
       ),
       _StatCardData(
         Icons.trending_up_outlined,
         'Week Revenue',
-        '\$${stats?.totalPriceByWeek.toStringAsFixed(0) ?? '0'}',
+        '\$${stats.totalPriceByWeek.toStringAsFixed(0) ?? '0'}',
         const Color(0xFFF59E0B),
       ),
       _StatCardData(
         Icons.calendar_month_outlined,
         'Month Orders',
-        stats?.totalOrderByMonth.toString() ?? '0',
+        stats.totalOrderByMonth.toString() ?? '0',
         const Color(0xFF8B5CF6),
       ),
     ];
@@ -180,7 +235,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
             clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             itemCount: cards.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final animation = CurvedAnimation(
                 parent: animationController,
@@ -300,11 +355,11 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
     ),
     border: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+      borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+      borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
@@ -515,9 +570,15 @@ class _OrderTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: AppTheme.borderRadiusMD,
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-        boxShadow: AppTheme.shadowSM,
+        borderRadius: AppTheme.borderRadiusSM,
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -727,9 +788,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: AppTheme.borderRadiusXS,
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         status.toUpperCase(),

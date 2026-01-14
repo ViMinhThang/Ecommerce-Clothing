@@ -79,7 +79,7 @@ class EditProductViewModel extends ChangeNotifier {
       _variants = existingProduct!.variants.map((v) => v.copyWith()).toList();
       _existingImageIds =
           existingProduct!.images?.map((img) => img.id).toList() ?? [];
-      print("exsiting image ids " + _existingImageIds.toString());
+      debugPrint('existing image ids: $_existingImageIds');
     }
     await loadInitialData();
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/cart_item.dart';
+
 import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:frontend_client_mobile/models/order_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
@@ -35,7 +35,6 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // ✅ VALIDATION: quantity check (frontend pre-validation)
       if (quantity <= 0) {
         _error = 'Quantity must be greater than 0';
         _isLoading = false;
@@ -48,17 +47,15 @@ class CartProvider extends ChangeNotifier {
         variantId: variantId,
         quantity: quantity,
       );
-      
+
       final response = await _cartApiService.addToCart(request);
-      
-      // ✅ Update local cart state with response
+
       _cartView = response;
       _error = null;
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      // ✅ IMPROVED ERROR HANDLING: Extract meaningful error message
       String errorMessage = _extractErrorMessage(e.toString());
       _error = errorMessage;
       _isLoading = false;
@@ -67,9 +64,7 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  // ✅ Helper method to extract readable error messages
   String _extractErrorMessage(String error) {
-    // Handle DioException with backend error response
     if (error.contains('Product variant is not available')) {
       return 'This product is no longer available for purchase';
     }
@@ -88,7 +83,7 @@ class CartProvider extends ChangeNotifier {
     if (error.contains('Connection')) {
       return 'Network connection error. Please try again.';
     }
-    
+
     // Default error message
     return 'Failed to add item to cart. Please try again.';
   }
@@ -113,12 +108,14 @@ class CartProvider extends ChangeNotifier {
     try {
       // Update local state immediately for smooth UI
       if (_cartView != null) {
-        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        final itemIndex = _cartView!.items.indexWhere(
+          (item) => item.id == cartItemId,
+        );
         if (itemIndex >= 0) {
           final updatedItem = _cartView!.items[itemIndex];
-          final oldQuantity = updatedItem.quantity;
+
           final oldSubtotal = updatedItem.subtotal;
-          
+
           // Create updated item with new quantity
           final newItem = CartItemView(
             id: updatedItem.id,
@@ -131,10 +128,10 @@ class CartProvider extends ChangeNotifier {
             price: updatedItem.price,
             subtotal: updatedItem.price * quantity,
           );
-          
+
           // Update list
           _cartView!.items[itemIndex] = newItem;
-          
+
           // Recalculate total
           final priceDifference = (newItem.subtotal - oldSubtotal);
           _cartView = CartView(
@@ -143,11 +140,11 @@ class CartProvider extends ChangeNotifier {
             items: _cartView!.items,
             totalPrice: _cartView!.totalPrice + priceDifference,
           );
-          
+
           notifyListeners();
         }
       }
-      
+
       // Call API in background without blocking UI
       await _cartApiService.updateQuantity(cartItemId, quantity);
     } catch (e) {
@@ -161,11 +158,13 @@ class CartProvider extends ChangeNotifier {
     try {
       // Update local state immediately
       if (_cartView != null) {
-        final itemIndex = _cartView!.items.indexWhere((item) => item.id == cartItemId);
+        final itemIndex = _cartView!.items.indexWhere(
+          (item) => item.id == cartItemId,
+        );
         if (itemIndex >= 0) {
           final removedItem = _cartView!.items[itemIndex];
           final newTotalPrice = _cartView!.totalPrice - removedItem.subtotal;
-          
+
           _cartView!.items.removeAt(itemIndex);
           _cartView = CartView(
             id: _cartView!.id,
@@ -173,11 +172,11 @@ class CartProvider extends ChangeNotifier {
             items: _cartView!.items,
             totalPrice: newTotalPrice,
           );
-          
+
           notifyListeners();
         }
       }
-      
+
       // Call API in background
       await _cartApiService.removeFromCart(cartItemId);
     } catch (e) {
@@ -187,15 +186,19 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  Future<OrderView> checkout({required String buyerEmail}) async {
-    final order = OrderView(
-      id: 0,
-      buyerEmail: buyerEmail,
-      totalPrice: totalPrice,
-      createdDate: '',
-      status: 'PENDING',
+  Future<OrderView> checkout({
+    required String buyerEmail,
+    String? voucherCode,
+  }) async {
+    if (_cartView == null || _cartView!.items.isEmpty) {
+      throw Exception('Cart is empty');
+    }
+
+    final cartItemIds = _cartView!.items.map((item) => item.id).toList();
+    final res = await _orderService.createOrderFromCart(
+      cartItemIds: cartItemIds,
+      voucherCode: voucherCode,
     );
-    final res = await _orderService.createOrder(order);
     clear();
     return res;
   }
@@ -213,17 +216,17 @@ class CartProvider extends ChangeNotifier {
           }
           return false;
         });
-        
+
         _cartView = CartView(
           id: _cartView!.id,
           userId: _cartView!.userId,
           items: _cartView!.items,
           totalPrice: _cartView!.totalPrice - removedTotal,
         );
-        
+
         notifyListeners();
       }
-      
+
       // Call API to remove each item
       for (final itemId in itemIds) {
         await _cartApiService.removeFromCart(itemId);

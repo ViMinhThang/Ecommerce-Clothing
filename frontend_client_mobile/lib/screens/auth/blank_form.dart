@@ -125,20 +125,11 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildSocialButton(
-                    type: 'google',
-                    onTap: () {},
-                  ),
+                  _buildSocialButton(type: 'google', onTap: () {}),
                   const SizedBox(width: 16),
-                  _buildSocialButton(
-                    type: 'facebook',
-                    onTap: () {},
-                  ),
+                  _buildSocialButton(type: 'facebook', onTap: () {}),
                   const SizedBox(width: 16),
-                  _buildSocialButton(
-                    type: 'apple',
-                    onTap: () {},
-                  ),
+                  _buildSocialButton(type: 'apple', onTap: () {}),
                 ],
               ),
               const SizedBox(height: 40),
@@ -265,15 +256,13 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Center(
-          child: _getSocialIcon(type),
-        ),
+        child: Center(child: _getSocialIcon(type)),
       ),
     );
   }

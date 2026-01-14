@@ -30,6 +30,7 @@ import 'package:frontend_client_mobile/providers/favorite_provider.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/screens/favorite/favorite_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:frontend_client_mobile/screens/profile/user_profile_screen.dart';
 
 void main() {
   runApp(
@@ -62,7 +63,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/dashboard',
+      initialRoute: '/',
       routes: {
         "/": (context) => const OnboardingScreen(),
         "/login": (context) => const LoginScreen(),
@@ -74,6 +75,10 @@ class MyApp extends StatelessWidget {
         //     const AuthGate(child: DashboardScreen(), requireAdmin: true),
         '/dashboard': (context) => const DashboardScreen(),
         '/products': (context) => const ManageProductsScreen(),
+        '/profile': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as int?;
+          return UserProfileScreen(userId: args ?? 0);
+        },
         '/categories': (context) => const ManageCategoriesScreen(),
         '/users': (context) => const ManageUsersScreen(),
         '/orders': (context) => const ManageOrdersScreen(),

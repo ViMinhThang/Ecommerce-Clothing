@@ -129,7 +129,7 @@ class _ManageVouchersScreenState
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -156,7 +156,7 @@ class _ManageVouchersScreenState
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.white.withOpacity(0.08),
+                        Colors.white.withValues(alpha: 0.08),
                         Colors.transparent,
                         Colors.transparent,
                       ],
@@ -173,7 +173,7 @@ class _ManageVouchersScreenState
                 child: Container(
                   width: 1,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -198,7 +198,7 @@ class _ManageVouchersScreenState
                         child: Text(
                           item.isPercentage ? '%' : r'$',
                           style: GoogleFonts.montserrat(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
