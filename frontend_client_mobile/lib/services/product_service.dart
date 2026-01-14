@@ -25,6 +25,7 @@ class ProductService {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
+    print("Creating product with variants JSON: $variantsJson");
     return await _apiService.createProduct(
       product.name,
       product.description,
@@ -43,6 +44,7 @@ class ProductService {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
+    print("Sending variants JSON: $variantsJson");
 
     final response = await _apiService.updateProduct(
       id,
@@ -51,7 +53,7 @@ class ProductService {
       product.category.id!,
       variantsJson,
       images ?? [],
-      existingImageIds ?? [],
+      existingImageIds?.map((id) => id.toString()).toList() ?? [],
     );
     return response;
   }
@@ -76,6 +78,7 @@ class ProductService {
   Future<Null> filterProduct(int categoryId) async {
     return null;
   }
+
   Future<List<ProductView>> getSimilarProduct(int productId) async {
     return await _apiService.getSimilarProduct(productId);
   }

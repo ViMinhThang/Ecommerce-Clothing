@@ -42,7 +42,7 @@ abstract class ProductApiService {
     @Part(name: "categoryId") int categoryId,
     @Part(name: "variants") String variants,
     @Part(name: "images") List<MultipartFile> images,
-    @Part(name: "existingImageIds") List<int> existingImageIds,
+    @Part(name: "existingImageIds") List<String> existingImageIds,
   );
 
   @DELETE("api/products/{id}")

@@ -12,7 +12,16 @@ class Price {
 
   factory Price.fromJson(Map<String, dynamic> json) => _$PriceFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PriceToJson(this);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {
+      'basePrice': basePrice,
+      'salePrice': salePrice,
+    };
+    if (id != 0) {
+      data['id'] = id;
+    }
+    return data;
+  }
 
   Price copyWith({int? id, double? basePrice, double? salePrice}) {
     return Price(
