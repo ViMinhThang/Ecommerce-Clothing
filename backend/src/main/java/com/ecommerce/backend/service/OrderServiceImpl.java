@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @Service
@@ -32,7 +31,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final CartRepository cartRepository;
-    private final UserRepository userRepository;
     private final VoucherService voucherService;
 
     @Override
