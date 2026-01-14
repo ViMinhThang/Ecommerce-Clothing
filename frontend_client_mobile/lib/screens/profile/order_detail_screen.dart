@@ -47,8 +47,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _isLoading = false;
       });
       if (order.status.toUpperCase() == 'DELIVERED') {
-        Provider.of<ReviewProvider>(context, listen: false)
-            .loadReviewedOrderItemIds(widget.orderId);
+        if (!mounted) return;
+        Provider.of<ReviewProvider>(
+          context,
+          listen: false,
+        ).loadReviewedOrderItemIds(widget.orderId);
       }
     } catch (e) {
       setState(() {
@@ -117,7 +120,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
-              Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/home',
+                (route) => false,
+              );
             }
           },
         ),
@@ -143,14 +150,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
         return BottomNavigationBar(
           items: [
-            const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.menu),
+              label: 'Catalog',
+            ),
             BottomNavigationBarItem(
               icon: Badge(
                 isLabelVisible: wishlistItemCount > 0,
                 label: Text(
                   wishlistItemCount.toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 backgroundColor: Colors.black,
                 child: const Icon(Icons.favorite_border),
@@ -162,14 +179,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 isLabelVisible: cartItemCount > 0,
                 label: Text(
                   cartItemCount.toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 backgroundColor: Colors.black,
                 child: const Icon(Icons.shopping_bag_outlined),
               ),
               label: 'Cart',
             ),
-            const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              label: 'Profile',
+            ),
           ],
           currentIndex: 4, // Profile tab since orders are accessed from profile
           onTap: _onNavItemTapped,
@@ -185,7 +209,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.black));
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.black),
+      );
     }
 
     if (_error != null) {
@@ -245,7 +271,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping_outlined, size: 20, color: Colors.grey.shade700),
+              Icon(
+                Icons.local_shipping_outlined,
+                size: 20,
+                color: Colors.grey.shade700,
+              ),
               const SizedBox(width: 10),
               Text(
                 'Shipping Address',
@@ -270,7 +300,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.location_on_outlined, size: 24, color: Colors.grey.shade600),
+                child: Icon(
+                  Icons.location_on_outlined,
+                  size: 24,
+                  color: Colors.grey.shade600,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -306,7 +340,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildStatusCard() {
     final statusColor = _getStatusColor(_order!.status);
-    
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -336,9 +370,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -355,12 +392,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 16),
           const Divider(height: 1),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.calendar_today_outlined, 'Order Date', _formatDate(_order!.createdDate)),
+          _buildInfoRow(
+            Icons.calendar_today_outlined,
+            'Order Date',
+            _formatDate(_order!.createdDate),
+          ),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.email_outlined, 'Email', _order!.buyerEmail),
-          if (_order!.voucherCode != null && _order!.voucherCode!.isNotEmpty) ...[
+          if (_order!.voucherCode != null &&
+              _order!.voucherCode!.isNotEmpty) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.local_offer_outlined, 'Voucher', _order!.voucherCode!),
+            _buildInfoRow(
+              Icons.local_offer_outlined,
+              'Voucher',
+              _order!.voucherCode!,
+            ),
           ],
         ],
       ),
@@ -374,10 +420,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         const SizedBox(width: 12),
         Text(
           '$label: ',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
         ),
         Expanded(
           child: Text(
@@ -426,10 +469,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
                 Text(
                   '${_order!.items.length} item(s)',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -439,8 +479,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _order!.items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) => _buildItemTile(_order!.items[index]),
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (context, index) =>
+                _buildItemTile(_order!.items[index]),
           ),
         ],
       ),
@@ -460,7 +501,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               width: 72,
               height: 72,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 width: 72,
                 height: 72,
                 color: Colors.grey.shade200,
@@ -490,10 +531,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     if (item.size != null) item.size,
                     if (item.material != null) item.material,
                   ].where((e) => e != null).join(' • '),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -508,7 +546,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
@@ -527,13 +568,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (_order!.status.toUpperCase() == 'DELIVERED')
                   Consumer<ReviewProvider>(
                     builder: (context, reviewProvider, _) {
-                      final isReviewed = reviewProvider.isOrderItemReviewed(item.id);
+                      final isReviewed = reviewProvider.isOrderItemReviewed(
+                        item.id,
+                      );
                       if (isReviewed) {
                         return Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
+                              Icon(
+                                Icons.check_circle,
+                                size: 16,
+                                color: Colors.green.shade600,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'Reviewed',
@@ -559,12 +606,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   builder: (_) => WriteReviewScreen(
                                     orderItemId: item.id,
                                     productName: item.productName ?? 'Product',
-                                    productImageUrl: _getImageUrl(item.imageUrl),
+                                    productImageUrl: _getImageUrl(
+                                      item.imageUrl,
+                                    ),
                                   ),
                                 ),
                               );
                               if (result == true) {
-                                reviewProvider.loadReviewedOrderItemIds(widget.orderId);
+                                reviewProvider.loadReviewedOrderItemIds(
+                                  widget.orderId,
+                                );
                               }
                             },
                             icon: const Icon(Icons.rate_review, size: 16),
@@ -575,7 +626,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -620,7 +673,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _buildPriceRow('Subtotal', _order!.totalPrice),
           if (_order!.discountAmount > 0) ...[
             const SizedBox(height: 10),
-            _buildPriceRow('Discount', -_order!.discountAmount, isDiscount: true),
+            _buildPriceRow(
+              'Discount',
+              -_order!.discountAmount,
+              isDiscount: true,
+            ),
           ],
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -651,16 +708,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isDiscount = false}) {
+  Widget _buildPriceRow(
+    String label,
+    double amount, {
+    bool isDiscount = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
         ),
         Text(
           '${isDiscount ? '-' : ''}\$${amount.abs().toStringAsFixed(2)}',

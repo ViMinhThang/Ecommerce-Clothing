@@ -11,7 +11,7 @@ class FavoriteProvider extends ChangeNotifier {
   }
 
   void toggleFavorite(FavoriteItem item) {
-    print('FavoriteProvider: toggling product ${item.productId}');
+    debugPrint('FavoriteProvider: toggling product ${item.productId}');
     if (isFavorite(item.productId)) {
       removeItem(item.productId);
     } else {
@@ -21,14 +21,14 @@ class FavoriteProvider extends ChangeNotifier {
 
   void addItem(FavoriteItem item) {
     if (!isFavorite(item.productId)) {
-      print('FavoriteProvider: adding item ${item.productName}');
+      debugPrint('FavoriteProvider: adding item ${item.productName}');
       _items.add(item);
       notifyListeners();
     }
   }
 
   void removeItem(int productId) {
-    print('FavoriteProvider: removing item $productId');
+    debugPrint('FavoriteProvider: removing item $productId');
     _items.removeWhere((e) => e.productId == productId);
     notifyListeners();
   }

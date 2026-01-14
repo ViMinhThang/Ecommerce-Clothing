@@ -145,28 +145,25 @@ class ApiClient {
     if (_interceptorAdded) return;
     _interceptorAdded = true;
 
-    final TokenStorage _tokenStorage = TokenStorage();
+    final tokenStorage = TokenStorage();
 
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _tokenStorage.readAccessToken();
+          final token = await tokenStorage.readAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          // Nếu backend trả 401 -> thử refresh
           final status = e.response?.statusCode ?? 0;
           if (status == 401) {
-            // tránh vòng lặp: nếu request là refresh thì không gọi lại
             if (e.requestOptions.path.contains('/api/auth/refresh')) {
-              await _tokenStorage.clear();
+              await tokenStorage.clear();
               return handler.next(e);
             }
 
-            // Dùng một Dio instance mới để tránh loop interceptor khi refresh token
             final refreshDio = Dio(BaseOptions(baseUrl: ApiConfig.baseUrl));
             final refreshStorage = TokenStorage();
             final refreshToken = await refreshStorage.readRefreshToken();
@@ -212,13 +209,11 @@ class ApiClient {
                   }
                 }
               } catch (err) {
-                // Refresh failed, logout
                 await refreshStorage.clear();
               }
             }
           }
 
-          // Chỉ xử lý lỗi có response từ backend (4xx, 5xx)
           if (e.type == DioExceptionType.badResponse && e.response != null) {
             if (status >= 400) {
               final msg = _extractMessage(e.response?.data) ?? 'Có lỗi xảy ra';

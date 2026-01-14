@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -17,8 +18,17 @@ class _WishListScreenState extends State<WishListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<WishlistProvider>(context, listen: false).loadWishlist();
+      _loadWishlist();
     });
+  }
+
+  Future<void> _loadWishlist() async {
+    final userId = await TokenStorage().readUserId() ?? 1;
+    if (!mounted) return;
+    Provider.of<WishlistProvider>(
+      context,
+      listen: false,
+    ).loadWishlist(userId: userId);
   }
 
   @override
@@ -58,7 +68,7 @@ class _WishListScreenState extends State<WishListScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => wishlistProvider.loadWishlist(),
+                    onPressed: _loadWishlist,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
@@ -92,10 +102,7 @@ class _WishListScreenState extends State<WishListScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Start adding items you love!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -103,7 +110,7 @@ class _WishListScreenState extends State<WishListScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => wishlistProvider.loadWishlist(),
+            onRefresh: _loadWishlist,
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -118,15 +125,16 @@ class _WishListScreenState extends State<WishListScreen> {
                 return _WishlistItemCard(
                   item: item,
                   onRemove: () {
-                    wishlistProvider.removeFromWishlist(productId: item.productId);
+                    wishlistProvider.removeFromWishlist(
+                      productId: item.productId,
+                    );
                   },
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(
-                          productId: item.productId,
-                        ),
+                        builder: (context) =>
+                            ProductDetailScreen(productId: item.productId),
                       ),
                     );
                   },
@@ -155,8 +163,8 @@ class _WishlistItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = item.imageUrl != null
         ? (item.imageUrl.startsWith('http')
-            ? item.imageUrl
-            : '${ApiConfig.baseUrl}${item.imageUrl}')
+              ? item.imageUrl
+              : '${ApiConfig.baseUrl}${item.imageUrl}')
         : 'https://via.placeholder.com/200x200?text=No+Image';
 
     return GestureDetector(

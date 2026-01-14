@@ -286,7 +286,7 @@ class _ManageUsersScreenState
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -314,7 +314,7 @@ class _ManageUsersScreenState
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: suggestions.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final suggestion = suggestions[index];
                         return ListTile(

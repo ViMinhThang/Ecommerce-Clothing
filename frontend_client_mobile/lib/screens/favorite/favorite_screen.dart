@@ -63,7 +63,7 @@ class FavoriteScreen extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: favorite.items.length,
-              separatorBuilder: (_, __) => const Divider(),
+              separatorBuilder: (_, _) => const Divider(),
               itemBuilder: (ctx, i) {
                 final FavoriteItem item = favorite.items[i];
                 return ListTile(
@@ -73,7 +73,7 @@ class FavoriteScreen extends StatelessWidget {
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox(
+                          errorBuilder: (_, _, _) => const SizedBox(
                             width: 56,
                             height: 56,
                             child: Icon(Icons.image_not_supported),

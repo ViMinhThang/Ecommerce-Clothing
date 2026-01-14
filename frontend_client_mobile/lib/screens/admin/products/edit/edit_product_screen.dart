@@ -86,14 +86,15 @@ class _EditProductScreenState
       value: _viewModel,
       child: PopScope(
         canPop: !_viewModel.isSaving && !_viewModel.hasUnsavedChanges(),
-        onPopInvoked: (didPop) async {
+        onPopInvokedWithResult: (didPop, result) async {
           if (didPop) return;
           if (_viewModel.isSaving) return;
           if (!_viewModel.hasUnsavedChanges()) return;
 
+          final navigator = Navigator.of(context);
           final shouldPop = await showDiscardDialog(context) ?? false;
           if (shouldPop && mounted) {
-            Navigator.of(context).pop();
+            navigator.pop(result);
           }
         },
         child: Scaffold(
@@ -111,7 +112,7 @@ class _EditProductScreenState
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),

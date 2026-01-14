@@ -5,8 +5,10 @@ import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
-import 'package:frontend_client_mobile/models/product.dart';
+import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
+import 'package:frontend_client_mobile/utils/feedback_utils.dart';
 
 class CatalogDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -61,9 +63,9 @@ class CatalogDetailScreen extends StatelessWidget {
                   opaque: false,
                   barrierDismissible: true,
                   barrierColor: Colors.transparent,
-                  pageBuilder: (_, __, ___) =>
+                  pageBuilder: (_, _, _) =>
                       SearchScreen.products(categoryId: categoryId),
-                  transitionsBuilder: (_, animation, __, child) {
+                  transitionsBuilder: (_, animation, _, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
                 ),
@@ -114,6 +116,7 @@ class CatalogDetailScreen extends StatelessWidget {
                           await Navigator.of(
                             context,
                           ).pushNamed('/filter', arguments: filterParams);
+                          if (!context.mounted) return;
                           await context
                               .read<FilterProvider>()
                               .refreshProducts();
@@ -141,16 +144,88 @@ class CatalogDetailScreen extends StatelessWidget {
                     final product = filterProvider.productViews[index];
                     return ProductViewCard(
                       product: product,
-                      isFavorite: wishlistProvider.isProductInWishlistLocal(product.id),
-                      onFavoriteToggle: () {
-                        wishlistProvider.toggleWishlist(
+                      isFavorite: wishlistProvider.isProductInWishlistLocal(
+                        product.id,
+                      ),
+                      onFavoriteToggle: () async {
+                        final tokenStorage = TokenStorage();
+                        final isLoggedIn = await tokenStorage.isLoggedIn();
+
+                        if (!context.mounted) return;
+
+                        if (!isLoggedIn) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              title: const Text(
+                                'Login Required',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              content: const Text(
+                                'Please login to add items to your wishlist.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const MainScreen(initialTab: 4),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Login',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+
+                        final userId = await tokenStorage.readUserId() ?? 1;
+                        final success = await wishlistProvider.toggleWishlist(
                           productId: product.id,
+                          userId: userId,
                         );
+
+                        if (!context.mounted) return;
+                        if (success) {
+                          FeedbackUtils.showWishlistToast(
+                            context,
+                            isAdded: wishlistProvider.isProductInWishlistLocal(
+                              product.id,
+                            ),
+                            productName: product.name,
+                          );
+                        }
                       },
                       onTap: () {
                         Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
-                            builder: (context) => ProductDetailScreen(productId: product.id),
+                            builder: (context) =>
+                                ProductDetailScreen(productId: product.id),
                           ),
                         );
                       },

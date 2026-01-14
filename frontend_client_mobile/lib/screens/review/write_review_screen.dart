@@ -33,19 +33,20 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
 
   Future<void> _submitReview() async {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a rating')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a rating')));
       return;
     }
 
     setState(() => _isSubmitting = true);
 
     final userId = await TokenStorage().readUserId();
+    if (!mounted) return;
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login again')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please login again')));
       setState(() => _isSubmitting = false);
       return;
     }
@@ -60,6 +61,7 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
 
     setState(() => _isSubmitting = false);
 
+    if (!mounted) return;
     if (review != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Review submitted successfully!')),
@@ -126,7 +128,7 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
                   width: 120,
                   height: 120,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     width: 120,
                     height: 120,
                     color: Colors.grey[200],
@@ -146,10 +148,7 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
             const SizedBox(height: 32),
             Text(
               'How would you rate this product?',
-              style: GoogleFonts.roboto(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
+              style: GoogleFonts.roboto(fontSize: 16, color: Colors.grey[700]),
             ),
             const SizedBox(height: 16),
             _buildStarRating(),
@@ -158,18 +157,15 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
               _rating == 0
                   ? 'Select rating'
                   : _rating == 1
-                      ? 'Very Bad'
-                      : _rating == 2
-                          ? 'Bad'
-                          : _rating == 3
-                              ? 'Average'
-                              : _rating == 4
-                                  ? 'Good'
-                                  : 'Excellent',
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+                  ? 'Very Bad'
+                  : _rating == 2
+                  ? 'Bad'
+                  : _rating == 3
+                  ? 'Average'
+                  : _rating == 4
+                  ? 'Good'
+                  : 'Excellent',
+              style: GoogleFonts.roboto(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             TextField(

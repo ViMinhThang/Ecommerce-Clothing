@@ -4,7 +4,7 @@ import 'package:frontend_client_mobile/models/user_update_request.dart';
 
 class EditUserForm extends StatefulWidget {
   final int userId;
-  const EditUserForm({Key? key, required this.userId}) : super(key: key);
+  const EditUserForm({super.key, required this.userId});
 
   @override
   State<EditUserForm> createState() => _EditUserFormState();
@@ -29,14 +29,16 @@ class _EditUserFormState extends State<EditUserForm> {
         widget.userId,
       );
       setState(() {
-        _fullNameCtl.text = dto.fullName ?? '';
+        _fullNameCtl.text = dto.fullName;
         _emailCtl.text = dto.email ?? '';
         _birthCtl.text = dto.birthDay != null ? dto.birthDay!.toString() : '';
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Load failed: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Load failed: $e')));
+      }
     }
   }
 
@@ -54,11 +56,15 @@ class _EditUserFormState extends State<EditUserForm> {
             : null,
       );
       await ApiClient.getUserApiService().updateUser(widget.userId, req);
-      Navigator.of(context).pop(true);
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      }
     } finally {
       setState(() {
         _loading = false;

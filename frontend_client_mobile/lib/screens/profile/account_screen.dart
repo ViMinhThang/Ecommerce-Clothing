@@ -14,7 +14,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final TokenStorage _tokenStorage = TokenStorage();
-  String _username = '';
+  bool _isAdmin = false;
   bool _isLoading = false;
 
   @override
@@ -25,9 +25,11 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserInfo() async {
     final roles = await _tokenStorage.readRoles();
-    setState(() {
-      _username = roles.contains('ROLE_ADMIN') ? 'Admin User' : 'User';
-    });
+    if (mounted) {
+      setState(() {
+        _isAdmin = roles.contains('ROLE_ADMIN');
+      });
+    }
   }
 
   Future<void> _logout() async {
@@ -74,6 +76,7 @@ class _AccountScreenState extends State<AccountScreen> {
               children: [
                 _buildActivityChip(Icons.person_outline, 'Details', () async {
                   final userId = await _tokenStorage.readUserId();
+                  if (!mounted) return;
                   if (userId == null) {
                     Navigator.pushNamed(context, '/login');
                     return;
@@ -103,6 +106,16 @@ class _AccountScreenState extends State<AccountScreen> {
               Icons.supervisor_account_outlined,
               'Community influencer program',
             ),
+            if (_isAdmin) ...[
+              const SizedBox(height: 36),
+              _buildSectionTitle('Management'),
+              const SizedBox(height: 20),
+              _buildMenuItem(
+                Icons.admin_panel_settings_outlined,
+                'Admin Dashboard',
+                onTap: () => Navigator.pushNamed(context, '/dashboard'),
+              ),
+            ],
             const SizedBox(height: 36),
             _buildSectionTitle('Support'),
             const SizedBox(height: 20),
@@ -214,23 +227,26 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title) {
+  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             Icon(icon, color: Colors.black87, size: 24),
             const SizedBox(width: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.black87,
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black87,
+                ),
               ),
             ),
+            const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
           ],
         ),
       ),

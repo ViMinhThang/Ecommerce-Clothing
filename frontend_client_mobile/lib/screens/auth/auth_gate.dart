@@ -54,11 +54,17 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_authorized == null)
+    if (_authorized == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (_authorized == false) {
       // chuyển về màn hình login
-      Future.microtask(() => Navigator.pushReplacementNamed(context, '/login'));
+      final navigator = Navigator.of(context);
+      Future.microtask(() {
+        if (mounted) {
+          navigator.pushReplacementNamed('/login');
+        }
+      });
       return const SizedBox.shrink();
     }
     return widget.child;

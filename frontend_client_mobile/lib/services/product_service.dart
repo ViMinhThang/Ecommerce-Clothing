@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/PageResponse.dart';
@@ -25,7 +26,7 @@ class ProductService {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
-    print("Creating product with variants JSON: $variantsJson");
+    debugPrint("Creating product with variants JSON: $variantsJson");
     return await _apiService.createProduct(
       product.name,
       product.description,
@@ -44,7 +45,7 @@ class ProductService {
     final variantsJson = json.encode(
       product.variants.map((v) => v.toJson()).toList(),
     );
-    print("Sending variants JSON: $variantsJson");
+    debugPrint("Sending variants JSON: $variantsJson");
 
     final response = await _apiService.updateProduct(
       id,

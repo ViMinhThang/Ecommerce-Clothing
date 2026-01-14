@@ -43,22 +43,22 @@ class ImageThumbnailStrip extends StatelessWidget {
           ...existingImages.asMap().entries.map((entry) {
             final img = entry.value;
             return ImageThumbnail(
+              onDelete: () => viewModel.removeExistingImage(img.id),
+              isPrimary: img.isPrimary,
               child: Image.network(
                 ImageHelper.getFullImageUrl(img.imageUrl),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const BrokenImagePlaceholder(),
+                errorBuilder: (_, _, _) => const BrokenImagePlaceholder(),
               ),
-              onDelete: () => viewModel.removeExistingImage(img.id),
-              isPrimary: img.isPrimary,
             );
           }),
           ...selectedImages.asMap().entries.map((entry) {
             final index = entry.key;
             final file = entry.value;
             return ImageThumbnail(
-              child: Image.file(File(file.path), fit: BoxFit.cover),
               onDelete: () => viewModel.removeSelectedImage(index),
               isPrimary: existingImages.isEmpty && index == 0,
+              child: Image.file(File(file.path), fit: BoxFit.cover),
             );
           }),
         ],

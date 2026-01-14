@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/services/auth_service.dart';
+import 'package:frontend_client_mobile/services/token_storage.dart';
+import 'package:frontend_client_mobile/services/user_service.dart';
 import '../../config/theme_config.dart';
 
 class AdminDrawer extends StatefulWidget {
@@ -15,15 +17,48 @@ class _AdminDrawerState extends State<AdminDrawer>
     with TickerProviderStateMixin {
   late List<Animation<double>> _itemAnimations;
   late List<AnimationController> _controllers;
+  String _username = 'Admin';
+  String _roleLabel = 'Super Admin';
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final storage = TokenStorage();
+    String? name = await storage.readUserName();
+    final roles = await storage.readRoles();
+    final userId = await storage.readUserId();
+
+    // If name is null but we have userId, try to fetch detail
+    if (name == null && userId != null) {
+      try {
+        final detail = await UserService().getUserDetail(userId);
+        name = detail.name;
+        await storage.saveUserName(name);
+      } catch (e) {
+        debugPrint('Error fetching user detail for drawer: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        if (name != null) _username = name;
+        if (roles.isNotEmpty) {
+          _roleLabel = roles.contains('ROLE_ADMIN')
+              ? 'Administrator'
+              : roles.first;
+          if (roles.contains('ROLE_SUPER_ADMIN')) _roleLabel = 'Super Admin';
+        }
+      });
+    }
   }
 
   void _initializeAnimations() {
-    const int itemCount = 8;
+    const int itemCount = 9; // Increased for 'Back to Store'
     _controllers = List.generate(
       itemCount,
       (index) =>
@@ -138,6 +173,16 @@ class _AdminDrawerState extends State<AdminDrawer>
                   7,
                   null,
                 ),
+                const SizedBox(height: AppTheme.spaceMD),
+                _buildSectionLabel('STORE'),
+                _buildAnimatedItem(
+                  8,
+                  Icons.storefront_outlined,
+                  'Back to Store',
+                  '/home',
+                  -1, // No index highlight
+                  null,
+                ),
               ],
             ),
           ),
@@ -170,7 +215,7 @@ class _AdminDrawerState extends State<AdminDrawer>
                   border: Border.all(color: AppTheme.primaryWhite, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryWhite.withOpacity(0.2),
+                      color: AppTheme.primaryWhite.withValues(alpha: 0.2),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -188,9 +233,9 @@ class _AdminDrawerState extends State<AdminDrawer>
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Admin Panel',
-                style: TextStyle(
+              Text(
+                _username,
+                style: const TextStyle(
                   color: AppTheme.primaryWhite,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -199,20 +244,17 @@ class _AdminDrawerState extends State<AdminDrawer>
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: AppTheme.primaryWhite.withOpacity(0.5),
+                    color: AppTheme.primaryWhite.withValues(alpha: 0.5),
                     width: 1,
                   ),
                   borderRadius: AppTheme.borderRadiusSM,
                 ),
-                child: const Text(
-                  'Super Admin',
-                  style: TextStyle(
+                child: Text(
+                  _roleLabel,
+                  style: const TextStyle(
                     color: AppTheme.primaryWhite,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -290,8 +332,12 @@ class _AdminDrawerState extends State<AdminDrawer>
               onTap: () async {
                 Navigator.pop(context);
                 await AuthService().logout();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (route) => false,
+                  );
                 }
               },
               borderRadius: AppTheme.borderRadiusSM,

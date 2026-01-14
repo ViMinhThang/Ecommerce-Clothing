@@ -69,7 +69,7 @@ class ColorFilterPage extends StatelessWidget {
                             vertical: 8,
                           ),
                           itemCount: colors.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final label = colors[index];
                             final colorKey = label.toLowerCase();
@@ -199,7 +199,7 @@ class _ColorDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWhite = color.value == Colors.white.value;
+    final isWhite = color.toARGB32() == Colors.white.toARGB32();
     return Container(
       width: 22,
       height: 22,

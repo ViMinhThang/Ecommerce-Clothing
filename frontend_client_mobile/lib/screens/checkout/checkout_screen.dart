@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/cart_provider.dart';
-import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -14,7 +13,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _email = TextEditingController();
   bool _loading = false;
-  int _selectedNavIndex = 3; // Cart is selected by default
+  final int _selectedNavIndex = 3;
 
   @override
   void dispose() {
@@ -24,7 +23,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _onNavItemTapped(int index) {
     if (index == _selectedNavIndex) return;
-    
+
     switch (index) {
       case 0: // Home
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -82,14 +81,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _loading = true);
     try {
       final order = await cart.checkout(buyerEmail: _email.text.trim());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tạo đơn #${order.id} thành công')),
-      );
-      Navigator.pushReplacementNamed(context, '/home');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tạo đơn #${order.id} thành công')),
+        );
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi khi tạo đơn: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi tạo đơn: $e')));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -212,8 +215,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(
@@ -233,11 +237,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       bottomNavigationBar: Consumer<CartProvider>(
         builder: (context, cartProvider, child) {
           final cartItemCount = cartProvider.cart?.items.length ?? 0;
-          
+
           return BottomNavigationBar(
             items: [
-              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                label: 'Catalog',
+              ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.favorite_border),
                 label: 'Wishlist',

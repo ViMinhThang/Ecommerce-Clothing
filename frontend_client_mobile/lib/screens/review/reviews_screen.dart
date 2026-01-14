@@ -26,7 +26,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   Future<void> _loadReviews() async {
     final userId = await TokenStorage().readUserId();
     if (userId != null) {
-      Provider.of<ReviewProvider>(context, listen: false).loadUserReviews(userId);
+      if (!mounted) return;
+      Provider.of<ReviewProvider>(
+        context,
+        listen: false,
+      ).loadUserReviews(userId);
     }
   }
 
@@ -79,7 +83,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -108,11 +112,14 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, _, _) => Container(
                                 width: 80,
                                 height: 80,
                                 color: Colors.grey[100],
-                                child: Icon(Icons.image, color: Colors.grey[400]),
+                                child: Icon(
+                                  Icons.image,
+                                  color: Colors.grey[400],
+                                ),
                               ),
                             )
                           : Container(
@@ -144,7 +151,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[500]),
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 14,
+                              color: Colors.grey[500],
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${review.createdDate.day}/${review.createdDate.month}/${review.createdDate.year}',
@@ -171,7 +182,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.format_quote_rounded, size: 20, color: Colors.grey[400]),
+                    Icon(
+                      Icons.format_quote_rounded,
+                      size: 20,
+                      color: Colors.grey[400],
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -228,7 +243,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.rate_review_outlined, size: 80, color: Colors.grey[400]),
+                  Icon(
+                    Icons.rate_review_outlined,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No reviews yet',
@@ -261,14 +280,24 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
           return BottomNavigationBar(
             items: [
-              const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Catalog'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                label: 'Catalog',
+              ),
               BottomNavigationBarItem(
                 icon: Badge(
                   isLabelVisible: wishlistItemCount > 0,
                   label: Text(
                     wishlistItemCount.toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   backgroundColor: Colors.black,
                   child: const Icon(Icons.favorite_border),
@@ -280,14 +309,21 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   isLabelVisible: cartItemCount > 0,
                   label: Text(
                     cartItemCount.toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   backgroundColor: Colors.black,
                   child: const Icon(Icons.shopping_bag_outlined),
                 ),
                 label: 'Cart',
               ),
-              const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                label: 'Profile',
+              ),
             ],
             currentIndex: 4,
             onTap: _onNavItemTapped,

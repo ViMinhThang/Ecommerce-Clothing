@@ -7,8 +7,10 @@ import com.ecommerce.backend.dto.view.OrderView;
 import com.ecommerce.backend.mapper.OrderMapper;
 import com.ecommerce.backend.model.Order;
 import com.ecommerce.backend.model.OrderItem;
+import com.ecommerce.backend.model.User;
 import com.ecommerce.backend.model.Voucher;
 import com.ecommerce.backend.repository.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +31,7 @@ import java.util.NoSuchElementException;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
+    private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final VoucherService voucherService;
 
@@ -48,8 +51,25 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderView createOrder(OrderDTO orderDTO) {
-        var user = userRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("User not found"));
-        var cartItems = cartItemRepository.findByIdInAndCart(orderDTO.getCartItemIds(), user.getCart());
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof User)) {
+            throw new IllegalStateException("User not authenticated. Please login to place an order.");
+        }
+        User user = (User) principal;
+
+        var cart = cartRepository.findByUserId(user.getId());
+
+        if (cart == null) {
+            throw new IllegalStateException("User does not have a cart. Please add items to cart first.");
+        }
+
+        var cartItems = cartItemRepository.findByIdInAndCart(orderDTO.getCartItemIds(), cart);
+
+        if (cartItems.isEmpty()) {
+            throw new IllegalStateException(
+                    "No valid cart items found for the given IDs: " + orderDTO.getCartItemIds());
+        }
+
         var orderItems = new ArrayList<OrderItem>();
 
         var order = new Order();

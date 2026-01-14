@@ -188,7 +188,7 @@ class ProductViewCard extends StatelessWidget {
                     children: [
                       if (product.isOnSale) ...[
                         Text(
-                          product.basePrice.toStringAsFixed(2) + '\$',
+                          '${product.basePrice.toStringAsFixed(2)}\$',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade500,
@@ -198,7 +198,7 @@ class ProductViewCard extends StatelessWidget {
                         const SizedBox(width: 4),
                       ],
                       Text(
-                        product.displayPrice.toStringAsFixed(2) + '\$',
+                        '${product.displayPrice.toStringAsFixed(2)}\$',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

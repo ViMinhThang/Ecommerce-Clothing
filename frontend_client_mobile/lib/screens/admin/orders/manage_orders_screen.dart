@@ -262,10 +262,10 @@ class _ManageOrdersScreenState
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black.withOpacity(0.05)),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -380,7 +380,7 @@ class _ManageOrdersScreenState
             clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             itemCount: cards.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final animation = CurvedAnimation(
                 parent: _animationController,
@@ -482,11 +482,11 @@ class _ManageOrdersScreenState
     ),
     border: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+      borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
-      borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+      borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: AppTheme.borderRadiusSM,
@@ -552,10 +552,10 @@ class _OrderTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppTheme.borderRadiusSM,
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -753,10 +753,10 @@ class _StatisticChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppTheme.borderRadiusSM,
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -768,7 +768,7 @@ class _StatisticChip extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: data.accent.withOpacity(0.1),
+              color: data.accent.withValues(alpha: 0.1),
               borderRadius: AppTheme.borderRadiusXS,
             ),
             child: Icon(data.icon, color: data.accent, size: 20),
@@ -823,9 +823,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: AppTheme.borderRadiusXS,
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         status.toUpperCase(),

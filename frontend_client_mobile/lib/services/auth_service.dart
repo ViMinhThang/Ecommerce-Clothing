@@ -35,14 +35,16 @@ class AuthService {
         if (refresh != null) {
           await _storage.saveRefreshToken(refresh.toString());
         }
-        
+
         final rolesList = roles.map((r) => r.toString()).toList();
         await _storage.saveRoles(rolesList);
-        
+
         if (userId != null) {
           await _storage.saveUserId(int.tryParse(userId.toString()) ?? 0);
         }
-        
+
+        await _storage.saveUserName(username);
+
         return rolesList;
       } else {
         throw Exception('Login failed with status: ${res.statusCode}');

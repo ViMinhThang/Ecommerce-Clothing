@@ -336,7 +336,10 @@ class _EditUserScreenState
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Container(height: 1, color: Colors.black.withOpacity(0.05)),
+            child: Container(
+              height: 1,
+              color: Colors.black.withValues(alpha: 0.05),
+            ),
           ),
         ],
       ),
@@ -385,11 +388,15 @@ class _EditUserScreenState
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.black.withValues(alpha: 0.15),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
-              borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.black.withValues(alpha: 0.15),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppTheme.borderRadiusSM,
@@ -504,7 +511,7 @@ class _TechnicalPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
+      ..color = Colors.white.withValues(alpha: 0.2)
       ..strokeWidth = 0.5;
 
     // Grid lines
@@ -524,7 +531,7 @@ class _TechnicalPatternPainter extends CustomPainter {
     }
 
     // Diagonal lines
-    paint.color = Colors.white.withOpacity(0.1);
+    paint.color = Colors.white.withValues(alpha: 0.1);
     for (var i = -size.height; i < size.width; i += 80) {
       canvas.drawLine(
         Offset(i.toDouble(), 0),

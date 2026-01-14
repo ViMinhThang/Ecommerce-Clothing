@@ -177,9 +177,9 @@ class _ProductApiService implements ProductApiService {
     _data.fields.add(MapEntry('categoryId', categoryId.toString()));
     _data.fields.add(MapEntry('variants', variants));
     _data.files.addAll(images.map((i) => MapEntry('images', i)));
-    existingImageIds.forEach((i) {
+    for (final i in existingImageIds) {
       _data.fields.add(MapEntry('existingImageIds', i));
-    });
+    }
     final _options = _setStreamType<Product>(
       Options(
             method: 'PUT',

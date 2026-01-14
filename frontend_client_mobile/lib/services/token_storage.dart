@@ -7,6 +7,7 @@ class TokenStorage {
   static const _keyRefresh = 'REFRESH_TOKEN';
   static const _keyRoles = 'USER_ROLES';
   static const _keyUserId = 'USER_ID';
+  static const _keyUserName = 'USER_NAME';
 
   Future<void> saveAccessToken(String token) async {
     try {
@@ -29,6 +30,12 @@ class TokenStorage {
   Future<void> saveUserId(int userId) async {
     try {
       await _storage.write(key: _keyUserId, value: userId.toString());
+    } catch (_) {}
+  }
+
+  Future<void> saveUserName(String name) async {
+    try {
+      await _storage.write(key: _keyUserName, value: name);
     } catch (_) {}
   }
 
@@ -69,6 +76,14 @@ class TokenStorage {
     return null;
   }
 
+  Future<String?> readUserName() async {
+    try {
+      return await _storage.read(key: _keyUserName);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<bool> isLoggedIn() async {
     final token = await readAccessToken();
     return token != null && token.isNotEmpty;
@@ -85,7 +100,7 @@ class TokenStorage {
       await _storage.delete(key: _keyRefresh);
       await _storage.delete(key: _keyRoles);
       await _storage.delete(key: _keyUserId);
+      await _storage.delete(key: _keyUserName);
     } catch (_) {}
   }
 }
-

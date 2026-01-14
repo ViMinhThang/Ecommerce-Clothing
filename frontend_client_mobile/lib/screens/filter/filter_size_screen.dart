@@ -25,7 +25,7 @@ class SizeFilterPage extends StatelessWidget {
             backgroundColor: Colors.white,
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.chevron_left_rounded, color: Colors.black,),
+              icon: const Icon(Icons.chevron_left_rounded, color: Colors.black),
             ),
             centerTitle: true,
             title: const Text(
@@ -60,7 +60,7 @@ class SizeFilterPage extends StatelessWidget {
                             vertical: 8,
                           ),
                           itemCount: sizes.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (context, i) {
                             final label = sizes[i];
                             final checked = provider.selectedSizes.contains(

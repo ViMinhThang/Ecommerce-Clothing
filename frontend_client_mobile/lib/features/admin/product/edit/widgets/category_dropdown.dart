@@ -19,7 +19,7 @@ class CategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<Category>(
-      value: viewModel.selectedCategory,
+      initialValue: viewModel.selectedCategory,
       onChanged: (value) => viewModel.selectedCategory = value,
       items: categories.map((cat) => _buildDropdownItem(cat)).toList(),
       validator: (value) => value == null ? 'Please select a category' : null,

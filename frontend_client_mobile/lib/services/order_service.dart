@@ -28,6 +28,16 @@ class OrderService {
     return await _apiOrderService.createOrder(order);
   }
 
+  Future<OrderView> createOrderFromCart({
+    required List<int> cartItemIds,
+    String? voucherCode,
+  }) async {
+    return await _apiOrderService.createOrderFromCart({
+      'cartItemIds': cartItemIds,
+      'voucherCode': voucherCode,
+    });
+  }
+
   Future<OrderView> updateOrder(int id, OrderView order) async {
     return await _apiOrderService.updateOrder(id, order);
   }

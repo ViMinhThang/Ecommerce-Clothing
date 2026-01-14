@@ -117,13 +117,19 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
 
   @override
   Future<void> handleSave() async {
-    if (isSaving) return;
-    if (!validateForm()) return;
+    if (isSaving) {
+      return;
+    }
+    if (!validateForm()) {
+      return;
+    }
 
     setState(() => isSaving = true);
     try {
       await saveEntity();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.pop(context, {
         'username': _usernameController.text.trim(),
         'fullName': _fullNameController.text.trim(),
@@ -140,9 +146,13 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       final msg = e is DioException && e.error is AppHttpException
           ? e.error.toString()
           : 'Có lỗi xảy ra';
-      if (mounted) showErrorMessage(msg);
+      if (mounted) {
+        showErrorMessage(msg);
+      }
     } finally {
-      if (mounted) setState(() => isSaving = false);
+      if (mounted) {
+        setState(() => isSaving = false);
+      }
     }
   }
 
@@ -336,31 +346,48 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
 
   String? _validateFields() {
     final username = _usernameController.text.trim();
-    if (username.length < 6 || username.length > 100)
+    if (username.length < 6 || username.length > 100) {
       return 'Username must be between 6-100 characters';
+    }
 
     final fullName = _fullNameController.text.trim();
-    if (fullName.length < 6 || fullName.length > 100)
+    if (fullName.length < 6 || fullName.length > 100) {
       return 'Name must be between 6-100 characters';
+    }
 
     final password = _passwordController.text;
-    if (password.length < 8) return 'Password tối thiểu 8 ký tự';
-    if (!RegExp(r'^[A-Z]').hasMatch(password))
+    if (password.length < 8) {
+      return 'Password tối thiểu 8 ký tự';
+    }
+    if (!RegExp(r'^[A-Z]').hasMatch(password)) {
       return 'Password must start with an uppercase letter';
-    if (!RegExp(r'\d').hasMatch(password))
+    }
+    if (!RegExp(r'\d').hasMatch(password)) {
       return 'Password must contain at least one digit';
+    }
 
     final confirm = _confirmPasswordController.text;
-    if (confirm.isEmpty) return 'Confirm password không được rỗng';
-    if (password != confirm) return 'Passwords do not match';
+    if (confirm.isEmpty) {
+      return 'Confirm password không được rỗng';
+    }
+    if (password != confirm) {
+      return 'Passwords do not match';
+    }
 
     final email = _emailController.text.trim();
-    if (email.isNotEmpty && !_emailPattern.hasMatch(email))
+    if (email.isNotEmpty && !_emailPattern.hasMatch(email)) {
       return 'Email không hợp lệ';
+    }
 
-    if (_isLoadingRoles) return 'Vui lòng chờ tải danh sách role';
-    if (_availableRoles.isEmpty) return 'Không có role khả dụng';
-    if (_selectedRoles.isEmpty) return 'Please select at least one role';
+    if (_isLoadingRoles) {
+      return 'Vui lòng chờ tải danh sách role';
+    }
+    if (_availableRoles.isEmpty) {
+      return 'Không có role khả dụng';
+    }
+    if (_selectedRoles.isEmpty) {
+      return 'Please select at least one role';
+    }
 
     return null;
   }
@@ -404,8 +431,9 @@ class _CreateUserScreenState extends BaseEditScreenState<void, CreateUserScreen>
       if (!mounted) return;
       setState(() => _rolesError = 'AUTHENTICATION_FAILURE_ROLE_FETCH');
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoadingRoles = false);
+      if (mounted) {
+        setState(() => _isLoadingRoles = false);
+      }
     }
   }
 }

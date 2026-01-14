@@ -12,6 +12,7 @@ import 'package:frontend_client_mobile/widgets/catalog/product_card.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/product_card_skeleton.dart';
 import 'package:frontend_client_mobile/widgets/skeleton/category_item_widgets.dart';
 import 'package:frontend_client_mobile/providers/wishlist_provider.dart';
+import 'package:frontend_client_mobile/utils/feedback_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -101,9 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       opaque: false,
                       barrierDismissible: true,
                       barrierColor: Colors.transparent,
-                      pageBuilder: (_, __, ___) =>
-                          const SearchScreen.products(),
-                      transitionsBuilder: (_, animation, __, child) {
+                      pageBuilder: (_, _, _) => const SearchScreen.products(),
+                      transitionsBuilder: (_, animation, _, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                     ),
@@ -175,9 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
                                   itemCount: 6,
-                                  separatorBuilder: (_, __) =>
+                                  separatorBuilder: (_, _) =>
                                       const SizedBox(width: 8),
-                                  itemBuilder: (_, __) =>
+                                  itemBuilder: (_, _) =>
                                       const CategorySkeleton(),
                                 ),
                               );
@@ -280,44 +280,76 @@ class _HomeScreenState extends State<HomeScreen> {
                         onFavoriteToggle: () async {
                           final tokenStorage = TokenStorage();
                           final isLoggedIn = await tokenStorage.isLoggedIn();
-                          
+
                           if (!context.mounted) return;
-                          
+
                           if (!isLoggedIn) {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                title: Text('Login Required', style: GoogleFonts.lora(fontWeight: FontWeight.w600)),
-                                content: const Text('Please login to add items to your wishlist.'),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: Text(
+                                  'Login Required',
+                                  style: GoogleFonts.lora(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                content: const Text(
+                                  'Please login to add items to your wishlist.',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
-                                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                                    child: const Text(
+                                      'Cancel',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.pop(ctx);
                                       Navigator.pushAndRemoveUntil(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const MainScreen(initialTab: 4)),
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const MainScreen(initialTab: 4),
+                                        ),
                                         (route) => false,
                                       );
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                                    child: const Text('Login', style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Login',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   ),
                                 ],
                               ),
                             );
                             return;
                           }
-                          
+
                           final userId = await tokenStorage.readUserId() ?? 1;
-                          wishlistProvider.toggleWishlist(
+                          final success = await wishlistProvider.toggleWishlist(
                             productId: product.id,
                             userId: userId,
                           );
+                          if (!context.mounted) return;
+                          if (success) {
+                            FeedbackUtils.showWishlistToast(
+                              context,
+                              isAdded: wishlistProvider
+                                  .isProductInWishlistLocal(product.id),
+                              productName: product.name,
+                            );
+                          }
                         },
                         onTap: () {
                           Navigator.push(

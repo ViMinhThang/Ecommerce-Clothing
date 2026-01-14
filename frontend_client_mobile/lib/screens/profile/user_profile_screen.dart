@@ -5,7 +5,7 @@ import 'edit_user_form.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int userId;
-  const UserProfileScreen({Key? key, required this.userId}) : super(key: key);
+  const UserProfileScreen({super.key, required this.userId});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();

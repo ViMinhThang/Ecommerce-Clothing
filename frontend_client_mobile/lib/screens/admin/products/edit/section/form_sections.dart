@@ -169,7 +169,7 @@ class _ProductFormState extends State<ProductForm>
             Expanded(
               child: Container(
                 height: 1,
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
               ),
             ),
           ],

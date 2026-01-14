@@ -40,8 +40,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   opaque: false,
                   barrierDismissible: true,
                   barrierColor: Colors.transparent,
-                  pageBuilder: (_, __, ___) => const SearchScreen.categories(),
-                  transitionsBuilder: (_, animation, __, child) {
+                  pageBuilder: (_, _, _) => const SearchScreen.categories(),
+                  transitionsBuilder: (_, animation, _, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
                 ),
@@ -60,10 +60,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               childAspectRatio: 0.8,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              children: List.generate(
-                6,
-                (index) => const CategorySkeleton(),
-              ),
+              children: List.generate(6, (index) => const CategorySkeleton()),
             );
           }
           if (provider.categories.isEmpty) {
