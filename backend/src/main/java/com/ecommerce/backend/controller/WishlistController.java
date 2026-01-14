@@ -1,6 +1,8 @@
 package com.ecommerce.backend.controller;
 
+
 import com.ecommerce.backend.dto.view.WishlistItemView;
+
 import com.ecommerce.backend.service.WishlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -50,5 +52,6 @@ public class WishlistController {
             @PathVariable Long productId) {
         boolean isInWishlist = wishlistService.isProductInWishlist(userId, productId);
         return ResponseEntity.ok(Map.of("isInWishlist", isInWishlist));
+
     }
 }

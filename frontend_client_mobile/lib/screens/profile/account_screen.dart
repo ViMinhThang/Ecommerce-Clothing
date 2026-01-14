@@ -72,7 +72,14 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 20),
             Row(
               children: [
-                _buildActivityChip(Icons.person_outline, 'Details', () {}),
+                _buildActivityChip(Icons.person_outline, 'Details', () async {
+                  final userId = await _tokenStorage.readUserId();
+                  if (userId == null) {
+                    Navigator.pushNamed(context, '/login');
+                    return;
+                  }
+                  Navigator.pushNamed(context, '/profile', arguments: userId);
+                }),
                 const SizedBox(width: 12),
                 _buildActivityChip(Icons.shopping_bag_outlined, 'Orders', () {
                   Navigator.push(
@@ -92,21 +99,36 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 36),
             _buildSectionTitle('Community'),
             const SizedBox(height: 20),
-            _buildMenuItem(Icons.supervisor_account_outlined, 'Community influencer program'),
+            _buildMenuItem(
+              Icons.supervisor_account_outlined,
+              'Community influencer program',
+            ),
             const SizedBox(height: 36),
             _buildSectionTitle('Support'),
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(child: _buildSupportItem(Icons.help_outline, 'FAQ')),
-                Expanded(child: _buildSupportItem(Icons.chat_bubble_outline, 'Chat with us')),
+                Expanded(
+                  child: _buildSupportItem(
+                    Icons.chat_bubble_outline,
+                    'Chat with us',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildSupportItem(Icons.verified_user_outlined, 'Privacy policy')),
-                Expanded(child: _buildSupportItem(Icons.info_outline, 'About us')),
+                Expanded(
+                  child: _buildSupportItem(
+                    Icons.verified_user_outlined,
+                    'Privacy policy',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSupportItem(Icons.info_outline, 'About us'),
+                ),
               ],
             ),
             const SizedBox(height: 16),
