@@ -6,8 +6,7 @@ import 'package:frontend_client_mobile/config/theme_config.dart';
 class OrderStatus {
   static const String pending = 'pending';
   static const String processing = 'processing';
-  static const String completed = 'completed';
-  static const String cancelled = 'cancelled';
+  static const String delivered = 'delivered';
 
   static const List<OrderStatusOption> options = [
     OrderStatusOption(
@@ -21,14 +20,9 @@ class OrderStatus {
       color: Colors.indigo,
     ),
     OrderStatusOption(
-      id: completed,
-      icon: Icons.verified_rounded,
+      id: delivered,
+      icon: Icons.local_shipping_rounded,
       color: Color(0xFF10B981),
-    ),
-    OrderStatusOption(
-      id: cancelled,
-      icon: Icons.do_disturb_on_rounded,
-      color: Color(0xFFEF4444),
     ),
   ];
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/services/filter_service.dart';
 import 'package:retrofit/retrofit.dart';

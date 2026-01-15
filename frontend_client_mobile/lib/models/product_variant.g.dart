@@ -13,11 +13,3 @@ ProductVariant _$ProductVariantFromJson(Map<String, dynamic> json) =>
       size: Size.fromJson(json['size'] as Map<String, dynamic>),
       color: Color.fromJson(json['color'] as Map<String, dynamic>),
     );
-
-Map<String, dynamic> _$ProductVariantToJson(ProductVariant instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'price': instance.price,
-      'size': instance.size,
-      'color': instance.color,
-    };

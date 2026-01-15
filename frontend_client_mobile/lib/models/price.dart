@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'price.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class Price {
   final int id;
   final double basePrice;

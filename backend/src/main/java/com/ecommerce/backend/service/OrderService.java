@@ -22,4 +22,6 @@ public interface OrderService {
      OrderStatistics orderStatistics();
 
      Page<OrderView> getAllOrdersByStatus(String status, Pageable pageable);
+
+     OrderView updateOrderStatus(long id, String status);
 }

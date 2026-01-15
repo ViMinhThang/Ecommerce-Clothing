@@ -150,6 +150,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
     // Only process COD for now
     if (selectedPayment != 'cod') {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Only Cash on Delivery is supported at this time'),
@@ -162,9 +163,11 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     setState(() => _isLoading = true);
 
     try {
+      if (!mounted) return;
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
       if (widget.selectedItemIds.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('No items selected for checkout'),

@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'PageResponse.g.dart';
+part 'page_response.g.dart';
 
 @JsonSerializable(genericArgumentFactories: true)
 class PageResponse<T> {

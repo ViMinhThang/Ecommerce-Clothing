@@ -11,9 +11,3 @@ Price _$PriceFromJson(Map<String, dynamic> json) => Price(
   basePrice: (json['basePrice'] as num).toDouble(),
   salePrice: (json['salePrice'] as num).toDouble(),
 );
-
-Map<String, dynamic> _$PriceToJson(Price instance) => <String, dynamic>{
-  'id': instance.id,
-  'basePrice': instance.basePrice,
-  'salePrice': instance.salePrice,
-};

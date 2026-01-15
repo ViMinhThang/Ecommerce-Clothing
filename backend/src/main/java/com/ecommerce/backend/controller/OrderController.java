@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -77,6 +78,14 @@ public class OrderController {
     @GetMapping("/statistics")
     public ResponseEntity<OrderStatistics> statistics() {
         return ResponseEntity.ok(orderService.orderStatistics());
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OrderView> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        String status = request.get("status");
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 
 }

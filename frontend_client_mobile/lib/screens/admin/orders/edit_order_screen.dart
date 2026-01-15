@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../config/theme_config.dart';
 import '../../../models/order_view.dart';
+import '../../../providers/order_provider.dart';
 import '../base/base_edit_screen.dart';
 
 class EditOrderScreen extends BaseEditScreen<OrderView> {
@@ -71,15 +73,13 @@ class _EditOrderScreenState
 
   @override
   Future<void> saveEntity() async {
-    final order = OrderView(
-      id: widget.entity?.id ?? DateTime.now().millisecondsSinceEpoch,
-      buyerEmail: _customerController.text.trim(),
-      totalPrice: double.tryParse(_totalController.text) ?? 0,
-      createdDate: _dateController.text.trim(),
-      status: _status,
-    );
+    if (!isEditing) {
+      // Creating orders is not supported from admin edit screen
+      return;
+    }
 
-    Navigator.pop(context, order);
+    final provider = Provider.of<OrderProvider>(context, listen: false);
+    await provider.updateOrderStatus(widget.entity!.id, _status);
   }
 
   @override
@@ -373,14 +373,9 @@ class _StatusSelector extends StatelessWidget {
         'color': Colors.indigo,
       },
       {
-        'id': 'completed',
-        'icon': Icons.verified_rounded,
+        'id': 'delivered',
+        'icon': Icons.local_shipping_rounded,
         'color': const Color(0xFF10B981),
-      },
-      {
-        'id': 'cancelled',
-        'icon': Icons.do_disturb_on_rounded,
-        'color': const Color(0xFFEF4444),
       },
     ];
 
