@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
 @Service
-public class DashboardServiceImpl  implements DashboardService{
+public class DashboardServiceImpl implements DashboardService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
@@ -20,6 +20,6 @@ public class DashboardServiceImpl  implements DashboardService{
         var totalProduct = productRepository.count();
         var totalOrders = orderRepository.count();
         var totalRevenue = orderRepository.sumTotalPriceByStatus("completed");
-        return new DashBoardView(totalRevenue,totalOrders,totalProduct,totalUser);
+        return new DashBoardView(totalRevenue, totalOrders, totalProduct, totalUser);
     }
 }

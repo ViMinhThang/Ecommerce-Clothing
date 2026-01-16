@@ -23,18 +23,8 @@ class OrderItemView {
     required this.quantity,
   });
 
-  factory OrderItemView.fromJson(Map<String, dynamic> json) {
-    return OrderItemView(
-      id: json['id'] ?? 0,
-      productName: json['productName'],
-      size: json['size'],
-      color: json['color'],
-      material: json['material'],
-      imageUrl: json['imageUrl'],
-      priceAtPurchase: (json['priceAtPurchase'] ?? 0).toDouble(),
-      quantity: json['quantity'] ?? 0,
-    );
-  }
+  factory OrderItemView.fromJson(Map<String, dynamic> json) =>
+      _$OrderItemViewFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderItemViewToJson(this);
 }

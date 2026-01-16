@@ -17,15 +17,8 @@ class OrderView {
     required this.status,
   });
 
-  factory OrderView.fromJson(Map<String, dynamic> json) {
-    return OrderView(
-      id: json['id'],
-      buyerEmail: json['buyerEmail'] ?? '',
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      createdDate: json['createdDate'] ?? '',
-      status: json['status'] ?? '',
-    );
-  }
+  factory OrderView.fromJson(Map<String, dynamic> json) =>
+      _$OrderViewFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderViewToJson(this);
 }

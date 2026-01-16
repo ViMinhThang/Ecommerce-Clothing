@@ -1,4 +1,4 @@
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/review.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/review_api_service.dart';

@@ -3,7 +3,7 @@ import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/utils/file_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/product.dart';
-import '../models/PageResponse.dart';
+import '../models/page_response.dart';
 import '../services/product_service.dart';
 
 class ProductProvider with ChangeNotifier {

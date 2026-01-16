@@ -5,7 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'product_variant.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class ProductVariant {
   final int id;
   final Price price;

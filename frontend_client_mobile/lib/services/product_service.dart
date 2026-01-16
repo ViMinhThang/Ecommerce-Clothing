@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/product.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/product_api_service.dart';

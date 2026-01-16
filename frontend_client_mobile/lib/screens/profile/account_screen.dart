@@ -75,13 +75,14 @@ class _AccountScreenState extends State<AccountScreen> {
             Row(
               children: [
                 _buildActivityChip(Icons.person_outline, 'Details', () async {
+                  final navigator = Navigator.of(context);
                   final userId = await _tokenStorage.readUserId();
                   if (!mounted) return;
                   if (userId == null) {
-                    Navigator.pushNamed(context, '/login');
+                    navigator.pushNamed('/login');
                     return;
                   }
-                  Navigator.pushNamed(context, '/profile', arguments: userId);
+                  navigator.pushNamed('/profile', arguments: userId);
                 }),
                 const SizedBox(width: 12),
                 _buildActivityChip(Icons.shopping_bag_outlined, 'Orders', () {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/models/user_update_request.dart';
-import 'package:frontend_client_mobile/config/theme_config.dart';
 
 class EditUserForm extends StatefulWidget {
   final int userId;

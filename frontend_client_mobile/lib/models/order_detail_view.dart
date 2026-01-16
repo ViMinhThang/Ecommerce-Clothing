@@ -26,21 +26,8 @@ class OrderDetailView {
     required this.items,
   });
 
-  factory OrderDetailView.fromJson(Map<String, dynamic> json) {
-    return OrderDetailView(
-      id: json['id'] ?? 0,
-      buyerEmail: json['buyerEmail'] ?? '',
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      discountAmount: (json['discountAmount'] ?? 0).toDouble(),
-      finalPrice: (json['finalPrice'] ?? 0).toDouble(),
-      status: json['status'] ?? '',
-      createdDate: json['createdDate'],
-      voucherCode: json['voucherCode'],
-      items: (json['items'] as List<dynamic>?)
-          ?.map((e) => OrderItemView.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
-    );
-  }
+  factory OrderDetailView.fromJson(Map<String, dynamic> json) =>
+      _$OrderDetailViewFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderDetailViewToJson(this);
 }

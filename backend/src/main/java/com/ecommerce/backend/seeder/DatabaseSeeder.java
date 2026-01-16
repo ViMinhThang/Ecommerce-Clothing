@@ -53,7 +53,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
                 // Nó không chạy thì comment lại đừng xóa dùm cái
-                // aiRecommentService.buildCache();
+                 aiRecommentService.buildCache();
                 // Create a delivered order for john.doe to enable review feature testing
                 initDeliveredOrderForJohnDoe();
 

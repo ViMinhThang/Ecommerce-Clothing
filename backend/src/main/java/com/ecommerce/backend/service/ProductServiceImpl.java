@@ -41,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final PriceRepository priceRepository;
+
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
         if (pageable == null) {
@@ -58,14 +59,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Product createProduct(ProductRequest request, List<MultipartFile> images) throws IOException {
         Product product = buildProductFromRequest(new Product(), request, images);
         return productRepository.save(product);
     }
 
     @Override
-    @SuppressWarnings("null")
     public Product updateProduct(Long id, ProductRequest request, List<MultipartFile> images,
             List<Long> existingImageIds) throws IOException {
         Product existingProduct = findProductOrThrow(id);
@@ -90,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
-        if(categoryId == 0){
+        if (categoryId == 0) {
             return productRepository.findAll(pageable).map(this::mapToProductView);
         }
         return productRepository.findByCategoryIdAndStatus(categoryId, status, pageable)

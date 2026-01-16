@@ -33,10 +33,10 @@ class AdminListItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.primaryWhite,
         borderRadius: AppTheme.borderRadiusSM,
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

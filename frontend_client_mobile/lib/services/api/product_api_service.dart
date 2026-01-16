@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:retrofit/retrofit.dart';

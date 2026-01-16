@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -183,5 +184,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Page<OrderView> getAllOrdersByStatus(String status, Pageable pageable) {
         return orderRepository.findAllByStatus(status, pageable).map(OrderMapper::toOrderView);
+    }
+
+    @Override
+    @Transactional
+    public OrderView updateOrderStatus(long id, String status) {
+        var validStatuses = Set.of("pending", "processing", "delivered");
+        if (!validStatuses.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + validStatuses);
+        }
+
+        var order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        order.setStatus(status);
+        Order savedOrder = orderRepository.save(order);
+        return OrderMapper.toOrderView(savedOrder);
     }
 }

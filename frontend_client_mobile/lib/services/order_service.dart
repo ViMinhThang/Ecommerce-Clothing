@@ -1,4 +1,4 @@
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/order_statistics.dart';
 import 'package:frontend_client_mobile/models/order_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
@@ -52,5 +52,9 @@ class OrderService {
 
   Future<OrderStatistics> getStatistics() async {
     return await _apiOrderService.getStatistics();
+  }
+
+  Future<OrderView> updateOrderStatus(int id, String status) async {
+    return await _apiOrderService.updateOrderStatus(id, {'status': status});
   }
 }

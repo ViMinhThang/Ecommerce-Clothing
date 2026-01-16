@@ -1,4 +1,4 @@
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/filter_attributes.dart';
 import 'package:frontend_client_mobile/models/product_view.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
@@ -14,9 +14,7 @@ class FilterService {
     return await _filterApiService.filter(filters);
   }
 
-  Future<int> countProductAvailable(
-    Map<String, dynamic> filters,
-  ) async {
+  Future<int> countProductAvailable(Map<String, dynamic> filters) async {
     return await _filterApiService.countProductAvailable(filters);
   }
 

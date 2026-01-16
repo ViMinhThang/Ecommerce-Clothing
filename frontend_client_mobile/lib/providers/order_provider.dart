@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/order_statistics.dart';
 import 'package:frontend_client_mobile/models/order_view.dart';
 import 'package:frontend_client_mobile/services/order_service.dart';
@@ -59,7 +59,9 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('OrderProvider: Fetching orders with status: $_statusFilter, page: $page');
+      debugPrint(
+        'OrderProvider: Fetching orders with status: $_statusFilter, page: $page',
+      );
       final response = await _orderService.getOrders(
         status: _statusFilter,
         sortBy: _sortBy,
@@ -68,7 +70,6 @@ class OrderProvider with ChangeNotifier {
         size: _pageSize,
       );
       debugPrint('OrderProvider: Got ${response.content.length} orders');
-
 
       _lastPage = response;
       if (reset) {
@@ -187,5 +188,15 @@ class OrderProvider with ChangeNotifier {
       _isLoadingStatistics = false;
       notifyListeners();
     }
+  }
+
+  Future<OrderView> updateOrderStatus(int id, String status) async {
+    final updated = await _orderService.updateOrderStatus(id, status);
+    final index = _orders.indexWhere((item) => item.id == updated.id);
+    if (index != -1) {
+      _orders[index] = updated;
+      notifyListeners();
+    }
+    return updated;
   }
 }

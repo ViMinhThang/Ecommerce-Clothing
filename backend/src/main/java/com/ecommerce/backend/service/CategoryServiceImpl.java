@@ -77,7 +77,6 @@ public class CategoryServiceImpl implements CategoryService {
         try {
             ensureUploadDirectoryExists();
             String fileName = generateUniqueFileName(imageFile);
-            Path filePath = saveImageFile(imageFile, fileName);
             return buildImageUrl(fileName);
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload category image", e);
@@ -96,9 +95,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     // ==================== Private Helper Methods ====================
 
-    /**
-     * Finds a category by ID or throws EntityNotFoundException
-     */
     private Category findCategoryOrThrow(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Category ID cannot be null");
@@ -107,10 +103,6 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
     }
 
-    /**
-     * Builds a Category entity from CategoryDTO
-     * Applies all DTO fields to the category entity
-     */
     private Category buildCategoryFromDTO(Category category, CategoryDTO dto) {
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
@@ -119,9 +111,6 @@ public class CategoryServiceImpl implements CategoryService {
         return category;
     }
 
-    /**
-     * Ensures the upload directory exists, creates it if necessary
-     */
     private void ensureUploadDirectoryExists() throws IOException {
         Path uploadPath = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadPath)) {
@@ -129,28 +118,11 @@ public class CategoryServiceImpl implements CategoryService {
         }
     }
 
-    /**
-     * Generates a unique filename for the uploaded image
-     * Format: {UUID}_{originalFilename}
-     */
     private String generateUniqueFileName(MultipartFile imageFile) {
         String originalFilename = imageFile.getOriginalFilename();
         return UUID.randomUUID().toString() + FILE_NAME_SEPARATOR + originalFilename;
     }
 
-    /**
-     * Saves the image file to the upload directory
-     */
-    private Path saveImageFile(MultipartFile imageFile, String fileName) throws IOException {
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(imageFile.getInputStream(), filePath);
-        return filePath;
-    }
-
-    /**
-     * Builds the public URL for the uploaded image
-     */
     private String buildImageUrl(String fileName) {
         return IMAGE_URL_PREFIX + fileName;
     }

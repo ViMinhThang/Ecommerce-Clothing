@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/review.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -45,4 +45,3 @@ abstract class ReviewApiService {
     @Path("orderId") int orderId,
   );
 }
-

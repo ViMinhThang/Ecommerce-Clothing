@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:frontend_client_mobile/models/PageResponse.dart';
+import 'package:frontend_client_mobile/models/page_response.dart';
 import 'package:frontend_client_mobile/models/user_detail_view.dart';
 import 'package:frontend_client_mobile/models/user_item_view.dart';
 import 'package:frontend_client_mobile/models/user_request.dart';
