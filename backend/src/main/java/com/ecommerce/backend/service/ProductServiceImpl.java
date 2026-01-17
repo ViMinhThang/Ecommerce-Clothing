@@ -396,10 +396,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String saveImage(MultipartFile image) throws IOException {
+        // Validate file extension for security
+        String originalFilename = image.getOriginalFilename();
+        if (originalFilename == null || !isAllowedImageExtension(originalFilename)) {
+            throw new IllegalArgumentException("Invalid image file format. Only JPG, JPEG, PNG, and GIF are allowed.");
+        }
+        
         String newFilename = generateUniqueFilename(image);
         Path filePath = Paths.get(UPLOAD_DIR + newFilename);
+        Files.createDirectories(filePath.getParent());
         Files.copy(image.getInputStream(), filePath);
         return IMAGE_BASE_URL + newFilename;
+    }
+
+    private boolean isAllowedImageExtension(String filename) {
+        if (filename == null) return false;
+        String extension = extractFileExtension(filename).toLowerCase();
+        return extension.equals(".jpg") || extension.equals(".jpeg") || 
+               extension.equals(".png") || extension.equals(".gif");
     }
 
     private String generateUniqueFilename(MultipartFile image) {
@@ -409,6 +423,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String extractFileExtension(String filename) {
-        return filename.substring(filename.lastIndexOf("."));
+        if (filename == null || !filename.contains(".")) {
+            return "";
+        }
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == -1 || lastDotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(lastDotIndex);
     }
 }

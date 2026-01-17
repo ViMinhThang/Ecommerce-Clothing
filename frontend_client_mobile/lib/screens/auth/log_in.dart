@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (roles.contains('ROLE_ADMIN')) {
         debugPrint('Admin user - navigating to /dashboard');
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         debugPrint('Regular user - navigating to /home');
         Navigator.pushReplacementNamed(context, '/home');

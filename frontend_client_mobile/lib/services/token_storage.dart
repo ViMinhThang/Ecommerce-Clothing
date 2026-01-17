@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class TokenStorage {
@@ -12,31 +13,42 @@ class TokenStorage {
   Future<void> saveAccessToken(String token) async {
     try {
       await _storage.write(key: _keyAccess, value: token);
-    } catch (_) {}
+    } catch (e) {
+      // Log error but don't throw - this is a graceful degradation
+      debugPrint('Error saving access token: $e');
+    }
   }
 
   Future<void> saveRefreshToken(String token) async {
     try {
       await _storage.write(key: _keyRefresh, value: token);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error saving refresh token: $e');
+    }
   }
 
   Future<void> saveRoles(List<String> roles) async {
     try {
       await _storage.write(key: _keyRoles, value: jsonEncode(roles));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error saving roles: $e');
+    }
   }
 
   Future<void> saveUserId(int userId) async {
     try {
       await _storage.write(key: _keyUserId, value: userId.toString());
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error saving user ID: $e');
+    }
   }
 
   Future<void> saveUserName(String name) async {
     try {
       await _storage.write(key: _keyUserName, value: name);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error saving user name: $e');
+    }
   }
 
   Future<String?> readAccessToken() async {
@@ -62,7 +74,9 @@ class TokenStorage {
         final decoded = jsonDecode(rolesJson) as List<dynamic>;
         return decoded.map((e) => e.toString()).toList();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error reading roles: $e');
+    }
     return [];
   }
 
@@ -72,7 +86,9 @@ class TokenStorage {
       if (userIdStr != null) {
         return int.tryParse(userIdStr);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error reading user ID: $e');
+    }
     return null;
   }
 
@@ -101,6 +117,8 @@ class TokenStorage {
       await _storage.delete(key: _keyRoles);
       await _storage.delete(key: _keyUserId);
       await _storage.delete(key: _keyUserName);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error clearing storage: $e');
+    }
   }
 }

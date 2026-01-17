@@ -44,7 +44,7 @@ class _EditOrderScreenState
   String getScreenTitle() => isEditing ? 'Edit Order' : 'New Order';
 
   @override
-  int getSelectedIndex() => 5;
+  int getSelectedIndex() => 2;
 
   @override
   String getEntityName() => 'Order';

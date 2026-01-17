@@ -48,6 +48,27 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional
     @SuppressWarnings("null")
     public VoucherView createVoucher(VoucherDTO dto) {
+        // Validate input
+        if (dto.getCode() == null || dto.getCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("Voucher code cannot be empty");
+        }
+        if (dto.getDiscountValue() < 0) {
+            throw new IllegalArgumentException("Discount value cannot be negative");
+        }
+        if (dto.getMinOrderAmount() < 0) {
+            throw new IllegalArgumentException("Minimum order amount cannot be negative");
+        }
+        if (dto.getMaxDiscountAmount() < 0) {
+            throw new IllegalArgumentException("Maximum discount amount cannot be negative");
+        }
+        if (dto.getUsageLimit() < 0) {
+            throw new IllegalArgumentException("Usage limit cannot be negative");
+        }
+        if (dto.getEndDate() != null && dto.getStartDate() != null && 
+            dto.getEndDate().isBefore(dto.getStartDate())) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
+        
         if (voucherRepository.existsByCode(dto.getCode().toUpperCase())) {
             throw new RuntimeException("Voucher code already exists");
         }
@@ -73,6 +94,27 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional
     @SuppressWarnings("null")
     public VoucherView updateVoucher(Long id, VoucherDTO dto) {
+        // Validate input
+        if (dto.getCode() == null || dto.getCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("Voucher code cannot be empty");
+        }
+        if (dto.getDiscountValue() < 0) {
+            throw new IllegalArgumentException("Discount value cannot be negative");
+        }
+        if (dto.getMinOrderAmount() < 0) {
+            throw new IllegalArgumentException("Minimum order amount cannot be negative");
+        }
+        if (dto.getMaxDiscountAmount() < 0) {
+            throw new IllegalArgumentException("Maximum discount amount cannot be negative");
+        }
+        if (dto.getUsageLimit() < 0) {
+            throw new IllegalArgumentException("Usage limit cannot be negative");
+        }
+        if (dto.getEndDate() != null && dto.getStartDate() != null && 
+            dto.getEndDate().isBefore(dto.getStartDate())) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
+        
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher not found"));
 
@@ -223,6 +265,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     public double calculateDiscount(Voucher voucher, double orderAmount) {
+        if (orderAmount < 0) {
+            throw new IllegalArgumentException("Order amount cannot be negative");
+        }
+        if (voucher == null) {
+            return 0.0;
+        }
+        
         double discount;
 
         if (voucher.getDiscountType() == DiscountType.PERCENTAGE) {
@@ -236,6 +285,11 @@ public class VoucherServiceImpl implements VoucherService {
 
         if (discount > orderAmount) {
             discount = orderAmount;
+        }
+        
+        // Ensure discount is never negative
+        if (discount < 0) {
+            discount = 0;
         }
 
         return Math.round(discount * 100.0) / 100.0;

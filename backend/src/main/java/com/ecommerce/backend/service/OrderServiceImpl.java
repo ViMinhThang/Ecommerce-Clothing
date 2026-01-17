@@ -78,6 +78,9 @@ public class OrderServiceImpl implements OrderService {
         var sum = 0.0;
         for (var ct : cartItems) {
             var productVariants = ct.getProductVariants();
+            if (productVariants == null || productVariants.getPrice() == null) {
+                throw new IllegalStateException("Product variant or price information is missing");
+            }
             var orderItem = new OrderItem();
             var quantity = ct.getQuantity();
             var price = productVariants.getPrice().getSalePrice();
@@ -189,7 +192,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderView updateOrderStatus(long id, String status) {
-        var validStatuses = Set.of("pending", "processing", "delivered");
+        var validStatuses = Set.of("pending", "processing", "completed", "cancelled");
         if (!validStatuses.contains(status)) {
             throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + validStatuses);
         }

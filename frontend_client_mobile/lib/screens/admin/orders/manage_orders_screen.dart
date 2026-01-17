@@ -51,7 +51,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
   Widget build(BuildContext context) {
     return AdminLayout(
       title: 'Order Management',
-      selectedIndex: 5,
+      selectedIndex: 2,
       actions: [
         IconButton(
           onPressed: () => context.read<OrderProvider>().refreshAll(),

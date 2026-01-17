@@ -55,6 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
+            // Log JWT validation errors but continue filter chain
+            // This is intentional - invalid tokens should not break the request
         }
 
         filterChain.doFilter(request, response);

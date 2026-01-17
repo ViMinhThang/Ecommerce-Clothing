@@ -217,11 +217,13 @@ class CartProvider extends ChangeNotifier {
           return false;
         });
 
+        // Ensure total price doesn't go negative
+        final newTotal = _cartView!.totalPrice - removedTotal;
         _cartView = CartView(
           id: _cartView!.id,
           userId: _cartView!.userId,
           items: _cartView!.items,
-          totalPrice: _cartView!.totalPrice - removedTotal,
+          totalPrice: newTotal < 0 ? 0 : newTotal,
         );
 
         notifyListeners();

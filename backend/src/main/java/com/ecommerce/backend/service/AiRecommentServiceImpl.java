@@ -35,19 +35,21 @@ public class AiRecommentServiceImpl implements  AiRecommentService{
             if(this.similarProductStore.isEmpty() && status == 0){
                 var products = productService.getAll();
                 var res = this.aiConnector.initDataToPython(createRequestBody(products)).join();
-                if(res == null || res.isEmpty())
-                    System.out.println("Server Python bị lỗi");
-                else
+                if(res == null || res.isEmpty()) {
+                    throw new RuntimeException("AI recommendation server error: Unable to initialize product data");
+                } else {
                     applyCache(res);
+                }
                 return;
             }
             if(!this.similarProductStore.isEmpty() && status == 0){
                 var products = productService.getAll();
                 var res = this.aiConnector.initDataToPython(createRequestBody(products)).join();
-                if(res == null || res.isEmpty())
-                    throw new RuntimeException("Server Python bị lỗi");
-                else
+                if(res == null || res.isEmpty()) {
+                    throw new RuntimeException("AI recommendation server error: Unable to update product cache");
+                } else {
                     applyCache(res);
+                }
                 return;
             }
             // Nếu Python đã có cache nhưng Java chạy lại thì chỉ cần cập nhật kết quả
@@ -55,7 +57,7 @@ public class AiRecommentServiceImpl implements  AiRecommentService{
                 this.aiConnector.refreshCache().thenAccept(this::applyCache);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to build AI recommendation cache", e);
         }
     }
 
@@ -68,7 +70,7 @@ public class AiRecommentServiceImpl implements  AiRecommentService{
             else
                 applyCache(res);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to add new product to AI recommendation system", e);
         }
     }
     // Tạo ra request để gửi cho Python. Gửi danh sách name
