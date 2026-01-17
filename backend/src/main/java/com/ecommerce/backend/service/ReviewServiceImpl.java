@@ -23,6 +23,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public ReviewView createReview(Long userId, CreateReviewRequest request) {
         if (reviewRepository.existsByOrderItemId(request.getOrderItemId())) {
             throw new IllegalStateException("This item has already been reviewed");

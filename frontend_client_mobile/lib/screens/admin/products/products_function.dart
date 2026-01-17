@@ -37,9 +37,11 @@ Future<bool> deleteProduct(
 
   if (confirm) {
     products.removeWhere((p) => p['id'] == product['id']);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Đã xóa "${product['name']}"')));
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Đã xóa "${product['name']}"')));
+    }
     return true;
   }
   return false;

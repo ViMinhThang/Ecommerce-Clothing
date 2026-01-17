@@ -59,12 +59,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Product createProduct(ProductRequest request, List<MultipartFile> images) throws IOException {
         Product product = buildProductFromRequest(new Product(), request, images);
         return productRepository.save(product);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Product updateProduct(Long id, ProductRequest request, List<MultipartFile> images,
             List<Long> existingImageIds) throws IOException {
         Product existingProduct = findProductOrThrow(id);
@@ -88,6 +90,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
         if (categoryId == 0) {
             return productRepository.findAll(pageable).map(this::mapToProductView);
@@ -144,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public List<ProductView> getByListId(List<Long> ids) {
         return productRepository.findAllById(ids).stream().map(this::mapToProductView).toList();
     }

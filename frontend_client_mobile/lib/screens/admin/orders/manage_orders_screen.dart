@@ -164,31 +164,31 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
       _StatCardData(
         Icons.shopping_bag_outlined,
         'Today Orders',
-        stats.totalOrderByDay.toString() ?? '0',
+        stats.totalOrderByDay.toString(),
         const Color(0xFF6366F1),
       ),
       _StatCardData(
         Icons.attach_money_outlined,
         'Today Revenue',
-        '\$${stats.totalPriceByDay.toStringAsFixed(0) ?? '0'}',
+        '\$${stats.totalPriceByDay.toStringAsFixed(0)}',
         const Color(0xFF10B981),
       ),
       _StatCardData(
         Icons.calendar_today_outlined,
         'Week Orders',
-        stats.totalOrderByWeek.toString() ?? '0',
+        stats.totalOrderByWeek.toString(),
         const Color(0xFF3B82F6),
       ),
       _StatCardData(
         Icons.trending_up_outlined,
         'Week Revenue',
-        '\$${stats.totalPriceByWeek.toStringAsFixed(0) ?? '0'}',
+        '\$${stats.totalPriceByWeek.toStringAsFixed(0)}',
         const Color(0xFFF59E0B),
       ),
       _StatCardData(
         Icons.calendar_month_outlined,
         'Month Orders',
-        stats.totalOrderByMonth.toString() ?? '0',
+        stats.totalOrderByMonth.toString(),
         const Color(0xFF8B5CF6),
       ),
     ];
@@ -502,14 +502,6 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen>
     }
   }
 
-  Map<String, dynamic> _mapOrderToForm(OrderView order) => {
-    'id': order.id,
-    'customer': order.buyerEmail,
-    'total': order.totalPrice,
-    'date': order.createdDate,
-    'status': order.status,
-  };
-
   OrderView _mapFormToOrder(Map<String, dynamic> data) => OrderView(
     id: (data['id'] as int?) ?? 0,
     buyerEmail: (data['customer'] as String?)?.trim() ?? '',
@@ -743,9 +735,9 @@ class _StatisticChip extends StatelessWidget {
       width: 140,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: data.color.withOpacity(0.08),
+        color: data.color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: data.color.withOpacity(0.2), width: 1),
+        border: Border.all(color: data.color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

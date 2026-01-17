@@ -30,6 +30,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public VoucherView getVoucherById(Long id) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher not found"));
@@ -45,6 +46,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public VoucherView createVoucher(VoucherDTO dto) {
         if (voucherRepository.existsByCode(dto.getCode().toUpperCase())) {
             throw new RuntimeException("Voucher code already exists");
@@ -69,6 +71,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public VoucherView updateVoucher(Long id, VoucherDTO dto) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher not found"));
@@ -94,6 +97,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public void deleteVoucher(Long id) {
         if (!voucherRepository.existsById(id)) {
             throw new RuntimeException("Voucher not found");
@@ -102,6 +106,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public ValidateVoucherResponse validateVoucher(ValidateVoucherRequest request) {
         try {
             Voucher voucher = voucherRepository.findByCode(request.getCode().toUpperCase())
@@ -165,6 +170,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public void incrementUsedCount(Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(() -> new RuntimeException("Voucher not found"));

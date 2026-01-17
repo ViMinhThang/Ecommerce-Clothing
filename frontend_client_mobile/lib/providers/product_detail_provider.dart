@@ -55,7 +55,6 @@ class ProductDetailProvider with ChangeNotifier {
       debugPrint(
         'ProductDetailProvider: Product images count: ${_product?.images?.length ?? 0}',
       );
-      );
 
       if (_product != null &&
           _product!.variants.isNotEmpty &&

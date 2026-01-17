@@ -24,6 +24,7 @@ public class CartServiceImpl implements CartService {
     private final UserRepository userRepository;
 
     @Override
+    @SuppressWarnings("null")
     public CartView addToCart(AddToCartRequest request) {
         // ✅ VALIDATION 1: Check quantity is valid
         if (request.getQuantity() <= 0) {

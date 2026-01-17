@@ -43,8 +43,10 @@ public class WishlistServiceImpl implements WishlistService {
             return mapToWishlistItemView(existing);
         }
 
+        @SuppressWarnings("null")
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        @SuppressWarnings("null")
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 

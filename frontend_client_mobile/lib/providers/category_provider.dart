@@ -9,27 +9,29 @@ class CategoryProvider with ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   bool _isLoading = false;
+  bool _isFetchingMore = false;
   String _searchQuery = '';
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get isFetchingMore => _isFetchingMore;
 
   Future<void> initialize() async {
-    print("Calling API");
+    debugPrint("Calling API");
     if (_isLoading) return;
     await fetchCategories();
     _isLoading = true;
   }
 
   Future<void> fetchCategories() async {
-    print("Calling API");
+    debugPrint("Calling API");
 
     try {
       _categories = await _categoryService.getCategories(
         name: _searchQuery.isEmpty ? null : _searchQuery,
       );
     } catch (e) {
-      print('Error fetching categories: $e');
+      debugPrint('Error fetching categories: $e');
     }
     notifyListeners();
   }
@@ -65,7 +67,7 @@ class CategoryProvider with ChangeNotifier {
       }
       return updatedCategory;
     } catch (e) {
-      print('Error updating category: $e');
+      debugPrint('Error updating category: $e');
       rethrow;
     }
   }
@@ -76,7 +78,7 @@ class CategoryProvider with ChangeNotifier {
       _categories.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting category: $e');
+      debugPrint('Error deleting category: $e');
       rethrow;
     }
   }
@@ -89,8 +91,24 @@ class CategoryProvider with ChangeNotifier {
       );
       return imageUrl;
     } catch (e) {
-      print('Error uploading category image: $e');
+      debugPrint('Error uploading category image: $e');
       rethrow;
+    }
+  }
+
+  Future<void> fetchMoreCategories() async {
+    if (_isFetchingMore) return;
+    
+    _isFetchingMore = true;
+    notifyListeners();
+    
+    try {
+      // In a real implementation, you would fetch more categories with pagination
+      // For now, we'll just set the flag back to false
+      await Future.delayed(const Duration(milliseconds: 500));
+    } finally {
+      _isFetchingMore = false;
+      notifyListeners();
     }
   }
 }

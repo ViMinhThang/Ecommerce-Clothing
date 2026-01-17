@@ -20,118 +20,115 @@ class _CartApiService implements CartApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<HttpResponse<dynamic>> getCart() async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<dynamic>>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            'api/cart',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
-    final httpResponse = HttpResponse(_value, _result);
-    return httpResponse;
-  }
-
-  @override
-  Future<HttpResponse<dynamic>> addToCart(Map<String, dynamic> item) async {
+  Future<CartView> addToCart(AddToCartRequest request) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    _data.addAll(item);
-    final _options = _setStreamType<HttpResponse<dynamic>>(
+    _data.addAll(request.toJson());
+    final _options = _setStreamType<CartView>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/cart/items',
+            'api/cart/add',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
-    final httpResponse = HttpResponse(_value, _result);
-    return httpResponse;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CartView _value;
+    try {
+      _value = CartView.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<HttpResponse<dynamic>> removeFromCart(int id) async {
+  Future<CartView> getCartByUserId(int userId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<dynamic>>(
-      Options(method: 'DELETE', headers: _headers, extra: _extra)
+    final _options = _setStreamType<CartView>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/cart/items/${id}',
+            'api/cart/user/${userId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
-    final httpResponse = HttpResponse(_value, _result);
-    return httpResponse;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CartView _value;
+    try {
+      _value = CartView.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<HttpResponse<dynamic>> updateCartItem(
-    int id,
-    Map<String, dynamic> item,
-  ) async {
+  Future<void> removeFromCart(int cartItemId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(item);
-    final _options = _setStreamType<HttpResponse<dynamic>>(
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
+      Options(method: 'DELETE', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'api/cart/item/${cartItemId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
+  Future<void> updateQuantity(int cartItemId, int quantity) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'quantity': quantity};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
       Options(method: 'PUT', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/cart/items/${id}',
+            'api/cart/item/${cartItemId}/quantity',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
-    final httpResponse = HttpResponse(_value, _result);
-    return httpResponse;
+    await _dio.fetch<void>(_options);
   }
 
   @override
-  Future<HttpResponse<dynamic>> clearCart() async {
+  Future<void> clearCart(int userId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<dynamic>>(
+    final _options = _setStreamType<void>(
       Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'api/cart',
+            'api/cart/user/${userId}/clear',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
-    final httpResponse = HttpResponse(_value, _result);
-    return httpResponse;
+    await _dio.fetch<void>(_options);
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

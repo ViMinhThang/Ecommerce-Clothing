@@ -124,13 +124,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['Vietnamese', 'English', 'Chinese']
-              .map((lang) => RadioListTile<String>(
+              .map((lang) => ListTile(
                     title: Text(lang),
-                    value: lang,
-                    groupValue: _language,
-                    onChanged: (value) {
+                    leading: Icon(
+                      _language == lang ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                      color: _language == lang ? Theme.of(context).primaryColor : Colors.grey,
+                    ),
+                    onTap: () {
                       setState(() {
-                        _language = value!;
+                        _language = lang;
                       });
                       Navigator.pop(context);
                     },
@@ -149,13 +151,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['VND', 'USD', 'EUR']
-              .map((curr) => RadioListTile<String>(
+              .map((curr) => ListTile(
                     title: Text(curr),
-                    value: curr,
-                    groupValue: _currency,
-                    onChanged: (value) {
+                    leading: Icon(
+                      _currency == curr ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                      color: _currency == curr ? Theme.of(context).primaryColor : Colors.grey,
+                    ),
+                    onTap: () {
                       setState(() {
-                        _currency = value!;
+                        _currency = curr;
                       });
                       Navigator.pop(context);
                     },

@@ -221,7 +221,6 @@ class CatalogDetailScreen extends StatelessWidget {
                           );
                         }
                       },
-                      },
                       onTap: () {
                         Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
@@ -231,7 +230,9 @@ class CatalogDetailScreen extends StatelessWidget {
                         );
                       },
                     );
-                  }, childCount: filterProvider.productViews.length),
+                  }, 
+                  childCount: filterProvider.productViews.length,
+                ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 8,

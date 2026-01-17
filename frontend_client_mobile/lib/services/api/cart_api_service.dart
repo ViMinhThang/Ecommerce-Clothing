@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:frontend_client_mobile/models/cart.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'cart_api_service.g.dart';
@@ -7,21 +8,21 @@ part 'cart_api_service.g.dart';
 abstract class CartApiService {
   factory CartApiService(Dio dio, {String? baseUrl}) = _CartApiService;
 
-  @GET("api/cart")
-  Future<HttpResponse> getCart();
+  @POST("api/cart/add")
+  Future<CartView> addToCart(@Body() AddToCartRequest request);
 
-  @POST("api/cart/items")
-  Future<HttpResponse> addToCart(@Body() Map<String, dynamic> item);
+  @GET("api/cart/user/{userId}")
+  Future<CartView> getCartByUserId(@Path("userId") int userId);
 
-  @DELETE("api/cart/items/{id}")
-  Future<HttpResponse> removeFromCart(@Path("id") int id);
+  @DELETE("api/cart/item/{cartItemId}")
+  Future<void> removeFromCart(@Path("cartItemId") int cartItemId);
 
-  @PUT("api/cart/items/{id}")
-  Future<HttpResponse> updateCartItem(
-    @Path("id") int id,
-    @Body() Map<String, dynamic> item,
+  @PUT("api/cart/item/{cartItemId}/quantity")
+  Future<void> updateQuantity(
+    @Path("cartItemId") int cartItemId,
+    @Query("quantity") int quantity,
   );
 
-  @DELETE("api/cart")
-  Future<HttpResponse> clearCart();
+  @DELETE("api/cart/user/{userId}/clear")
+  Future<void> clearCart(@Path("userId") int userId);
 }

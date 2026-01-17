@@ -120,6 +120,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 System.out.println("Created delivered order for john_doe with " + orderItems.size() + " items.");
         }
 
+        @SuppressWarnings("null")
         private void initVouchers() {
                 if (voucherRepository.count() > 0)
                         return;
