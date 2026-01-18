@@ -12,7 +12,7 @@ class BlankFormScreen extends StatefulWidget {
 class _BlankFormScreenState extends State<BlankFormScreen> {
   bool obscureText = true;
   bool isChecked = false;
-  
+
   // Controllers for form fields
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -45,6 +45,29 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
       return;
     }
 
+    // Validate email format
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(_emailController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate password length
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     debugPrint('Register attempt started: ${_usernameController.text.trim()}');
     setState(() => _loading = true);
     try {
@@ -55,23 +78,18 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
         fullName: _fullNameController.text.trim(),
       );
       debugPrint('Registration successful: $message');
-      
+
       if (!mounted) return;
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.green),
       );
-      
+
       // Navigate to login screen instead of home
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } catch (e) {
       debugPrint('Register error: $e');

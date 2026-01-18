@@ -12,22 +12,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class WishlistServiceImpl implements WishlistService {
+public class FavoriteServiceImpl implements FavoriteService {
 
     private final ProductFavoriteRepository productFavoriteRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
     @Override
-    public List<WishlistItemView> getWishlistByUserId(Long userId) {
+    public List<WishlistItemView> getFavoritesByUserId(Long userId) {
         List<ProductFavorite> favorites = productFavoriteRepository.findByUserIdAndStatus(userId, "active");
         return favorites.stream()
                 .map(this::mapToWishlistItemView)
@@ -35,7 +34,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    public WishlistItemView addToWishlist(Long userId, Long productId) {
+    public WishlistItemView addToFavorites(Long userId, Long productId) {
         // Check if already exists
         Optional<ProductFavorite> existingOpt = productFavoriteRepository
                 .findByUserIdAndProductId(userId, productId);
@@ -67,13 +66,15 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    public void removeFromWishlist(Long userId, Long productId) {
+    public void removeFromFavorites(Long userId, Long productId) {
         productFavoriteRepository.deleteByUserIdAndProductId(userId, productId);
     }
 
     @Override
-    public boolean isProductInWishlist(Long userId, Long productId) {
-        return productFavoriteRepository.existsByUserIdAndProductId(userId, productId);
+    public boolean isProductInFavorites(Long userId, Long productId) {
+        Optional<ProductFavorite> favorite = productFavoriteRepository
+                .findByUserIdAndProductId(userId, productId);
+        return favorite.isPresent() && "active".equals(favorite.get().getStatus());
     }
 
     private WishlistItemView mapToWishlistItemView(ProductFavorite favorite) {
@@ -105,7 +106,6 @@ public class WishlistServiceImpl implements WishlistService {
                 .basePrice(basePrice)
                 .salePrice(salePrice)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
-                .addedAt(favorite.getCreatedDate())
                 .build();
     }
 }

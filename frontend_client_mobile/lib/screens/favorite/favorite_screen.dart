@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_client_mobile/providers/favorite_provider.dart';
-import 'package:frontend_client_mobile/models/favorite_item.dart';
+import 'package:frontend_client_mobile/models/wishlist_item.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -65,7 +65,8 @@ class FavoriteScreen extends StatelessWidget {
               itemCount: favorite.items.length,
               separatorBuilder: (_, _) => const Divider(),
               itemBuilder: (ctx, i) {
-                final FavoriteItem item = favorite.items[i];
+                final WishlistItem item = favorite.items[i];
+                final price = item.salePrice ?? item.basePrice ?? 0;
                 return ListTile(
                   leading: item.imageUrl != null
                       ? Image.network(
@@ -85,14 +86,14 @@ class FavoriteScreen extends StatelessWidget {
                           child: Icon(Icons.shopping_bag),
                         ),
                   title: Text(
-                    item.productName,
+                    item.productName ?? 'N/A',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  subtitle: Text('₫${item.price.toStringAsFixed(0)}'),
+                  subtitle: Text('₫${price.toStringAsFixed(0)}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.favorite, color: Colors.red),
-                    onPressed: () => favorite.removeItem(item.productId),
+                    onPressed: () => favorite.removeFromFavorites(item.productId),
                   ),
                   onTap: () {
                     Navigator.push(

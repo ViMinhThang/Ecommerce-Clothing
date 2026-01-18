@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
           return MainScreen(initialTab: args ?? 0);
         },
         '/dashboard': (context) =>
-            const AuthGate(child: DashboardScreen(), requireAdmin: true),
+            const AuthGate(requireAdmin: true, child: DashboardScreen()),
         '/products': (context) => const ManageProductsScreen(),
         '/profile': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as int?;
