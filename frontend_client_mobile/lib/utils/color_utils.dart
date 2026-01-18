@@ -25,12 +25,11 @@ class ColorUtils {
   };
 
   static Color getColorByName(String name) {
-    // Case-insensitive lookup
     for (var key in _nameToColor.keys) {
       if (key.toLowerCase() == name.toLowerCase()) {
         return _nameToColor[key]!;
       }
     }
-    return Colors.grey; // Default fallback
+    return Colors.grey;
   }
 }

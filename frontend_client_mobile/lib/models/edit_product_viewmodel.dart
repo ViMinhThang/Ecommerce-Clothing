@@ -43,7 +43,6 @@ class EditProductViewModel extends ChangeNotifier {
   bool _isInitializing = false;
   bool _isSaving = false;
 
-  // Getters
   Category? get selectedCategory => _selectedCategory;
   List<XFile> get selectedImages => _selectedImages;
   List<int> get existingImageIds => _existingImageIds;
@@ -51,7 +50,6 @@ class EditProductViewModel extends ChangeNotifier {
   bool get isInitializing => _isInitializing;
   bool get isSaving => _isSaving;
 
-  // Get existing images from product that are still selected
   List<ProductImage> get existingImages {
     if (existingProduct == null) return [];
     return existingProduct!.images
@@ -59,7 +57,6 @@ class EditProductViewModel extends ChangeNotifier {
         .toList();
   }
 
-  // Mapping from providers
   List<Category> get categories => categoryProvider.categories;
   List<product_color.Color> get colors => colorProvider.colors;
   List<Size> get sizes => sizeProvider.sizes;

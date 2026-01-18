@@ -84,7 +84,6 @@ class CartProvider extends ChangeNotifier {
       return 'Network connection error. Please try again.';
     }
 
-    // Default error message
     return 'Failed to add item to cart. Please try again.';
   }
 
@@ -106,7 +105,6 @@ class CartProvider extends ChangeNotifier {
 
   Future<void> updateQuantity(int cartItemId, int quantity, int userId) async {
     try {
-      // Update local state immediately for smooth UI
       if (_cartView != null) {
         final itemIndex = _cartView!.items.indexWhere(
           (item) => item.id == cartItemId,
@@ -116,7 +114,6 @@ class CartProvider extends ChangeNotifier {
 
           final oldSubtotal = updatedItem.subtotal;
 
-          // Create updated item with new quantity
           final newItem = CartItemView(
             id: updatedItem.id,
             variantId: updatedItem.variantId,
@@ -129,10 +126,8 @@ class CartProvider extends ChangeNotifier {
             subtotal: updatedItem.price * quantity,
           );
 
-          // Update list
           _cartView!.items[itemIndex] = newItem;
 
-          // Recalculate total
           final priceDifference = (newItem.subtotal - oldSubtotal);
           _cartView = CartView(
             id: _cartView!.id,
@@ -145,18 +140,15 @@ class CartProvider extends ChangeNotifier {
         }
       }
 
-      // Call API in background without blocking UI
       await _cartApiService.updateQuantity(cartItemId, quantity);
     } catch (e) {
       _error = e.toString();
-      // Reload from server on error
       await fetchCart(userId);
     }
   }
 
   Future<void> removeItem(int cartItemId, int userId) async {
     try {
-      // Update local state immediately
       if (_cartView != null) {
         final itemIndex = _cartView!.items.indexWhere(
           (item) => item.id == cartItemId,
@@ -177,11 +169,9 @@ class CartProvider extends ChangeNotifier {
         }
       }
 
-      // Call API in background
       await _cartApiService.removeFromCart(cartItemId);
     } catch (e) {
       _error = e.toString();
-      // Reload from server on error
       await fetchCart(userId);
     }
   }
@@ -203,10 +193,8 @@ class CartProvider extends ChangeNotifier {
     return res;
   }
 
-  /// Remove only selected items from cart (for partial checkout)
   Future<void> removeSelectedItems(List<int> itemIds, int userId) async {
     try {
-      // Update local state immediately
       if (_cartView != null) {
         double removedTotal = 0;
         _cartView!.items.removeWhere((item) {
@@ -227,13 +215,11 @@ class CartProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      // Call API to remove each item
       for (final itemId in itemIds) {
         await _cartApiService.removeFromCart(itemId);
       }
     } catch (e) {
       _error = e.toString();
-      // Reload from server on error
       await fetchCart(userId);
     }
   }

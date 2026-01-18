@@ -199,25 +199,20 @@ public class ProductServiceImpl implements ProductService {
                 .filter(id -> id != null)
                 .toList();
 
-        // 1. Mark variants as INACTIVE if they are not in the request
-        // We don't remove them physically to avoid FK constraint violations with
-        // order_item
+
         for (ProductVariants variant : currentVariants) {
             if (!incomingIds.contains(variant.getId())) {
                 variant.setStatus("INACTIVE");
             }
         }
 
-        // 2. Update existing or add new
         for (ProductVariantRequest variantRequest : variantRequests) {
             if (variantRequest.getId() != null) {
-                // Find and update existing variant
                 currentVariants.stream()
                         .filter(v -> v.getId() == variantRequest.getId())
                         .findFirst()
                         .ifPresent(v -> updateVariantFromRequest(v, variantRequest));
             } else {
-                // Create and add new variant
                 ProductVariants variant = buildVariantFromRequest(product, variantRequest);
                 variant.setStatus("ACTIVE");
                 product.getVariants().add(variant);

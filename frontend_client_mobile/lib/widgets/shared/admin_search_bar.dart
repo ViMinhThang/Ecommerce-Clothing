@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../config/theme_config.dart';
 
-/// Reusable search bar widget for admin screens
-/// Provides consistent styling and behavior across all management screens
 class AdminSearchBar extends StatelessWidget {
   final String hintText;
   final ValueChanged<String>? onChanged;

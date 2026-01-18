@@ -23,7 +23,6 @@ class StatusCheckoutScreen extends StatelessWidget {
             children: [
               const Spacer(),
 
-              // Success Icon
               Container(
                 width: 120,
                 height: 120,
@@ -40,7 +39,6 @@ class StatusCheckoutScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Payment successful text
               const Text(
                 'Order successful!',
                 style: TextStyle(
@@ -54,7 +52,6 @@ class StatusCheckoutScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Order number
               Text(
                 'Order number: $orderNumber',
                 style: TextStyle(
@@ -80,7 +77,6 @@ class StatusCheckoutScreen extends StatelessWidget {
 
               const Spacer(),
 
-              // Continue button
               SizedBox(
                 width: double.infinity,
                 height: 56,

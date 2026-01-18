@@ -760,7 +760,6 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         width: 40,
         height: 40,
         errorBuilder: (context, error, stackTrace) {
-          // Fallback to text logo if image fails to load
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
