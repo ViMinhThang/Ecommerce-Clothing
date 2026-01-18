@@ -23,7 +23,6 @@ class ColorProvider with ChangeNotifier {
         name: _searchQuery.isEmpty ? null : _searchQuery,
       );
     } catch (e) {
-      // Handle error
       debugPrint('Error fetching colors: $e');
     }
     notifyListeners();
