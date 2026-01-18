@@ -47,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .fullName(user.getFullName())
                 .roles(user.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .toList())

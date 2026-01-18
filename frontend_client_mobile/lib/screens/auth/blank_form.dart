@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
+import 'package:frontend_client_mobile/services/auth_service.dart';
 
 class BlankFormScreen extends StatefulWidget {
   const BlankFormScreen({super.key});
@@ -11,6 +12,80 @@ class BlankFormScreen extends StatefulWidget {
 class _BlankFormScreenState extends State<BlankFormScreen> {
   bool obscureText = true;
   bool isChecked = false;
+  
+  // Controllers for form fields
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final AuthService _authService = AuthService();
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _doRegister() async {
+    // Validate inputs
+    if (_usernameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty ||
+        _fullNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    debugPrint('Register attempt started: ${_usernameController.text.trim()}');
+    setState(() => _loading = true);
+    try {
+      final message = await _authService.register(
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        fullName: _fullNameController.text.trim(),
+      );
+      debugPrint('Registration successful: $message');
+      
+      if (!mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Navigate to login screen instead of home
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Register error: $e');
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+      debugPrint('Register attempt finished');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +120,28 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
               ),
               const SizedBox(height: 32),
 
+              // Username TextField
+              _buildAuthTextField(
+                hintText: "Username",
+                icon: Icons.person_outline,
+                controller: _usernameController,
+              ),
+              const SizedBox(height: 16),
+
+              // Full Name TextField
+              _buildAuthTextField(
+                hintText: "Full Name",
+                icon: Icons.badge_outlined,
+                controller: _fullNameController,
+              ),
+              const SizedBox(height: 16),
+
               // Email TextField
               _buildAuthTextField(
                 hintText: "Email",
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                controller: _emailController,
               ),
               const SizedBox(height: 16),
 
@@ -58,6 +150,7 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
                 hintText: 'Password',
                 icon: Icons.lock_outline,
                 isPassword: true,
+                controller: _passwordController,
               ),
               const SizedBox(height: 16),
 
@@ -94,12 +187,7 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/home', // Replace '/login' with the actual route name (String)
-                    );
-                  },
+                  onPressed: _loading ? null : _doRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
@@ -107,14 +195,16 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    "Sign up",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Sign up",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -173,10 +263,12 @@ class _BlankFormScreenState extends State<BlankFormScreen> {
   Widget _buildAuthTextField({
     required String hintText,
     required IconData icon,
+    TextEditingController? controller,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
   }) {
     return TextField(
+      controller: controller,
       keyboardType: keyboardType,
       obscureText: isPassword ? obscureText : false,
       decoration: InputDecoration(

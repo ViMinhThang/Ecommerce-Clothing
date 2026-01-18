@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend_client_mobile/models/login_request.dart';
+import 'package:frontend_client_mobile/models/register_request.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/auth_api_service.dart';
 import 'package:frontend_client_mobile/services/token_storage.dart';
@@ -41,6 +42,44 @@ class AuthService {
           errorMessage = data['message'];
         } else if (data is Map && data.containsKey('error')) {
           errorMessage = data['error'];
+        } else {
+          errorMessage = 'Server error: ${e.response?.statusCode}';
+        }
+      } else {
+        errorMessage = 'Network error: ${e.message}';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
+    }
+  }
+
+  Future<String> register({
+    required String username,
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    try {
+      final request = RegisterRequest(
+        username: username,
+        email: email,
+        password: password,
+        fullName: fullName,
+      );
+
+      final response = await _apiService.register(request);
+      return response.data;
+    } on DioException catch (e) {
+      String errorMessage = 'Connection error';
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMessage = data['message'];
+        } else if (data is Map && data.containsKey('error')) {
+          errorMessage = data['error'];
+        } else if (data is String) {
+          errorMessage = data;
         } else {
           errorMessage = 'Server error: ${e.response?.statusCode}';
         }

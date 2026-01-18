@@ -18,6 +18,7 @@ import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen
 import 'package:frontend_client_mobile/screens/admin/vouchers/manage_vouchers_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
+import 'package:frontend_client_mobile/screens/auth/auth_gate.dart';
 import 'package:frontend_client_mobile/screens/auth/log_in.dart';
 import 'package:frontend_client_mobile/screens/auth/on_boarding_screen.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
@@ -71,9 +72,8 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments as int?;
           return MainScreen(initialTab: args ?? 0);
         },
-        // '/dashboard': (context) =>
-        //     const AuthGate(child: DashboardScreen(), requireAdmin: true),
-        '/dashboard': (context) => const DashboardScreen(),
+        '/dashboard': (context) =>
+            const AuthGate(child: DashboardScreen(), requireAdmin: true),
         '/products': (context) => const ManageProductsScreen(),
         '/profile': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as int?;
