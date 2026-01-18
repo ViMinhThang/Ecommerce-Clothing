@@ -9,7 +9,7 @@ class ProductImage {
   final int displayOrder;
   final bool isPrimary;
 
-  const ProductImage({
+  ProductImage({
     required this.id,
     required this.imageUrl,
     required this.displayOrder,
@@ -20,20 +20,6 @@ class ProductImage {
       _$ProductImageFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProductImageToJson(this);
-
-  ProductImage copyWith({
-    int? id,
-    String? imageUrl,
-    int? displayOrder,
-    bool? isPrimary,
-  }) {
-    return ProductImage(
-      id: id ?? this.id,
-      imageUrl: imageUrl ?? this.imageUrl,
-      displayOrder: displayOrder ?? this.displayOrder,
-      isPrimary: isPrimary ?? this.isPrimary,
-    );
-  }
 
   @override
   String toString() {

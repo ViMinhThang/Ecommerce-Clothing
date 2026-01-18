@@ -14,25 +14,11 @@ class Color {
     required this.colorName,
     required this.status,
     this.colorCode,
-  });
+  }); // Updated constructor
 
   factory Color.fromJson(Map<String, dynamic> json) => _$ColorFromJson(json);
 
   Map<String, dynamic> toJson() => _$ColorToJson(this);
-
-  Color copyWith({
-    int? id,
-    String? colorName,
-    String? status,
-    String? colorCode,
-  }) {
-    return Color(
-      id: id ?? this.id,
-      colorName: colorName ?? this.colorName,
-      status: status ?? this.status,
-      colorCode: colorCode ?? this.colorCode,
-    );
-  }
 
   @override
   bool operator ==(Object other) =>
@@ -42,7 +28,7 @@ class Color {
           id == other.id &&
           colorName == other.colorName &&
           status == other.status &&
-          colorCode == other.colorCode;
+          colorCode == other.colorCode; // Updated operator ==
 
   @override
   int get hashCode =>

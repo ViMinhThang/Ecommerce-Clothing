@@ -23,7 +23,7 @@ public class CartController {
 
     @PostMapping("/add")
     public ResponseEntity<CartView> addToCart(@RequestBody AddToCartRequest request) {
-        // ✅ SECURITY CHECK: Verify user is authenticated and authorized
+        //  SECURITY CHECK: Verify user is authenticated and authorized
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principal instanceof User) {
@@ -44,7 +44,7 @@ public class CartController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<CartView> getCartByUserId(@PathVariable Long userId) {
-        // ✅ SECURITY CHECK: Verify user can only view their own cart
+        //  SECURITY CHECK: Verify user can only view their own cart
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principal instanceof User) {
@@ -77,7 +77,7 @@ public class CartController {
 
     @DeleteMapping("/user/{userId}/clear")
     public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
-        // ✅ SECURITY CHECK: Verify user can only clear their own cart
+        //  SECURITY CHECK: Verify user can only clear their own cart
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principal instanceof User) {

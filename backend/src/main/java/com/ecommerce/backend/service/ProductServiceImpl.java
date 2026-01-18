@@ -44,21 +44,29 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable cannot be null");
+        }
         return productRepository.findAll(pageable);
     }
 
     @Override
     public Product getProductById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         return findProductOrThrow(id);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Product createProduct(ProductRequest request, List<MultipartFile> images) throws IOException {
         Product product = buildProductFromRequest(new Product(), request, images);
         return productRepository.save(product);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Product updateProduct(Long id, ProductRequest request, List<MultipartFile> images,
             List<Long> existingImageIds) throws IOException {
         Product existingProduct = findProductOrThrow(id);
@@ -75,10 +83,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         productRepository.deleteById(id);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Page<ProductView> getProductsByCategory(long categoryId, String status, Pageable pageable) {
         if (categoryId == 0) {
             return productRepository.findAll(pageable).map(this::mapToProductView);
@@ -89,6 +101,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductView> filterProduct(ProductFilter filter, Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable cannot be null");
+        }
         return productRepository.findAll(ProductSpecifications.build(filter), pageable)
                 .map(this::mapToProductView);
     }
@@ -132,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public List<ProductView> getByListId(List<Long> ids) {
         return productRepository.findAllById(ids).stream().map(this::mapToProductView).toList();
     }
@@ -139,6 +155,9 @@ public class ProductServiceImpl implements ProductService {
     // ==================== Private Helper Methods ====================
 
     private Product findProductOrThrow(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
         return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
@@ -184,6 +203,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Category findCategoryOrThrow(Long categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("Category ID cannot be null");
+        }
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
     }
@@ -260,6 +282,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Color findColorOrThrow(Long colorId) {
+        if (colorId == null) {
+            throw new IllegalArgumentException("Color ID cannot be null");
+        }
         return colorRepository.findById(colorId)
                 .orElseThrow(() -> new EntityNotFoundException("Color not found with id: " + colorId));
     }
@@ -272,6 +297,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Size findSizeOrThrow(Long sizeId) {
+        if (sizeId == null) {
+            throw new IllegalArgumentException("Size ID cannot be null");
+        }
         return sizeRepository.findById(sizeId)
                 .orElseThrow(() -> new EntityNotFoundException("Size not found with id: " + sizeId));
     }
@@ -282,8 +310,10 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Price price = buildPriceFromRequest(priceRequest);
-        Price savedPrice = priceRepository.save(price);
-        variant.setPrice(savedPrice);
+        if (price != null) {
+            Price savedPrice = priceRepository.save(price);
+            variant.setPrice(savedPrice);
+        }
     }
 
     private Price buildPriceFromRequest(PriceRequest request) {
@@ -361,10 +391,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String saveImage(MultipartFile image) throws IOException {
+        // Validate file extension for security
+        String originalFilename = image.getOriginalFilename();
+        if (originalFilename == null || !isAllowedImageExtension(originalFilename)) {
+            throw new IllegalArgumentException("Invalid image file format. Only JPG, JPEG, PNG, and GIF are allowed.");
+        }
+        
         String newFilename = generateUniqueFilename(image);
         Path filePath = Paths.get(UPLOAD_DIR + newFilename);
+        Files.createDirectories(filePath.getParent());
         Files.copy(image.getInputStream(), filePath);
         return IMAGE_BASE_URL + newFilename;
+    }
+
+    private boolean isAllowedImageExtension(String filename) {
+        if (filename == null) return false;
+        String extension = extractFileExtension(filename).toLowerCase();
+        return extension.equals(".jpg") || extension.equals(".jpeg") || 
+               extension.equals(".png") || extension.equals(".gif");
     }
 
     private String generateUniqueFilename(MultipartFile image) {
@@ -374,6 +418,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String extractFileExtension(String filename) {
-        return filename.substring(filename.lastIndexOf("."));
+        if (filename == null || !filename.contains(".")) {
+            return "";
+        }
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == -1 || lastDotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(lastDotIndex);
     }
 }

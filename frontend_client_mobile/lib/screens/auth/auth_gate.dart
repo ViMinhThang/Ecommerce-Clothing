@@ -22,34 +22,42 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _check() async {
+    // Add a delay to ensure the token has been saved after login
+    await Future.delayed(const Duration(milliseconds: 300));
+    
     final token = await _storage.readAccessToken();
-    if (token == null) {
-      setState(() => _authorized = false);
+    debugPrint('AuthGate: Token check - ${token != null ? "Found" : "Not found"}');
+    
+    if (token == null || token.isEmpty) {
+      debugPrint('AuthGate: No token, unauthorized');
+      if (mounted) setState(() => _authorized = false);
       return;
     }
 
     if (!widget.requireAdmin) {
-      setState(() => _authorized = true);
+      debugPrint('AuthGate: Token found, no admin required, authorized');
+      if (mounted) setState(() => _authorized = true);
       return;
     }
 
-    // Nếu yêu cầu admin, cố gắng decode payload
+    // If admin is required, check roles from storage (more reliable than decoding token)
     try {
-      final parts = token.split('.');
-      if (parts.length >= 2) {
-        final payload = base64.normalize(parts[1]);
-        final decoded = utf8.decode(base64.decode(payload));
-        final Map<String, dynamic> obj = jsonDecode(decoded);
-        final roles = obj['roles'] ?? obj['role'] ?? obj['authorities'];
-        // đơn giản kiểm tra chuỗi 'ADMIN' hoặc 'ROLE_ADMIN'
-        final isAdmin =
-            roles != null && roles.toString().toUpperCase().contains('ADMIN');
-        setState(() => _authorized = isAdmin);
+      final roles = await _storage.readRoles();
+      debugPrint('AuthGate: Checking roles from storage - $roles');
+      
+      if (roles != null && roles.isNotEmpty) {
+        final isAdmin = roles.any((role) => 
+          role.toUpperCase().contains('ADMIN')
+        );
+        debugPrint('AuthGate: Admin check - $isAdmin (roles: $roles)');
+        if (mounted) setState(() => _authorized = isAdmin);
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AuthGate: Error checking roles - $e');
+    }
 
-    setState(() => _authorized = false);
+    if (mounted) setState(() => _authorized = false);
   }
 
   @override
@@ -58,14 +66,17 @@ class _AuthGateState extends State<AuthGate> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (_authorized == false) {
-      // chuyển về màn hình login
-      final navigator = Navigator.of(context);
-      Future.microtask(() {
-        if (mounted) {
-          navigator.pushReplacementNamed('/login');
+      // Navigate to login screen
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && context.mounted) {
+          debugPrint('AuthGate: Redirecting to login - unauthorized');
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false, // Xóa toàn bộ navigation stack
+          );
         }
       });
-      return const SizedBox.shrink();
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return widget.child;
   }

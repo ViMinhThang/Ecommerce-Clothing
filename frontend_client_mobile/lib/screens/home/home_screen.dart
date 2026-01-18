@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_client_mobile/providers/category_provider.dart';
 import 'package:frontend_client_mobile/screens/product/product.dart';
-import 'package:frontend_client_mobile/widgets/catalog/category_chip.dart';
+import 'package:frontend_client_mobile/widgets/category_chip.dart';
 import 'package:frontend_client_mobile/screens/search/search_screen.dart';
 import 'package:frontend_client_mobile/screens/home/main_screen.dart';
 import 'package:frontend_client_mobile/services/token_storage.dart';

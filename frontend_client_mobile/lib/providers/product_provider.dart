@@ -60,7 +60,9 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> addProduct(Product product, {List<XFile>? images}) async {
     try {
-      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
+      final multipartImages = await FileUtils.convertXFilesToMultipart(
+        images ?? [],
+      );
       final newProduct = await _productService.createProduct(
         product,
         images: multipartImages,
@@ -79,7 +81,9 @@ class ProductProvider with ChangeNotifier {
     List<int>? existingImageIds,
   }) async {
     try {
-      final multipartImages = await FileUtils.convertXFilesToMultipart(images);
+      final multipartImages = await FileUtils.convertXFilesToMultipart(
+        images ?? [],
+      );
       final updatedProduct = await _productService.updateProduct(
         product.id,
         product,

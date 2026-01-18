@@ -230,7 +230,9 @@ class CatalogDetailScreen extends StatelessWidget {
                         );
                       },
                     );
-                  }, childCount: filterProvider.productViews.length),
+                  }, 
+                  childCount: filterProvider.productViews.length,
+                ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 8,

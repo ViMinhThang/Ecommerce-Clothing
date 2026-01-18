@@ -13,45 +13,31 @@ class Product {
   final int id;
   final String name;
   final String description;
-  @JsonKey(name: 'images', defaultValue: [])
-  final List<ProductImage> images;
+  @JsonKey(includeIfNull: false)
+  final String? imageUrl;
   final Category category;
   final List<ProductVariant> variants;
+  @JsonKey(includeIfNull: false)
+  final List<ProductImage>? images;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
-  List<File>? selectedImages;
+  File? image;
 
   Product({
     required this.id,
     required this.name,
     required this.description,
-    this.images = const [],
+    this.imageUrl,
     required this.category,
     required this.variants,
-    this.selectedImages,
+    this.images,
+    this.image,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) =>
       _$ProductFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProductToJson(this);
-
-  /// Get the primary image URL for this product
-  String? get primaryImageUrl {
-    if (images.isNotEmpty) {
-      final primary = images.where((img) => img.isPrimary).toList();
-      if (primary.isNotEmpty) {
-        return primary.first.imageUrl;
-      }
-      return images.first.imageUrl;
-    }
-    return null;
-  }
-
-  /// Get all image URLs in display order
-  List<String> get imageUrls {
-    return images.map((img) => img.imageUrl).toList();
-  }
 
   String get priceDisplayText {
     if (variants.isEmpty) {
@@ -64,28 +50,19 @@ class Product {
     }
   }
 
-  Product copyWith({
-    int? id,
-    String? name,
-    String? description,
-    List<ProductImage>? images,
-    Category? category,
-    List<ProductVariant>? variants,
-    List<File>? selectedImages,
-  }) {
-    return Product(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      images: images ?? this.images,
-      category: category ?? this.category,
-      variants: variants ?? this.variants,
-      selectedImages: selectedImages ?? this.selectedImages,
-    );
+  String? get primaryImageUrl {
+    return imageUrl;
+  }
+
+  List<String> get imageUrls {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return [imageUrl!];
+    }
+    return [];
   }
 
   @override
   String toString() {
-    return 'Product{id: $id, name: $name, description: $description, images: ${images.length}, category: $category, variants: $variants}';
+    return 'Product{id: $id, name: $name, description: $description, imageUrl: ${imageUrl ?? ''}, category: $category, variants: $variants}';
   }
 }

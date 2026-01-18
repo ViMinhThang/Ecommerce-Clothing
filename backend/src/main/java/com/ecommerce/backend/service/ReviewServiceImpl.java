@@ -23,6 +23,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public ReviewView createReview(Long userId, CreateReviewRequest request) {
         if (reviewRepository.existsByOrderItemId(request.getOrderItemId())) {
             throw new IllegalStateException("This item has already been reviewed");
@@ -36,8 +37,8 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalStateException("You can only review items from your own orders");
         }
 
-        if (!"DELIVERED".equalsIgnoreCase(order.getStatus())) {
-            throw new IllegalStateException("You can only review items from delivered orders");
+        if (!"completed".equalsIgnoreCase(order.getStatus())) {
+            throw new IllegalStateException("You can only review items from completed orders");
         }
 
         User user = userRepository.findById(userId)
@@ -76,7 +77,7 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
 
-        return "DELIVERED".equalsIgnoreCase(order.getStatus());
+        return "completed".equalsIgnoreCase(order.getStatus());
     }
 
     @Override

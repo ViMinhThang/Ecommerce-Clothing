@@ -9,11 +9,7 @@ abstract class CategoryApiService {
   factory CategoryApiService(Dio dio, {String? baseUrl}) = _CategoryApiService;
 
   @GET("api/categories")
-  Future<List<Category>> getCategories(
-    @Query("name") String? name,
-    @Query("page") int page,
-    @Query("size") int size,
-  );
+  Future<List<Category>> getCategories(@Query("name") String? name);
 
   @POST("api/categories")
   Future<Category> createCategory(@Body() Category category);

@@ -1,0 +1,111 @@
+package com.ecommerce.backend.service;
+
+import com.ecommerce.backend.dto.view.WishlistItemView;
+import com.ecommerce.backend.model.Product;
+import com.ecommerce.backend.model.ProductFavorite;
+import com.ecommerce.backend.model.User;
+import com.ecommerce.backend.repository.ProductFavoriteRepository;
+import com.ecommerce.backend.repository.ProductRepository;
+import com.ecommerce.backend.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class FavoriteServiceImpl implements FavoriteService {
+
+    private final ProductFavoriteRepository productFavoriteRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+
+    @Override
+    public List<WishlistItemView> getFavoritesByUserId(Long userId) {
+        List<ProductFavorite> favorites = productFavoriteRepository.findByUserIdAndStatus(userId, "active");
+        return favorites.stream()
+                .map(this::mapToWishlistItemView)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public WishlistItemView addToFavorites(Long userId, Long productId) {
+        // Check if already exists
+        Optional<ProductFavorite> existingOpt = productFavoriteRepository
+                .findByUserIdAndProductId(userId, productId);
+        
+        if (existingOpt.isPresent()) {
+            ProductFavorite existing = existingOpt.get();
+            // Reactivate if it was inactive
+            if (!"active".equals(existing.getStatus())) {
+                existing.setStatus("active");
+                productFavoriteRepository.save(existing);
+            }
+            return mapToWishlistItemView(existing);
+        }
+
+        @SuppressWarnings("null")
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        @SuppressWarnings("null")
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+
+        ProductFavorite favorite = new ProductFavorite();
+        favorite.setUser(user);
+        favorite.setProduct(product);
+        favorite.setStatus("active");
+
+        ProductFavorite saved = productFavoriteRepository.save(favorite);
+        return mapToWishlistItemView(saved);
+    }
+
+    @Override
+    public void removeFromFavorites(Long userId, Long productId) {
+        productFavoriteRepository.deleteByUserIdAndProductId(userId, productId);
+    }
+
+    @Override
+    public boolean isProductInFavorites(Long userId, Long productId) {
+        Optional<ProductFavorite> favorite = productFavoriteRepository
+                .findByUserIdAndProductId(userId, productId);
+        return favorite.isPresent() && "active".equals(favorite.get().getStatus());
+    }
+
+    private WishlistItemView mapToWishlistItemView(ProductFavorite favorite) {
+        Product product = favorite.getProduct();
+
+        // Get first image URL if available
+        String imageUrl = null;
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            imageUrl = product.getImages().get(0).getImageUrl();
+        }
+
+        // Get price from first variant if available
+        Double basePrice = null;
+        Double salePrice = null;
+        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            var firstVariant = product.getVariants().get(0);
+            if (firstVariant.getPrice() != null) {
+                basePrice = firstVariant.getPrice().getBasePrice();
+                salePrice = firstVariant.getPrice().getSalePrice();
+            }
+        }
+
+        return WishlistItemView.builder()
+                .id(favorite.getId())
+                .productId(product.getId())
+                .productName(product.getName())
+                .productDescription(product.getDescription())
+                .imageUrl(imageUrl)
+                .basePrice(basePrice)
+                .salePrice(salePrice)
+                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .build();
+    }
+}

@@ -5,7 +5,7 @@ import 'package:frontend_client_mobile/services/api/wishlist_api_service.dart';
 
 class WishlistProvider extends ChangeNotifier {
   final WishlistApiService _wishlistApiService;
-  
+
   List<WishlistItem> _wishlistItems = [];
   bool _isLoading = false;
   String? _error;
@@ -39,7 +39,7 @@ class WishlistProvider extends ChangeNotifier {
         'userId': userId,
         'productId': productId,
       });
-      
+
       // Add to local list if not already present
       if (!_wishlistItems.any((i) => i.productId == productId)) {
         _wishlistItems.add(item);
@@ -53,7 +53,10 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> removeFromWishlist({required int productId, int userId = 1}) async {
+  Future<bool> removeFromWishlist({
+    required int productId,
+    int userId = 1,
+  }) async {
     try {
       await _wishlistApiService.removeFromWishlist(userId, productId);
       _wishlistItems.removeWhere((item) => item.productId == productId);
@@ -66,7 +69,10 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> isProductInWishlist({required int productId, int userId = 1}) async {
+  Future<bool> isProductInWishlist({
+    required int productId,
+    int userId = 1,
+  }) async {
     try {
       final result = await _wishlistApiService.isInWishlist(userId, productId);
       return result['isInWishlist'] ?? false;

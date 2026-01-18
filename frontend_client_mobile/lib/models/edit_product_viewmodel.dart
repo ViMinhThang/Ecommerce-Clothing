@@ -51,8 +51,8 @@ class EditProductViewModel extends ChangeNotifier {
   bool get isSaving => _isSaving;
 
   List<ProductImage> get existingImages {
-    if (existingProduct == null) return [];
-    return existingProduct!.images
+    if (existingProduct == null || existingProduct!.images == null) return [];
+    return existingProduct!.images!
         .where((img) => _existingImageIds.contains(img.id))
         .toList();
   }
@@ -74,7 +74,8 @@ class EditProductViewModel extends ChangeNotifier {
     selectedCategory = existingProduct?.category;
     if (existingProduct != null) {
       _variants = existingProduct!.variants.map((v) => v.copyWith()).toList();
-      _existingImageIds = existingProduct!.images.map((img) => img.id).toList();
+      _existingImageIds =
+          existingProduct!.images?.map((img) => img.id).toList() ?? [];
       debugPrint('existing image ids: $_existingImageIds');
     }
     await loadInitialData();
@@ -241,7 +242,7 @@ class EditProductViewModel extends ChangeNotifier {
 
     final hasImagesChanged =
         _selectedImages.isNotEmpty ||
-        _existingImageIds.length != existingProduct!.images.length;
+        _existingImageIds.length != (existingProduct!.images?.length ?? 0);
 
     final hasVariantsChanged = !const ListEquality().equals(
       _variants,

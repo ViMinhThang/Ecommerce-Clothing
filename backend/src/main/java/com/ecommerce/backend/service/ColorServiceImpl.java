@@ -24,6 +24,9 @@ public class ColorServiceImpl implements ColorService {
 
     @Override
     public Color getColorById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Color ID cannot be null");
+        }
         return colorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Color not found with id: " + id));
     }
@@ -38,6 +41,9 @@ public class ColorServiceImpl implements ColorService {
 
     @Override
     public Color updateColor(Long id, ColorDTO colorDTO) {
+        if (id == null) {
+            throw new IllegalArgumentException("Color ID cannot be null");
+        }
         Color existingColor = colorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Color not found with id: " + id));
         existingColor.setColorName(colorDTO.getColorName());
@@ -47,6 +53,9 @@ public class ColorServiceImpl implements ColorService {
 
     @Override
     public void deleteColor(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Color ID cannot be null");
+        }
         colorRepository.deleteById(id);
     }
 

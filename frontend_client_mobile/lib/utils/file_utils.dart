@@ -23,6 +23,22 @@ class FileUtils {
     }
   }
 
+  /// Convert multiple XFiles to MultipartFiles
+  static Future<List<MultipartFile>> convertXFilesToMultipart(
+    List<XFile> files,
+  ) async {
+    final List<MultipartFile> multipartFiles = [];
+
+    for (final file in files) {
+      final multipart = await convertXFileToMultipart(file);
+      if (multipart != null) {
+        multipartFiles.add(multipart);
+      }
+    }
+
+    return multipartFiles;
+  }
+
   static String fixImgUrl(String url) {
     if (url.isEmpty) return "";
     // Nếu chạy Web và thấy IP của máy ảo -> Đổi thành localhost
@@ -30,21 +46,5 @@ class FileUtils {
       return url.replaceAll('10.0.2.2', 'localhost');
     }
     return url;
-  }
-
-  /// Convert a list of XFiles to a list of MultipartFiles
-  static Future<List<MultipartFile>> convertXFilesToMultipart(
-    List<XFile>? files,
-  ) async {
-    if (files == null || files.isEmpty) return [];
-
-    final List<MultipartFile> result = [];
-    for (final file in files) {
-      final multipart = await convertXFileToMultipart(file);
-      if (multipart != null) {
-        result.add(multipart);
-      }
-    }
-    return result;
   }
 }

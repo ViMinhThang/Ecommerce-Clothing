@@ -44,20 +44,6 @@ class ProductVariant {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ProductVariant &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          price == other.price &&
-          size == other.size &&
-          color == other.color;
-
-  @override
-  int get hashCode =>
-      id.hashCode ^ price.hashCode ^ size.hashCode ^ color.hashCode;
-
-  @override
   String toString() {
     return 'ProductVariant{id: $id, price: $price, size: $size, color: $color}';
   }

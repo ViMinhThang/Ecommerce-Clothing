@@ -32,18 +32,6 @@ class Price {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Price &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          basePrice == other.basePrice &&
-          salePrice == other.salePrice;
-
-  @override
-  int get hashCode => id.hashCode ^ basePrice.hashCode ^ salePrice.hashCode;
-
-  @override
   String toString() {
     return 'Price{id: $id, basePrice: $basePrice, salePrice: $salePrice}';
   }

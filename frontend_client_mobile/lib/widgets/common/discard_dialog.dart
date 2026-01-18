@@ -3,20 +3,20 @@ import 'package:flutter/material.dart';
 Future<bool?> showDiscardDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    barrierDismissible: true,
     builder: (context) => AlertDialog(
-      title: const Text('Discard changes?'),
+      title: const Text('Discard Changes?'),
       content: const Text(
-        'You have unsaved changes. Are you sure you want to leave?',
+        'You have unsaved changes. Do you want to discard them?',
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Stay'),
+          child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Leave'),
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('Discard'),
         ),
       ],
     ),

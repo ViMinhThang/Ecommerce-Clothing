@@ -1,258 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import '../../../config/theme_config.dart';
+import '../../../layouts/admin_layout.dart';
 import '../../../models/order_view.dart';
 import '../../../providers/order_provider.dart';
-import '../../../widgets/shared/admin_search_bar.dart';
-import '../../../widgets/shared/confirmation_dialog.dart';
-import '../../../widgets/shared/empty_state_widget.dart';
-import '../base/base_manage_screen.dart';
+import '../../../utils/dialogs.dart';
 import 'edit_order_screen.dart';
 
-class ManageOrdersScreen extends BaseManageScreen<OrderView> {
+class ManageOrdersScreen extends StatefulWidget {
   const ManageOrdersScreen({super.key});
 
   @override
   State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageOrdersScreenState
-    extends BaseManageScreenState<OrderView, ManageOrdersScreen>
+class _ManageOrdersScreenState extends State<ManageOrdersScreen>
     with SingleTickerProviderStateMixin {
-  final ScrollController _scrollController = ScrollController();
-  String _selectedSort = _SortOption.defaults.first.id;
-  String _selectedStatus = _StatusOption.defaults.first.id;
-  late AnimationController _animationController;
-
-  OrderProvider get _orderProvider =>
-      Provider.of<OrderProvider>(context, listen: false);
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+  String selectedSort = _SortOption.defaults.first.id;
+  String selectedStatus = _StatusOption.defaults.first.id;
+  late AnimationController animationController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _scrollController.addListener(_handleInfiniteScroll);
+    scrollController.addListener(_handleInfiniteScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<OrderProvider>().initialize();
+    });
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _scrollController
+    animationController.dispose();
+    scrollController
       ..removeListener(_handleInfiniteScroll)
       ..dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
-  String getScreenTitle() => 'Order Management';
-
-  @override
-  int getSelectedIndex() => 5;
-
-  @override
-  String getEntityName() => 'order';
-
-  @override
-  IconData getEmptyStateIcon() => Icons.shopping_basket_outlined;
-
-  @override
-  String getSearchHint() => 'Search Order...';
-
-  @override
-  void fetchData() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _orderProvider.initialize().then((_) {
-        _animationController.forward(from: 0);
-      });
-    });
-  }
-
-  @override
-  void refreshData() {
-    _orderProvider.refreshAll().then((_) {
-      _animationController.forward(from: 0);
-    });
-  }
-
-  @override
-  void onSearchChanged(String query) {
-    setState(() {});
-  }
-
-  @override
-  List<OrderView> getItems() {
-    final orders = context.watch<OrderProvider>().orders;
-    final query = searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return orders;
-    return orders
-        .where(
-          (order) =>
-              order.id.toString().contains(query) ||
-              order.buyerEmail.toLowerCase().contains(query) ||
-              order.status.toLowerCase().contains(query),
-        )
-        .toList();
-  }
-
-  @override
-  bool isLoading() {
-    return context.watch<OrderProvider>().isLoading;
-  }
-
-  @override
-  Future<void> navigateToAdd() async {
-    final result = await Navigator.push<OrderView?>(
-      context,
-      MaterialPageRoute(builder: (_) => const EditOrderScreen()),
-    );
-    if (result != null) {
-      await _orderProvider.createOrder(result);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã tạo đơn hàng thành công')),
-        );
-      }
-    }
-  }
-
-  @override
-  Future<void> navigateToEdit(OrderView item) async {
-    final result = await Navigator.push<OrderView?>(
-      context,
-      MaterialPageRoute(builder: (_) => EditOrderScreen(entity: item)),
-    );
-    if (result != null) {
-      await _orderProvider.updateOrder(result);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đã cập nhật đơn hàng')));
-      }
-    }
-  }
-
-  @override
-  Future<void> handleDelete(OrderView item) async {
-    final confirmed = await showConfirmationDialog(
-      context,
-      title: 'CANCEL ORDER',
-      message: 'Are you sure you want to cancel order #${item.id}?',
-    );
-    if (confirmed && mounted) {
-      await _orderProvider.deleteOrder(item.id);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Cancelled order #${item.id}')));
-      }
-    }
-  }
-
-  @override
-  List<Widget> buildHeaderWidgets() {
-    return [_buildStatistics()];
-  }
-
-  @override
-  Widget buildSearchSection() {
-    return Column(
-      children: [
-        AdminSearchBar(
-          hintText: getSearchHint(),
-          controller: searchController,
-          onChanged: onSearchChanged,
+  Widget build(BuildContext context) {
+    return AdminLayout(
+      title: 'Order Management',
+      selectedIndex: 2,
+      actions: [
+        IconButton(
+          onPressed: () => context.read<OrderProvider>().refreshAll(),
+          icon: const Icon(Icons.refresh),
         ),
-        const SizedBox(height: 16),
+      ],
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.black,
+        onPressed: () => _handleCreateOrder(context.read<OrderProvider>()),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        child: Consumer<OrderProvider>(
+          builder: (context, provider, _) {
+            final visibleOrders = _filterOrders(provider.orders);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildControls(provider),
+                const SizedBox(height: 16),
+                _buildStatistics(provider),
+                const SizedBox(height: 16),
+                Expanded(child: _buildListView(provider, visibleOrders)),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControls(OrderProvider provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSearchBar(),
+        const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: _buildAnimatedMenu(
-                index: 0,
-                child: _buildStatusDropdown(),
-              ),
-            ),
+            Expanded(child: _buildStatusDropdown(provider)),
             const SizedBox(width: 12),
-            Expanded(
-              child: _buildAnimatedMenu(index: 1, child: _buildSortDropdown()),
-            ),
+            Expanded(child: _buildSortDropdown(provider)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildAnimatedMenu({required int index, required Widget child}) {
-    final animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Interval(
-        (0.1 + (index * 0.1)).clamp(0, 1.0),
-        (0.5 + (index * 0.1)).clamp(0, 1.0),
-        curve: Curves.easeOutCubic,
-      ),
-    );
-    return FadeTransition(
-      opacity: animation,
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.1),
-          end: Offset.zero,
-        ).animate(animation),
-        child: child,
-      ),
-    );
-  }
-
-  @override
-  Widget buildList() {
-    final items = getItems();
-    if (items.isEmpty) {
-      return SliverFillRemaining(
-        child: EmptyStateWidget(
-          icon: getEmptyStateIcon(),
-          message: 'No orders matched your criteria',
-        ),
-      );
-    }
-
-    return SliverList.builder(
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final animation = CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            (0.1 + (index * 0.05)).clamp(0, 1.0),
-            (0.6 + (index * 0.05)).clamp(0, 1.0),
-            curve: Curves.easeOutQuart,
-          ),
-        );
-
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.05, 0),
-              end: Offset.zero,
-            ).animate(animation),
-            child: _OrderTile(
-              order: item,
-              onEdit: () => navigateToEdit(item),
-              onDelete: () => handleDelete(item),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatistics() {
-    final provider = context.watch<OrderProvider>();
+  Widget _buildStatistics(OrderProvider provider) {
     final stats = provider.statistics;
     final isLoading = provider.isLoadingStatistics;
 
@@ -313,28 +162,34 @@ class _ManageOrdersScreenState
 
     final cards = [
       _StatCardData(
-        title: 'DAILY',
-        periodLabel: 'TODAY',
-        orders: stats.totalOrderByDay,
-        revenue: stats.totalPriceByDay,
-        icon: Icons.flash_on_rounded,
-        accent: const Color(0xFF6366F1),
+        Icons.shopping_bag_outlined,
+        'Today Orders',
+        stats.totalOrderByDay.toString(),
+        const Color(0xFF6366F1),
       ),
       _StatCardData(
-        title: 'WEEKLY',
-        periodLabel: '7D',
-        orders: stats.totalOrderByWeek,
-        revenue: stats.totalPriceByWeek,
-        icon: Icons.auto_graph_rounded,
-        accent: const Color(0xFF10B981),
+        Icons.attach_money_outlined,
+        'Today Revenue',
+        '\$${stats.totalPriceByDay.toStringAsFixed(0)}',
+        const Color(0xFF10B981),
       ),
       _StatCardData(
-        title: 'MONTHLY',
-        periodLabel: '30D',
-        orders: stats.totalOrderByMonth,
-        revenue: stats.totalPriceByMonth,
-        icon: Icons.account_balance_wallet_rounded,
-        accent: const Color(0xFFF59E0B),
+        Icons.calendar_today_outlined,
+        'Week Orders',
+        stats.totalOrderByWeek.toString(),
+        const Color(0xFF3B82F6),
+      ),
+      _StatCardData(
+        Icons.trending_up_outlined,
+        'Week Revenue',
+        '\$${stats.totalPriceByWeek.toStringAsFixed(0)}',
+        const Color(0xFFF59E0B),
+      ),
+      _StatCardData(
+        Icons.calendar_month_outlined,
+        'Month Orders',
+        stats.totalOrderByMonth.toString(),
+        const Color(0xFF8B5CF6),
       ),
     ];
 
@@ -383,7 +238,7 @@ class _ManageOrdersScreenState
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final animation = CurvedAnimation(
-                parent: _animationController,
+                parent: animationController,
                 curve: Interval(
                   (index * 0.1).clamp(0, 0.4),
                   (0.4 + (index * 0.1)).clamp(0, 1.0),
@@ -401,76 +256,94 @@ class _ManageOrdersScreenState
     );
   }
 
-  Widget _buildStatusDropdown() {
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        borderRadius: AppTheme.borderRadiusSM,
+        boxShadow: AppTheme.shadowSM,
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: AppTheme.bodyMedium,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search, color: AppTheme.mediumGray),
+          hintText: 'Search Order...',
+          hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.lightGray),
+          border: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: AppTheme.borderThin.top,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppTheme.borderRadiusSM,
+            borderSide: const BorderSide(
+              color: AppTheme.mediumGray,
+              width: 1.5,
+            ),
+          ),
+          filled: true,
+          fillColor: AppTheme.primaryWhite,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onChanged: (_) => setState(() {}),
+      ),
+    );
+  }
+
+  Widget _buildStatusDropdown(OrderProvider provider) {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedStatus,
+      initialValue: selectedStatus,
       decoration: _dropdownDecoration('STATUS'),
       icon: const Icon(Icons.tune_rounded, size: 18, color: Colors.black45),
       items: _StatusOption.defaults
           .map(
             (status) => DropdownMenuItem(
               value: status.id,
-              child: Text(
-                status.label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
+              child: Text(status.label, style: const TextStyle(fontSize: 13)),
             ),
           )
           .toList(),
       onChanged: (value) {
         if (value == null) return;
-        setState(() => _selectedStatus = value);
+        setState(() => selectedStatus = value);
         final selected = _StatusOption.defaults.firstWhere(
           (element) => element.id == value,
         );
-        _orderProvider.updateFilters(
-          status: selected.status,
-          applyStatus: true,
-        );
+        provider.updateFilters(status: selected.status, applyStatus: true);
       },
     );
   }
 
-  Widget _buildSortDropdown() {
+  Widget _buildSortDropdown(OrderProvider provider) {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedSort,
+      initialValue: selectedSort,
       decoration: _dropdownDecoration('SORT'),
       icon: const Icon(Icons.sort_rounded, size: 18, color: Colors.black45),
       items: _SortOption.defaults
           .map(
             (option) => DropdownMenuItem(
               value: option.id,
-              child: Text(
-                option.label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
+              child: Text(option.label, style: const TextStyle(fontSize: 13)),
             ),
           )
           .toList(),
       onChanged: (value) {
         if (value == null) return;
-        setState(() => _selectedSort = value);
+        setState(() => selectedSort = value);
         final selected = _SortOption.defaults.firstWhere(
           (element) => element.id == value,
         );
-        _orderProvider.updateFilters(
+        provider.updateFilters(
           sortBy: selected.sortBy,
           direction: selected.direction,
         );
       },
     );
   }
-
-  @override
-  ScrollController? getScrollController() => _scrollController;
 
   InputDecoration _dropdownDecoration(String label) => InputDecoration(
     labelText: label,
@@ -497,10 +370,150 @@ class _ManageOrdersScreenState
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
   );
 
+  Widget _buildListView(OrderProvider provider, List<OrderView> data) {
+    if (provider.isLoading && provider.orders.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (data.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: provider.refreshAll,
+        child: ListView(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 80),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    color: AppTheme.mediumGray,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Không có đơn hàng nào',
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.mediumGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: provider.refreshAll,
+      child: ListView.builder(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 80),
+        itemCount: data.length,
+        itemBuilder: (context, index) => _OrderTile(
+          order: data[index],
+          onEdit: () => _handleEditOrder(provider, data[index]),
+          onDelete: () => _handleDeleteOrder(provider, data[index]),
+        ),
+      ),
+    );
+  }
+
+  List<OrderView> _filterOrders(List<OrderView> source) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return source;
+    return source
+        .where(
+          (order) =>
+              order.id.toString().contains(query) ||
+              order.buyerEmail.toLowerCase().contains(query) ||
+              order.status.toLowerCase().contains(query),
+        )
+        .toList();
+  }
+
+  Future<void> _handleCreateOrder(OrderProvider provider) async {
+    final result = await Navigator.push<OrderView?>(
+      context,
+      MaterialPageRoute(builder: (_) => const EditOrderScreen()),
+    );
+    if (result == null) return;
+
+    try {
+      await provider.createOrder(result);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã tạo đơn hàng thành công')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể tạo đơn hàng: $error')));
+    }
+  }
+
+  Future<void> _handleEditOrder(OrderProvider provider, OrderView order) async {
+    final payload = await Navigator.push<Map<String, dynamic>?>(
+      context,
+      MaterialPageRoute(builder: (_) => EditOrderScreen(entity: order)),
+    );
+    if (payload == null) return;
+
+    try {
+      await provider.updateOrder(_mapFormToOrder(payload));
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã cập nhật đơn hàng')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể cập nhật đơn hàng: $error')),
+      );
+    }
+  }
+
+  Future<void> _handleDeleteOrder(
+    OrderProvider provider,
+    OrderView order,
+  ) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      'Delete Confirm',
+      'Bạn có chắc muốn xóa đơn #${order.id}?',
+    );
+    if (!confirmed) return;
+
+    try {
+      await provider.deleteOrder(order.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Đã xóa đơn hàng #${order.id}')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể xóa đơn hàng: $error')));
+    }
+  }
+
+  OrderView _mapFormToOrder(Map<String, dynamic> data) => OrderView(
+    id: (data['id'] as int?) ?? 0,
+    buyerEmail: (data['customer'] as String?)?.trim() ?? '',
+    totalPrice: (data['total'] as num?)?.toDouble() ?? 0,
+    createdDate: (data['date'] as String?) ?? '',
+    status: (data['status'] as String?) ?? 'pending',
+  );
+
   void _handleInfiniteScroll() {
-    if (!_scrollController.hasClients) return;
+    if (!scrollController.hasClients) return;
     final provider = context.read<OrderProvider>();
-    final trigger = _scrollController.position.extentAfter < 200;
+    final trigger = scrollController.position.extentAfter < 200;
     if (trigger && provider.hasMore && !provider.isLoading) {
       provider.fetchNextPage();
     }
@@ -517,9 +530,8 @@ class _ManageOrdersScreenState
     final digits = value.toInt().toString();
     final buffer = StringBuffer();
     for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
       buffer.write(digits[i]);
-      final remaining = digits.length - i - 1;
-      if (remaining > 0 && remaining % 3 == 0) buffer.write(',');
     }
     return buffer.toString();
   }
@@ -528,227 +540,25 @@ class _ManageOrdersScreenState
     final parsed = DateTime.tryParse(value);
     if (parsed == null) return value;
     String two(int v) => v.toString().padLeft(2, '0');
-    return '${parsed.year}-${two(parsed.month)}-${two(parsed.day)}';
+    return '${two(parsed.day)}/${two(parsed.month)}/${parsed.year}';
   }
 }
 
-// Helper widgets and classes
-
 class _OrderTile extends StatelessWidget {
+  final OrderView order;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
   const _OrderTile({
     required this.order,
     required this.onEdit,
     required this.onDelete,
   });
 
-  final OrderView order;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: AppTheme.borderRadiusSM,
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: AppTheme.borderRadiusSM,
-          onTap: onEdit,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Minimalist ID Circle
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: AppTheme.borderRadiusXS,
-                  ),
-                  child: Center(
-                    child: Text(
-                      _ManageOrdersScreenState._shortId(order.id),
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.buyerEmail.isEmpty
-                            ? 'ANONYMOUS_BUYER'
-                            : order.buyerEmail,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_ManageOrdersScreenState._formatDate(order.createdDate)} • ORDER_ID: ${order.id}',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.black38,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '₫${_ManageOrdersScreenState._formatCurrency(order.totalPrice)}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    _StatusBadge(status: order.status),
-                  ],
-                ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: const Icon(
-                    Icons.more_vert_rounded,
-                    color: Colors.black26,
-                  ),
-                  onSelected: (val) {
-                    if (val == 'delete') onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text(
-                        'Cancel Order',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SortOption {
-  const _SortOption({
-    required this.id,
-    required this.label,
-    required this.sortBy,
-    required this.direction,
-  });
-
-  final String id;
-  final String label;
-  final String sortBy;
-  final String direction;
-
-  static const defaults = <_SortOption>[
-    _SortOption(
-      id: 'created_desc',
-      label: 'Mới nhất',
-      sortBy: 'createdDate',
-      direction: 'DESC',
-    ),
-    _SortOption(
-      id: 'created_asc',
-      label: 'Cũ nhất',
-      sortBy: 'createdDate',
-      direction: 'ASC',
-    ),
-    _SortOption(
-      id: 'total_desc',
-      label: 'Giá cao → thấp',
-      sortBy: 'totalPrice',
-      direction: 'DESC',
-    ),
-    _SortOption(
-      id: 'total_asc',
-      label: 'Giá thấp → cao',
-      sortBy: 'totalPrice',
-      direction: 'ASC',
-    ),
-  ];
-}
-
-class _StatusOption {
-  const _StatusOption({
-    required this.id,
-    required this.label,
-    required this.status,
-  });
-
-  final String id;
-  final String label;
-  final String? status;
-
-  static const defaults = <_StatusOption>[
-    _StatusOption(id: 'all', label: 'Tất cả trạng thái', status: null),
-    _StatusOption(id: 'pending', label: 'Pending', status: 'pending'),
-    _StatusOption(id: 'processing', label: 'Processing', status: 'processing'),
-    _StatusOption(id: 'completed', label: 'Completed', status: 'completed'),
-    _StatusOption(id: 'cancelled', label: 'Cancelled', status: 'cancelled'),
-  ];
-}
-
-class _StatCardData {
-  const _StatCardData({
-    required this.title,
-    required this.periodLabel,
-    required this.orders,
-    required this.revenue,
-    required this.icon,
-    required this.accent,
-  });
-
-  final String title;
-  final String periodLabel;
-  final int orders;
-  final double revenue;
-  final IconData icon;
-  final Color accent;
-}
-
-class _StatisticChip extends StatelessWidget {
-  const _StatisticChip({required this.data});
-
-  final _StatCardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 220,
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -764,48 +574,195 @@ class _StatisticChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: data.accent.withValues(alpha: 0.1),
-              borderRadius: AppTheme.borderRadiusXS,
-            ),
-            child: Icon(data.icon, color: data.accent, size: 20),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  data.title,
-                  style: GoogleFonts.outfit(
-                    color: Colors.black38,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '#${_ManageOrdersScreenState._shortId(order.id)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _StatusBadge(status: order.status),
+                  ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 8),
                 Text(
-                  '${data.orders} ORDERS',
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  order.buyerEmail,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  '₫${_ManageOrdersScreenState._formatCurrency(data.revenue)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    color: data.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 11,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _ManageOrdersScreenState._formatDate(order.createdDate),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '\$${_ManageOrdersScreenState._formatCurrency(order.totalPrice)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                onPressed: onEdit,
+                tooltip: 'Edit',
+                color: Colors.blue[700],
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(height: 8),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 18),
+                onPressed: onDelete,
+                tooltip: 'Delete',
+                color: Colors.red[700],
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SortOption {
+  final String id;
+  final String label;
+  final String sortBy;
+  final String direction;
+
+  const _SortOption({
+    required this.id,
+    required this.label,
+    required this.sortBy,
+    required this.direction,
+  });
+
+  static const defaults = <_SortOption>[
+    _SortOption(
+      id: 'created_desc',
+      label: 'Mới nhất',
+      sortBy: 'createdDate',
+      direction: 'desc',
+    ),
+    _SortOption(
+      id: 'created_asc',
+      label: 'Cũ nhất',
+      sortBy: 'createdDate',
+      direction: 'asc',
+    ),
+    _SortOption(
+      id: 'price_desc',
+      label: 'Giá cao nhất',
+      sortBy: 'totalPrice',
+      direction: 'desc',
+    ),
+    _SortOption(
+      id: 'price_asc',
+      label: 'Giá thấp nhất',
+      sortBy: 'totalPrice',
+      direction: 'asc',
+    ),
+  ];
+}
+
+class _StatusOption {
+  final String id;
+  final String label;
+  final String? status;
+
+  const _StatusOption({
+    required this.id,
+    required this.label,
+    required this.status,
+  });
+
+  static const defaults = <_StatusOption>[
+    _StatusOption(id: 'all', label: 'Tất cả trạng thái', status: null),
+    _StatusOption(id: 'pending', label: 'Pending', status: 'pending'),
+    _StatusOption(id: 'processing', label: 'Processing', status: 'processing'),
+    _StatusOption(id: 'completed', label: 'Completed', status: 'completed'),
+    _StatusOption(id: 'cancelled', label: 'Cancelled', status: 'cancelled'),
+  ];
+}
+
+class _StatCardData {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatCardData(this.icon, this.label, this.value, this.color);
+}
+
+class _StatisticChip extends StatelessWidget {
+  final _StatCardData data;
+
+  const _StatisticChip({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: data.color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: data.color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(data.icon, size: 20, color: data.color),
+          const SizedBox(height: 8),
+          Text(
+            data.value,
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: data.color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            data.label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+              letterSpacing: 0.3,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

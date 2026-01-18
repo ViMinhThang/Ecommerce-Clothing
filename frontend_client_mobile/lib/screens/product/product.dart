@@ -38,6 +38,7 @@ class _ProductDetailContent extends StatefulWidget {
 
 class _ProductDetailContentState extends State<_ProductDetailContent> {
   final int _selectedNavIndex = 1;
+
   void _onNavItemTapped(int index) {
     if (index == _selectedNavIndex) return;
 

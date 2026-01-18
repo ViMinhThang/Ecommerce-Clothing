@@ -3,7 +3,6 @@ import 'package:frontend_client_mobile/models/product.dart';
 import 'package:frontend_client_mobile/models/product_variant.dart';
 import 'package:frontend_client_mobile/services/api/api_client.dart';
 import 'package:frontend_client_mobile/services/api/api_config.dart';
-import 'package:frontend_client_mobile/services/api/cart_api_service.dart';
 
 class ProductDetailProvider with ChangeNotifier {
   final int productId;
@@ -54,7 +53,7 @@ class ProductDetailProvider with ChangeNotifier {
         'ProductDetailProvider: Product variants count: ${_product?.variants.length}',
       );
       debugPrint(
-        'ProductDetailProvider: Product images count: ${_product?.images.length}',
+        'ProductDetailProvider: Product images count: ${_product?.images?.length ?? 0}',
       );
 
       if (_product != null &&
@@ -81,12 +80,13 @@ class ProductDetailProvider with ChangeNotifier {
       _isLoadingVariants = true;
       notifyListeners();
 
-      final variantApiService = ProductVariantApiService(ApiClient.dio);
-      final fetchedVariants = await variantApiService.getProductVariants(
-        productId,
-      );
+      // Use product variants from product API response instead
+      // of separate variant API call
+      if (_product != null && _product!.variants.isNotEmpty) {
+        _variants = _product!.variants;
+      }
 
-      _variants = fetchedVariants;
+      // Keep _variants for compatibility
 
       // Fallback to product variants if API returns empty but product has them
       if (_variants.isEmpty &&

@@ -24,6 +24,9 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public Size getSizeById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Size ID cannot be null");
+        }
         return sizeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Size not found with id: " + id));
     }
@@ -38,6 +41,9 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public Size updateSize(Long id, SizeDTO sizeDTO) {
+        if (id == null) {
+            throw new IllegalArgumentException("Size ID cannot be null");
+        }
         Size existingSize = sizeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Size not found with id: " + id));
         existingSize.setSizeName(sizeDTO.getSizeName());
@@ -47,6 +53,9 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public void deleteSize(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Size ID cannot be null");
+        }
         sizeRepository.deleteById(id);
     }
 

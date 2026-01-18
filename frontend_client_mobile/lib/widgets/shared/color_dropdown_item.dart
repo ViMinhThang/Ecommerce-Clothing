@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../config/theme_config.dart';
 
 class ColorDropdownItem extends StatelessWidget {
   final String colorName;
@@ -16,16 +15,22 @@ class ColorDropdownItem extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 16,
-          height: 16,
+          width: 20,
+          height: 20,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.veryLightGray, width: 1),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
         ),
-        const SizedBox(width: 6),
-        Flexible(child: Text(colorName, overflow: TextOverflow.ellipsis)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            colorName,
+            style: const TextStyle(fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

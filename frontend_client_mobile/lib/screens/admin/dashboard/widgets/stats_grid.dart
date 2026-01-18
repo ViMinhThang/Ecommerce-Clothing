@@ -25,9 +25,9 @@ class StatsGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 2.0,
+        mainAxisSpacing: AppTheme.spaceMD,
+        crossAxisSpacing: AppTheme.spaceMD,
+        childAspectRatio: 1.8,
       ),
       itemBuilder: (context, index) {
         final item = stats[index];
@@ -65,7 +65,7 @@ class StatsGrid extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       item.value,
                       style: AppTheme.h4.copyWith(fontSize: 18),

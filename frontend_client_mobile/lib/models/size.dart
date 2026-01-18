@@ -13,14 +13,6 @@ class Size {
 
   Map<String, dynamic> toJson() => _$SizeToJson(this);
 
-  Size copyWith({int? id, String? sizeName, String? status}) {
-    return Size(
-      id: id ?? this.id,
-      sizeName: sizeName ?? this.sizeName,
-      status: status ?? this.status,
-    );
-  }
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -28,13 +20,13 @@ class Size {
           runtimeType == other.runtimeType &&
           id == other.id &&
           sizeName == other.sizeName &&
-          status == other.status;
+          status == other.status; // Updated operator ==
 
   @override
-  int get hashCode => id.hashCode ^ sizeName.hashCode ^ status.hashCode;
+  int get hashCode => id.hashCode ^ sizeName.hashCode ^ status.hashCode; // Updated hashCode
 
   @override
   String toString() {
-    return 'Size{id: $id, sizeName: $sizeName, status: $status}';
+    return 'Size{id: $id, sizeName: $sizeName, status: $status}'; // Updated toString
   }
 }

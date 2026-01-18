@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,16 +37,23 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public WishlistItemView addToWishlist(Long userId, Long productId) {
         // Check if already exists
-        if (productFavoriteRepository.existsByUserIdAndProductId(userId, productId)) {
-            // Return existing item
-            ProductFavorite existing = productFavoriteRepository
-                    .findByUserIdAndProductId(userId, productId)
-                    .orElseThrow();
+        Optional<ProductFavorite> existingOpt = productFavoriteRepository
+                .findByUserIdAndProductId(userId, productId);
+        
+        if (existingOpt.isPresent()) {
+            ProductFavorite existing = existingOpt.get();
+            // Reactivate if it was inactive
+            if (!"active".equals(existing.getStatus())) {
+                existing.setStatus("active");
+                productFavoriteRepository.save(existing);
+            }
             return mapToWishlistItemView(existing);
         }
 
+        @SuppressWarnings("null")
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        @SuppressWarnings("null")
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 

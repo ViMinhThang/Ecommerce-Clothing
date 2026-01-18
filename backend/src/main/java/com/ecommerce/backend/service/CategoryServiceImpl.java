@@ -39,24 +39,36 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category getCategoryById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Category ID cannot be null");
+        }
         return findCategoryOrThrow(id);
     }
 
     @Override
     public Category createCategory(CategoryDTO categoryDTO) {
         Category category = buildCategoryFromDTO(new Category(), categoryDTO);
-        return categoryRepository.save(category);
+        if (category != null) {
+            return categoryRepository.save(category);
+        }
+        throw new IllegalStateException("Failed to create category");
     }
 
     @Override
     public Category updateCategory(Long id, CategoryDTO categoryDTO) {
         Category existingCategory = findCategoryOrThrow(id);
         Category updatedCategory = buildCategoryFromDTO(existingCategory, categoryDTO);
-        return categoryRepository.save(updatedCategory);
+        if (updatedCategory != null) {
+            return categoryRepository.save(updatedCategory);
+        }
+        throw new IllegalStateException("Failed to update category");
     }
 
     @Override
     public void deleteCategory(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Category ID cannot be null");
+        }
         categoryRepository.deleteById(id);
     }
 
@@ -84,6 +96,9 @@ public class CategoryServiceImpl implements CategoryService {
     // ==================== Private Helper Methods ====================
 
     private Category findCategoryOrThrow(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Category ID cannot be null");
+        }
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
     }
