@@ -32,12 +32,23 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Login successful. Roles: $roles');
       if (!mounted) return;
 
+      // Small delay to ensure smooth navigation
+      await Future.delayed(const Duration(milliseconds: 150));
+
       if (roles.contains('ROLE_ADMIN')) {
         debugPrint('Admin user - navigating to /dashboard');
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/dashboard',
+          (route) => false, // Delete entire navigation stack
+        );
       } else {
         debugPrint('Regular user - navigating to /home');
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false, // Delete entire navigation stack
+        );
       }
     } catch (e) {
       debugPrint('Login error: $e');
