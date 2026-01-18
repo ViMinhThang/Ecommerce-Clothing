@@ -8,6 +8,7 @@ import 'package:frontend_client_mobile/providers/user_provider.dart';
 import 'package:frontend_client_mobile/providers/voucher_provider.dart';
 import 'package:frontend_client_mobile/providers/order_provider.dart';
 import 'package:frontend_client_mobile/providers/review_provider.dart';
+import 'package:frontend_client_mobile/providers/inventory_provider.dart';
 import 'package:frontend_client_mobile/screens/admin/categories/manage_categories_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/dashboard/dashboard_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/orders/manage_orders_screen.dart';
@@ -16,6 +17,7 @@ import 'package:frontend_client_mobile/screens/admin/users/manage_users_screen.d
 import 'package:frontend_client_mobile/screens/admin/sizes/manage_sizes_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/colors/manage_colors_screen.dart';
 import 'package:frontend_client_mobile/screens/admin/vouchers/manage_vouchers_screen.dart';
+import 'package:frontend_client_mobile/screens/admin/inventory/manage_inventory_screen.dart';
 import 'package:frontend_client_mobile/providers/color_provider.dart';
 import 'package:frontend_client_mobile/providers/size_provider.dart';
 import 'package:frontend_client_mobile/screens/auth/auth_gate.dart';
@@ -51,6 +53,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => VoucherProvider()),
         ChangeNotifierProvider(create: (context) => OrderProvider()),
         ChangeNotifierProvider(create: (context) => ReviewProvider()),
+        ChangeNotifierProvider(create: (context) => InventoryProvider()),
       ],
       child: const MyApp(),
     ),
@@ -85,6 +88,7 @@ class MyApp extends StatelessWidget {
         '/sizes': (context) => const ManageSizesScreen(),
         '/colors': (context) => const ManageColorsScreen(),
         '/vouchers': (context) => const ManageVouchersScreen(),
+        '/inventory': (context) => const ManageInventoryScreen(),
         '/cart': (context) => const CartScreen(),
         '/checkout': (context) => const CheckoutScreen(),
         '/favorite': (context) => const FavoriteScreen(),

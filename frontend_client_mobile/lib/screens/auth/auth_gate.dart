@@ -22,8 +22,8 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _check() async {
-    // Add a small delay to ensure the token has been saved after login
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Add a delay to ensure the token has been saved after login
+    await Future.delayed(const Duration(milliseconds: 300));
     
     final token = await _storage.readAccessToken();
     debugPrint('AuthGate: Token check - ${token != null ? "Found" : "Not found"}');
@@ -40,23 +40,21 @@ class _AuthGateState extends State<AuthGate> {
       return;
     }
 
-    // If admin is required, decode token to check roles
+    // If admin is required, check roles from storage (more reliable than decoding token)
     try {
-      final parts = token.split('.');
-      if (parts.length >= 2) {
-        final payload = base64.normalize(parts[1]);
-        final decoded = utf8.decode(base64.decode(payload));
-        final Map<String, dynamic> obj = jsonDecode(decoded);
-        final roles = obj['roles'] ?? obj['role'] ?? obj['authorities'];
-        // đơn giản kiểm tra chuỗi 'ADMIN' hoặc 'ROLE_ADMIN'
-        final isAdmin =
-            roles != null && roles.toString().toUpperCase().contains('ADMIN');
+      final roles = await _storage.readRoles();
+      debugPrint('AuthGate: Checking roles from storage - $roles');
+      
+      if (roles != null && roles.isNotEmpty) {
+        final isAdmin = roles.any((role) => 
+          role.toUpperCase().contains('ADMIN')
+        );
         debugPrint('AuthGate: Admin check - $isAdmin (roles: $roles)');
         if (mounted) setState(() => _authorized = isAdmin);
         return;
       }
     } catch (e) {
-      debugPrint('AuthGate: Error decoding token - $e');
+      debugPrint('AuthGate: Error checking roles - $e');
     }
 
     if (mounted) setState(() => _authorized = false);

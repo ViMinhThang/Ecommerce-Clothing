@@ -58,7 +58,7 @@ class _AdminDrawerState extends State<AdminDrawer>
   }
 
   void _initializeAnimations() {
-    const int itemCount = 9; // Increased for 'Back to Store'
+    const int itemCount = 10; // Increased for 'Inventory' + 'Back to Store'
     _controllers = List.generate(
       itemCount,
       (index) =>
@@ -173,10 +173,18 @@ class _AdminDrawerState extends State<AdminDrawer>
                   7,
                   null,
                 ),
+                _buildAnimatedItem(
+                  8,
+                  Icons.inventory_outlined,
+                  'Inventory',
+                  '/inventory',
+                  8,
+                  null,
+                ),
                 const SizedBox(height: AppTheme.spaceMD),
                 _buildSectionLabel('STORE'),
                 _buildAnimatedItem(
-                  8,
+                  9,
                   Icons.storefront_outlined,
                   'Back to Store',
                   '/home',

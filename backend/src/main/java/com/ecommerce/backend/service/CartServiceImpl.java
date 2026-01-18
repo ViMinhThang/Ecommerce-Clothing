@@ -22,6 +22,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductVariantsRepository productVariantsRepository;
     private final UserRepository userRepository;
+    private final InventoryService inventoryService;
 
     @Override
     @SuppressWarnings("null")
@@ -62,6 +63,16 @@ public class CartServiceImpl implements CartService {
                 .filter(item -> item.getProductVariants().getId() == request.getVariantId())
                 .findFirst()
                 .orElse(null);
+
+        int requestedQuantity = request.getQuantity();
+        if (existingItem != null) {
+            requestedQuantity += existingItem.getQuantity();
+        }
+
+        // VALIDATION 3: Check stock availability
+        if (!inventoryService.hasSufficientStock(request.getVariantId(), requestedQuantity)) {
+            throw new IllegalStateException("Insufficient stock available for this product");
+        }
 
         if (existingItem != null) {
             // Update quantity
@@ -106,8 +117,18 @@ public class CartServiceImpl implements CartService {
         if (cartItemId == null) {
             throw new IllegalArgumentException("Cart item ID cannot be null");
         }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+        
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart item not found"));
+        
+        // Check stock availability for new quantity
+        if (!inventoryService.hasSufficientStock(cartItem.getProductVariants().getId(), quantity)) {
+            throw new IllegalStateException("Insufficient stock available for requested quantity");
+        }
+        
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);
     }

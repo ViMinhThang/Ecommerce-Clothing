@@ -37,20 +37,30 @@ class AuthService {
     } on DioException catch (e) {
       String errorMessage = 'Connection error';
       if (e.response != null) {
+        final statusCode = e.response?.statusCode;
         final data = e.response?.data;
-        if (data is Map && data.containsKey('message')) {
-          errorMessage = data['message'];
+        
+        // Handle authentication errors with helpful message
+        if (statusCode == 401 || statusCode == 403) {
+          errorMessage = 'Incorrect username or password!\n\nAvailable accounts:\n• sys.admin / 123456\n• john_doe / password';
+        } else if (data is Map && data.containsKey('message')) {
+          final message = data['message'].toString();
+          if (message.toLowerCase().contains('bad credentials')) {
+            errorMessage = 'Incorrect username or password!\n\nAvailable accounts:\n• sys.admin / 123456\n• john_doe / password';
+          } else {
+            errorMessage = message;
+          }
         } else if (data is Map && data.containsKey('error')) {
           errorMessage = data['error'];
         } else {
           errorMessage = 'Server error: ${e.response?.statusCode}';
         }
       } else {
-        errorMessage = 'Network error: ${e.message}';
+        errorMessage = 'Network error: Unable to connect to server';
       }
       throw Exception(errorMessage);
     } catch (e) {
-      throw Exception('An unexpected error occurred: $e');
+      throw Exception('Unexpected error: $e');
     }
   }
 

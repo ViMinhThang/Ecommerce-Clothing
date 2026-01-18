@@ -33,6 +33,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         private final OrderItemRepository orderItemRepository;
         private final PasswordEncoder passwordEncoder;
         private final AiRecommentService aiRecommentService;
+        private final StoreRepository storeRepository;
+        private final StoreInventoryRepository storeInventoryRepository;
         @Override
         @Transactional
         public void run(String... args) throws JsonProcessingException {
@@ -52,6 +54,11 @@ public class DatabaseSeeder implements CommandLineRunner {
                 initVouchers();
 
                 seedProducts(admin, categoryMap, colorMap, sizeMap, materialMap, seasonMap);
+                
+                // Initialize main store and inventory
+                Store mainStore = initMainStore();
+                initInventory(mainStore);
+                
                 // Nó không chạy thì comment lại đừng xóa dùm cái
                  aiRecommentService.buildCache();
                 // Create a delivered order for john.doe to enable review feature testing
@@ -2117,5 +2124,38 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 List.of("Pink", "Blue", "Black", "Blue", "Brown", "Black", "Grey", "Brown", "White",
                                                 "Blue", "Grey", "Yellow"),
                                 64.95, 51, colorMap, sizeMap, materialMap, seasonMap);
+        }
+
+        private Store initMainStore() {
+                Store store = new Store();
+                store.setName("Main Warehouse");
+                store.setAddress("123 Main Street, City, Country");
+                store = storeRepository.save(store);
+                System.out.println("Created main store: " + store.getName());
+                return store;
+        }
+
+        private void initInventory(Store store) {
+                System.out.println("Initializing inventory for all product variants...");
+                
+                List<ProductVariants> allVariants = productVariantsRepository.findAll();
+                int count = 0;
+                Random random = new Random();
+                
+                for (ProductVariants variant : allVariants) {
+                        // Generate random stock between 50-200 for each variant
+                        int stockAmount = 50 + random.nextInt(151); // 50 to 200
+                        
+                        StoreInventory inventory = new StoreInventory();
+                        inventory.setStore(store);
+                        inventory.setProduct(variant);
+                        inventory.setAmount(stockAmount);
+                        inventory.setStatus("active");
+                        
+                        storeInventoryRepository.save(inventory);
+                        count++;
+                }
+                
+                System.out.println("Created inventory for " + count + " product variants");
         }
 }

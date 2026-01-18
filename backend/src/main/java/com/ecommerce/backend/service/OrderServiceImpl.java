@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final CartRepository cartRepository;
     private final VoucherService voucherService;
+    private final InventoryService inventoryService;
 
     @Override
     public Page<OrderView> getAllOrders(Pageable pageable) {
@@ -75,12 +76,23 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("pending");
         order.setUser(user);
 
-        var sum = 0.0;
+        // Check stock availability for all items before processing
         for (var ct : cartItems) {
             var productVariants = ct.getProductVariants();
             if (productVariants == null || productVariants.getPrice() == null) {
                 throw new IllegalStateException("Product variant or price information is missing");
             }
+            
+            // Check if sufficient stock is available
+            if (!inventoryService.hasSufficientStock(productVariants.getId(), ct.getQuantity())) {
+                throw new IllegalStateException("Insufficient stock for product: " + 
+                    (productVariants.getProduct() != null ? productVariants.getProduct().getName() : "Unknown"));
+            }
+        }
+
+        var sum = 0.0;
+        for (var ct : cartItems) {
+            var productVariants = ct.getProductVariants();
             var orderItem = new OrderItem();
             var quantity = ct.getQuantity();
             var price = productVariants.getPrice().getSalePrice();
@@ -91,6 +103,9 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setPriceAtPurchase(price);
             orderItems.add(orderItem);
             sum += (quantity * price);
+            
+            // Reserve stock for this order item
+            inventoryService.reserveStock(productVariants.getId(), quantity);
         }
 
         order.setOrderItems(orderItems);
@@ -200,7 +215,19 @@ public class OrderServiceImpl implements OrderService {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 
+        String oldStatus = order.getStatus();
         order.setStatus(status);
+        
+        // If order is cancelled, release the reserved stock
+        if ("cancelled".equals(status) && !"cancelled".equals(oldStatus)) {
+            for (var orderItem : order.getOrderItems()) {
+                inventoryService.releaseStock(
+                    orderItem.getProductVariants().getId(), 
+                    orderItem.getQuantity()
+                );
+            }
+        }
+        
         Order savedOrder = orderRepository.save(order);
         return OrderMapper.toOrderView(savedOrder);
     }
